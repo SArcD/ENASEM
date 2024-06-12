@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 import pandas as pd
 import gdown
@@ -19,18 +17,12 @@ def load_csv_from_drive(url):
 # Interfaz de Streamlit
 st.title("Carga de Archivos CSV desde Google Drive")
 
-# Crear pestañas para cada archivo
-tabs = st.tabs(["Archivo 1", "Archivo 2"])
+# Menú desplegable para elegir el archivo
+selected_file = st.selectbox("Selecciona un archivo CSV", list(file_urls.keys()))
 
-# Descargar y mostrar el contenido de cada archivo en su respectiva pestaña
-for i, tab in enumerate(tabs):
-    with tab:
-        file_name = list(file_urls.keys())[i]
-        file_url = file_urls[file_name]
-        
-        # Cargar el archivo seleccionado
-        data = load_csv_from_drive(file_url)
-        
-        st.write(f"Archivo seleccionado: {file_name}")
-        st.write(data)
-
+if selected_file:
+    # Cargar el archivo seleccionado
+    data = load_csv_from_drive(file_urls[selected_file])
+    
+    st.write(f"Archivo seleccionado: {selected_file}")
+    st.write(data)
