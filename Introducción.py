@@ -44,5 +44,6 @@ if selected_file:
         
         # Contar valores NaN por columna
         nan_counts = reduced_data.isna().sum()
+        nan_counts.columns = ["Clave", "Conteo"]
         st.write("Conteo de valores NaN por columna:")
         st.write(nan_counts)
