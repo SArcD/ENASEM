@@ -4,8 +4,8 @@ import gdown
 
 # Enlaces a los archivos CSV en Google Drive
 file_urls = {
-    "ENASEM 2018": "https://drive.google.com/uc?id=1OXrglgbqvwA1Oa2aMB5iLh9bMLJNo-uu",
-    "ENASEM 2021": "https://drive.google.com/uc?id=1pn8-1nCeVb8piMgad-7foAI9z1nmfqsO"
+    "ENASEM 2021": "https://drive.google.com/uc?id=1OXrglgbqvwA1Oa2aMB5iLh9bMLJNo-uu",
+    "ENASEM 2018": "https://drive.google.com/uc?id=1pn8-1nCeVb8piMgad-7foAI9z1nmfqsO"
 }
 
 # Función para descargar y cargar un archivo CSV desde Google Drive
