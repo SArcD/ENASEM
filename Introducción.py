@@ -60,6 +60,15 @@ elif option == "Filtrar datos":
             st.write("Conteo de valores NaN por columna:")
             st.write(nan_counts)
 
+            # Botón para descargar el dataframe reducido en formato xlsx
+            xlsx_data = convert_df_to_xlsx(reduced_data)
+            st.download_button(
+                label="Descargar Dataframe en formato XLSX",
+                data=xlsx_data,
+                file_name="dataframe_reducido.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
 elif option == "Equipo de trabajo":
 
     st.subheader("Equipo de Trabajo")
