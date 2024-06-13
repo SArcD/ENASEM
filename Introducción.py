@@ -14,6 +14,16 @@ def load_csv_from_drive(url):
     gdown.download(url, output, quiet=False)
     return pd.read_csv(output)
 
+# Función para convertir el dataframe a xlsx y crear un enlace de descarga
+def convert_df_to_xlsx(df):
+    output = io.BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    df.to_excel(writer, index=False, sheet_name='Sheet1')
+    writer.save()
+    processed_data = output.getvalue()
+    return processed_data
+
+
 # Interfaz de Streamlit
 #st.title("ENASEM_")
 
