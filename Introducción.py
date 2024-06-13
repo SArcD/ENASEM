@@ -202,8 +202,8 @@ elif option == "Buscador de datos":
 
     # Lista de columnas seleccionadas
 
-# Título de la aplicación
-#st.title('Carga de Archivos CSV')
+    # Título de la aplicación
+    #st.title('Carga de Archivos CSV')
 
     # Crear una caja de carga de archivos
     uploaded_file = st.file_uploader("Elige un archivo CSV", type="csv")
@@ -243,32 +243,32 @@ elif option == "Buscador de datos":
         st.write(nan_counts)
 
     
-    columnas_seleccionadas = list(df.columns)
+        columnas_seleccionadas = list(df.columns)
         
         
-    # Crear widgets de selección para cada columna seleccionada
-    filtros = {}
-    for col in columnas_seleccionadas:
-        if df[col].dtype == 'object':
-            valores_unicos = df[col].unique().tolist()
-            seleccion = st.multiselect(f'Seleccionar valores para {col}', valores_unicos)
-            if seleccion:
-                filtros[col] = seleccion
-        else:
-            rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())), step=1.0)
-            if rango:
-                filtros[col] = rango
+        # Crear widgets de selección para cada columna seleccionada
+        filtros = {}
+        for col in columnas_seleccionadas:
+            if df[col].dtype == 'object':
+                valores_unicos = df[col].unique().tolist()
+                seleccion = st.multiselect(f'Seleccionar valores para {col}', valores_unicos)
+                if seleccion:
+                    filtros[col] = seleccion
+            else:
+                rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())), step=1.0)
+                if rango:
+                    filtros[col] = rango
 
-    # Filtrar el DataFrame basado en los valores seleccionados
-    df_filtrado = df.copy()
-    for col, condicion in filtros.items():
-        if isinstance(condicion, list):
-            df_filtrado = df_filtrado[df_filtrado[col].isin(condicion)]
-        else:
-            df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
+        # Filtrar el DataFrame basado en los valores seleccionados
+        df_filtrado = df.copy()
+        for col, condicion in filtros.items():
+            if isinstance(condicion, list):
+                df_filtrado = df_filtrado[df_filtrado[col].isin(condicion)]
+            else:
+                df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
 
-    st.write('DataFrame Filtrado')
-    st.dataframe(df_filtrado)
+        st.write('DataFrame Filtrado')
+        st.dataframe(df_filtrado)
 
 
 
