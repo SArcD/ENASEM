@@ -15,13 +15,19 @@ def load_csv_from_drive(url):
     return pd.read_csv(output)
 
 # Interfaz de Streamlit
-st.title("Carga y Visualización de Archivos CSV desde Google Drive")
+#st.title("ENASEM_")
 
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
-option = st.sidebar.selectbox("Seleccione una pestaña", ["Cargar Archivo", "Equipo de trabajo"])
+option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Equipo de trabajo"])
 
-if option == "Cargar Archivo":
+if option == "Introducción":
+    #
+    st.subheader("Sobre el envejecimiento en México")
+
+
+
+elif option == "Filtrar datos":
     # Menú desplegable para elegir el archivo
     selected_file = st.selectbox("Selecciona un archivo CSV", list(file_urls.keys()))
 
