@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import gdown
+import io  # Asegúrate de importar el módulo io
+
 
 # Enlaces a los archivos CSV en Google Drive
 file_urls = {
