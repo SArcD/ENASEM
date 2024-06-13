@@ -221,7 +221,7 @@ elif option == "Buscador de datos":
     st.write(df.describe())
 
     # Lista de verificación para seleccionar columnas
-    selected_columns = st.multiselect("Selecciona las columnas para mostrar", data.columns.tolist())
+    selected_columns = st.multiselect("Selecciona las columnas para mostrar", df.columns.tolist())
         
     if selected_columns:
         # Crear dataframe reducido
