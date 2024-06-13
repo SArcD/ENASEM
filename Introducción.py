@@ -14,14 +14,9 @@ def load_csv_from_drive(url):
     gdown.download(url, output, quiet=False)
     return pd.read_csv(output)
 
-# Función para convertir el dataframe a xlsx y crear un enlace de descarga
-def convert_df_to_xlsx(df):
-    output = io.BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    df.to_excel(writer, index=False, sheet_name='Sheet1')
-    writer.save()
-    processed_data = output.getvalue()
-    return processed_data
+# Función para convertir el dataframe a csv
+def convert_df_to_csv(df):
+    return df.to_csv(index=False).encode('utf-8')
 
 
 # Interfaz de Streamlit
@@ -70,13 +65,13 @@ elif option == "Filtrar datos":
             st.write("Conteo de valores NaN por columna:")
             st.write(nan_counts)
 
-            # Botón para descargar el dataframe reducido en formato xlsx
-            xlsx_data = convert_df_to_xlsx(reduced_data)
+            # Botón para descargar el dataframe reducido en formato csv
+            csv_data = convert_df_to_csv(reduced_data)
             st.download_button(
-                label="Descargar Dataframe en formato XLSX",
-                data=xlsx_data,
-                file_name="dataframe_reducido.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                label="Descargar Dataframe en formato CSV",
+                data=csv_data,
+                file_name="dataframe_reducido.csv",
+                mime="text/csv"
             )
 
 elif option == "Equipo de trabajo":
