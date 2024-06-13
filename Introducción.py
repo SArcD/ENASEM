@@ -34,7 +34,7 @@ def convert_df_to_xlsx(df):
 
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
-option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Equipo de trabajo"])
+option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de datos", "Equipo de trabajo"])
 
 if option == "Introducción":
     #
@@ -180,7 +180,7 @@ elif option == "Filtrar datos":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-    st.subheader("Buscador de datos")
+elif option == "Buscador de datos":
 
     st.title('Filtrar DataFrame por Columnas')
 
