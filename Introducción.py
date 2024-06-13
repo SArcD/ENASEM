@@ -96,6 +96,10 @@ elif option == "Filtrar datos":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
+
+    st.subheader("Unir dataframes")
+
+    
     # Seleccionar dos archivos CSV para unir
     selected_files = st.multiselect("Selecciona dos archivos CSV para unir", list(file_urls.keys()), default=None, max_selections=2)
 
@@ -141,6 +145,9 @@ elif option == "Filtrar datos":
                 mime="text/csv"
             )
 
+        st.subheader("Selección de columnas")
+
+        
         # Lista de verificación para seleccionar columnas
         selected_columns = st.multiselect("Selecciona las columnas para mostrar", merged_data.columns.tolist())
         
