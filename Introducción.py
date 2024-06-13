@@ -198,7 +198,16 @@ elif option == "Filtrar datos":
             "DataFrame 4": merged_reduced_data
         }
 
+        selected_df_name = st.selectbox('Seleccionar DataFrame', list(dfs.keys()))
+        df = dfs[selected_df_name].copy()
 
+        # Mostrar el DataFrame seleccionado
+        st.write(f'Seleccionaste: {selected_df_name}')
+        st.dataframe(df)
+
+        # Lista de columnas seleccionadas
+        columnas_seleccionadas = list(df.columns)
+        
         
         # Crear widgets de selección para cada columna seleccionada
         filtros = {}
