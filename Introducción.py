@@ -187,6 +187,43 @@ elif option == "Filtrar datos":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
+        st.subheader("Buscador de datos")
+
+        st.title('Filtrar DataFrame por Columnas')
+
+        dfs = {
+            "DataFrame 1": data,
+            "DataFrame 2": reduced_data,
+            "Dataframe 3": merged_data,
+            "DataFrame 4": merged_reduced_data
+        }
+
+
+        
+        # Crear widgets de selección para cada columna seleccionada
+        filtros = {}
+        for col in columnas_seleccionadas:
+            if df[col].dtype == 'object':
+                valores_unicos = df[col].unique().tolist()
+                seleccion = st.multiselect(f'Seleccionar valores para {col}', valores_unicos)
+                if seleccion:
+                    filtros[col] = seleccion
+            else:
+                rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())))
+                if rango:
+                    filtros[col] = rango
+
+        # Filtrar el DataFrame basado en los valores seleccionados
+        df_filtrado = df.copy()
+        for col, condicion in filtros.items():
+            if isinstance(condicion, list):
+                df_filtrado = df_filtrado[df_filtrado[col].isin(condicion)]
+            else:
+                df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
+
+        st.write('DataFrame Filtrado')
+        st.dataframe(df_filtrado)
+
 
 
 elif option == "Equipo de trabajo":
