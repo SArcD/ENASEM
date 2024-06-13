@@ -111,6 +111,18 @@ elif option == "Filtrar datos":
             st.write("Dataframe unido:")
             st.write(merged_data)
             
+            # Mostrar información del dataframe reducido
+            num_rows, num_cols = merged_data.shape
+            st.write(f"Número de filas: {num_rows}")
+            st.write(f"Número de columnas: {num_cols}")
+            
+            # Contar valores NaN por columna
+            nan_counts = merged_data.isna().sum().reset_index()
+            nan_counts.columns = ["Clave", "Conteo"]
+            
+            st.write("Conteo de valores NaN por columna:")
+            st.write(nan_counts)
+
             # Botón para descargar el dataframe unido en formato CSV
             csv_data = convert_df_to_csv(merged_data)
             st.download_button(
@@ -119,6 +131,7 @@ elif option == "Filtrar datos":
                 file_name="dataframe_unido.csv",
                 mime="text/csv"
             )
+
 
 elif option == "Equipo de trabajo":
 
