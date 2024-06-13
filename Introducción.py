@@ -96,6 +96,30 @@ elif option == "Filtrar datos":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
+    # Seleccionar dos archivos CSV para unir
+    selected_files = st.multiselect("Selecciona dos archivos CSV para unir", list(file_urls.keys()), default=None, max_selections=2)
+
+    if len(selected_files) == 2:
+        # Cargar los dos archivos seleccionados
+        df1 = load_csv_from_drive(file_urls[selected_files[0]])
+        df2 = load_csv_from_drive(file_urls[selected_files[1]])
+        
+        if df1 is not None and df2 is not None:
+            # Unir los dataframes usando la columna 'CUNICAH'
+            merged_data = pd.merge(df1, df2, on='CUNICAH', how='inner')
+            
+            st.write("Dataframe unido:")
+            st.write(merged_data)
+            
+            # Botón para descargar el dataframe unido en formato CSV
+            csv_data = convert_df_to_csv(merged_data)
+            st.download_button(
+                label="Descargar Dataframe unido en formato CSV",
+                data=csv_data,
+                file_name="dataframe_unido.csv",
+                mime="text/csv"
+            )
+
 elif option == "Equipo de trabajo":
 
     st.subheader("Equipo de Trabajo")
