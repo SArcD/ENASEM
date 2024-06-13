@@ -220,6 +220,29 @@ elif option == "Buscador de datos":
     st.write('Descripción del DataFrame:')
     st.write(df.describe())
 
+    # Lista de verificación para seleccionar columnas
+    selected_columns = st.multiselect("Selecciona las columnas para mostrar", data.columns.tolist())
+        
+    if selected_columns:
+        # Crear dataframe reducido
+        df = df[selected_columns]
+            
+        st.write("Dataframe reducido:")
+        st.write(df)
+            
+        # Mostrar información del dataframe reducido
+        num_rows, num_cols = df.shape
+        st.write(f"Número de filas: {num_rows}")
+        st.write(f"Número de columnas: {num_cols}")
+            
+        # Contar valores NaN por columna
+        nan_counts = df.isna().sum().reset_index()
+        nan_counts.columns = ["Clave", "Conteo"]
+            
+        st.write("Conteo de valores NaN por columna:")
+        st.write(nan_counts)
+
+    
     columnas_seleccionadas = list(df.columns)
         
         
