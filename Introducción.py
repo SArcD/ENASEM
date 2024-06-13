@@ -123,6 +123,15 @@ elif option == "Filtrar datos":
             st.write("Conteo de valores NaN por columna:")
             st.write(nan_counts)
 
+            # Botón para descargar el dataframe reducido en formato csv
+            csv_data = convert_df_to_csv(merged_data)
+            st.download_button(
+                label="Descargar Dataframe en formato CSV",
+                data=csv_data,
+                file_name="dataframe_unificado.csv",
+                mime="text/csv"
+            )
+            
             # Botón para descargar el dataframe unido en formato CSV
             csv_data = convert_df_to_csv(merged_data)
             st.download_button(
@@ -141,6 +150,36 @@ elif option == "Filtrar datos":
             
             st.write("Dataframe reducido:")
             st.write(reduced_merged_data)
+
+            # Mostrar información del dataframe reducido
+            num_rows, num_cols = reduced_merged_data.shape
+            st.write(f"Número de filas: {num_rows}")
+            st.write(f"Número de columnas: {num_cols}")
+            
+            # Contar valores NaN por columna
+            nan_counts = reduced_merged_data.isna().sum().reset_index()
+            nan_counts.columns = ["Clave", "Conteo"]
+            
+            st.write("Conteo de valores NaN por columna:")
+            st.write(nan_counts)
+
+            # Botón para descargar el dataframe reducido en formato csv
+            csv_data = convert_df_to_csv(reduced_merged_data)
+            st.download_button(
+                label="Descargar Dataframe en formato CSV",
+                data=csv_data,
+                file_name="dataframe_unificado_reducido.csv",
+                mime="text/csv"
+            )
+
+            xlsx_data = convert_df_to_xlsx(reduced_merged_data)
+            st.download_button(
+                label="Descargar Dataframe en formato XLSX",
+                data=xlsx_data,
+                file_name="dataframe_unificado_reducido.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
 
 
 elif option == "Equipo de trabajo":
