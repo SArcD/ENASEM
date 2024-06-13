@@ -190,7 +190,7 @@ elif option == "Filtrar datos":
         "DataFrame 1": data,
         "DataFrame 2": reduced_data,
         "Dataframe 3": merged_data,
-        "DataFrame 4": merged_reduced_data
+        "DataFrame 4": reduced_merged_data
     }
 
     selected_df_name = st.selectbox('Seleccionar DataFrame', list(dfs.keys()))
