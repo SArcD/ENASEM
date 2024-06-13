@@ -8,8 +8,8 @@ import io  # Asegúrate de importar el módulo io
 file_urls = {
     "Archivo 1": "https://drive.google.com/uc?id=1OXrglgbqvwA1Oa2aMB5iLh9bMLJNo-uu",
     "Archivo 2": "https://drive.google.com/uc?id=1pn8-1nCeVb8piMgad-7foAI9z1nmfqsO",
-    "Archivo 3": "https://drive.google.com/file/d/13YXjfs3Cwm9hA7OtulOcRbYpSkAVQGiz/view?usp=drive_link",
-    "Archivo 4": "https://docs.google.com/spreadsheets/d/1mnElCAyB8NtwkV346QSizN2oiObmKsqVINpz70qyG_s/edit?usp=drive_link"
+    "Archivo 3": "https://docs.google.com/spreadsheets/d/1bMwW8Ho7qoPiYRG2WVC_zz3gfrzh9cHE1sqEcPY8gBs/edit?usp=sharing",
+    "Archivo 4": "https://drive.google.com/file/d/1sd2AixzBW2e48GjXJS8NSqwno92_FBxX/view?usp=sharing"
 }
 
 # Función para descargar y cargar un archivo CSV desde Google Drive
