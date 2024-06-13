@@ -255,7 +255,7 @@ elif option == "Buscador de datos":
             if seleccion:
                 filtros[col] = seleccion
         else:
-            rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())), step=1)
+            rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())), step=1.0)
             if rango:
                 filtros[col] = rango
 
