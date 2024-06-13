@@ -16,6 +16,10 @@ def load_csv_from_drive(url):
     gdown.download(url, output, quiet=False)
     return pd.read_csv(output)
 
+# Función para convertir el dataframe a csv
+def convert_df_to_csv(df):
+    return df.to_csv(index=False).encode('utf-8')
+
 
 # Función para convertir el dataframe a xlsx
 def convert_df_to_xlsx(df):
@@ -72,6 +76,15 @@ elif option == "Filtrar datos":
             
             st.write("Conteo de valores NaN por columna:")
             st.write(nan_counts)
+
+            # Botón para descargar el dataframe reducido en formato csv
+            csv_data = convert_df_to_csv(reduced_data)
+            st.download_button(
+                label="Descargar Dataframe en formato CSV",
+                data=csv_data,
+                file_name="dataframe_reducido.csv",
+                mime="text/csv"
+            )
 
             xlsx_data = convert_df_to_xlsx(reduced_data)
             st.download_button(
