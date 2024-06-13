@@ -6,10 +6,10 @@ import io  # Asegúrate de importar el módulo io
 
 # Enlaces a los archivos CSV en Google Drive
 file_urls = {
-    "Archivo 1": "https://drive.google.com/uc?id=1OXrglgbqvwA1Oa2aMB5iLh9bMLJNo-uu",
-    "Archivo 2": "https://drive.google.com/uc?id=1pn8-1nCeVb8piMgad-7foAI9z1nmfqsO",
-    "Archivo 3": "https://drive.google.com/uc?id=1-u7LB4soK-g3w7Ll2qQ6cEqIwvjgGyxY",
-    "Archivo 4": "https://drive.google.com/uc?id=1t3jf686XhTDQmL1Tmhz5nSzQ9v7hRmZD"
+    "ENASEM_2021_sec_a": "https://drive.google.com/uc?id=1OXrglgbqvwA1Oa2aMB5iLh9bMLJNo-uu",
+    "ENASEM_2018_sec_a": "https://drive.google.com/uc?id=1pn8-1nCeVb8piMgad-7foAI9z1nmfqsO",
+    "ENASEM_2021_sec_g": "https://drive.google.com/uc?id=1-u7LB4soK-g3w7Ll2qQ6cEqIwvjgGyxY",
+    "ENASEM_2018_sec_g": "https://drive.google.com/uc?id=1t3jf686XhTDQmL1Tmhz5nSzQ9v7hRmZD"
 }
 
 # Función para descargar y cargar un archivo CSV desde Google Drive
