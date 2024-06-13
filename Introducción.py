@@ -34,8 +34,8 @@ def convert_df_to_xlsx(df):
 
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
-#option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de datos", "Equipo de trabajo"])
-option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Equipo de trabajo"])
+option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de datos", "Equipo de trabajo"])
+#option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Equipo de trabajo"])
 
 
 if option == "Introducción":
@@ -182,25 +182,44 @@ elif option == "Filtrar datos":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-#elif option == "Buscador de datos":
+elif option == "Buscador de datos":
 
     st.title('Filtrar DataFrame por Columnas')
 
-    dfs = {
-        "DataFrame 1": data,
-        "DataFrame 2": reduced_data,
-        "Dataframe 3": merged_data,
-        "DataFrame 4": reduced_merged_data
-    }
+    #dfs = {
+    #    "DataFrame 1": data,
+    #    "DataFrame 2": reduced_data,
+    #    "Dataframe 3": merged_data,
+    #    "DataFrame 4": reduced_merged_data
+    #}
 
-    selected_df_name = st.selectbox('Seleccionar DataFrame', list(dfs.keys()))
-    df = dfs[selected_df_name].copy()
+    #selected_df_name = st.selectbox('Seleccionar DataFrame', list(dfs.keys()))
+    #df = dfs[selected_df_name].copy()
 
     # Mostrar el DataFrame seleccionado
-    st.write(f'Seleccionaste: {selected_df_name}')
-    st.dataframe(df)
+    #st.write(f'Seleccionaste: {selected_df_name}')
+    #st.dataframe(df)
 
     # Lista de columnas seleccionadas
+
+# Título de la aplicación
+#st.title('Carga de Archivos CSV')
+
+    # Crear una caja de carga de archivos
+    uploaded_file = st.file_uploader("Elige un archivo CSV", type="csv")
+
+    if uploaded_file is not None:
+        # Cargar el archivo como un DataFrame de pandas
+        df = pd.read_csv(uploaded_file)
+
+    # Mostrar el DataFrame cargado
+    st.write('DataFrame cargado:')
+    st.dataframe(df)
+
+    # Opcional: mostrar estadísticas básicas del DataFrame
+    st.write('Descripción del DataFrame:')
+    st.write(df.describe())
+
     columnas_seleccionadas = list(df.columns)
         
         
