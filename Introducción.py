@@ -19,7 +19,7 @@ st.title("Carga y Visualización de Archivos CSV desde Google Drive")
 
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
-option = st.sidebar.selectbox("Seleccione una pestaña", ["Cargar Archivo", "Otra Funcionalidad"])
+option = st.sidebar.selectbox("Seleccione una pestaña", ["Cargar Archivo", "Equipo de trabajo"])
 
 if option == "Cargar Archivo":
     # Menú desplegable para elegir el archivo
@@ -54,9 +54,7 @@ if option == "Cargar Archivo":
             st.write("Conteo de valores NaN por columna:")
             st.write(nan_counts)
 
-elif option == "Otra Funcionalidad":
-    st.write("Aquí puedes agregar otra funcionalidad.")
-    # Agrega el código correspondiente para la otra funcionalidad
+elif option == "Equipo de trabajo":
 
     st.subheader("Equipo de Trabajo")
 
