@@ -132,6 +132,16 @@ elif option == "Filtrar datos":
                 mime="text/csv"
             )
 
+        # Lista de verificación para seleccionar columnas
+        selected_columns = st.multiselect("Selecciona las columnas para mostrar", merged_data.columns.tolist())
+        
+        if selected_columns:
+            # Crear dataframe reducido
+            reduced_merged_data = merged_data[selected_columns]
+            
+            st.write("Dataframe reducido:")
+            st.write(reduced_merged_data)
+
 
 elif option == "Equipo de trabajo":
 
