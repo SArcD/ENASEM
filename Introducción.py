@@ -32,10 +32,6 @@ def convert_df_to_xlsx(df):
     return processed_data
 
 
-
-# Interfaz de Streamlit
-#st.title("ENASEM_")
-
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
 option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Equipo de trabajo"])
@@ -43,8 +39,6 @@ option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filt
 if option == "Introducción":
     #
     st.subheader("Sobre el envejecimiento en México")
-
-
 
 elif option == "Filtrar datos":
     # Menú desplegable para elegir el archivo
@@ -147,7 +141,6 @@ elif option == "Filtrar datos":
 
         st.subheader("Selección de columnas")
 
-        
         # Lista de verificación para seleccionar columnas
         selected_columns = st.multiselect("Selecciona las columnas para mostrar", merged_data.columns.tolist())
         
@@ -187,51 +180,51 @@ elif option == "Filtrar datos":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-        st.subheader("Buscador de datos")
+    st.subheader("Buscador de datos")
 
-        st.title('Filtrar DataFrame por Columnas')
+    st.title('Filtrar DataFrame por Columnas')
 
-        dfs = {
-            "DataFrame 1": data,
-            "DataFrame 2": reduced_data,
-            "Dataframe 3": merged_data,
-            "DataFrame 4": merged_reduced_data
-        }
+    dfs = {
+        "DataFrame 1": data,
+        "DataFrame 2": reduced_data,
+        "Dataframe 3": merged_data,
+        "DataFrame 4": merged_reduced_data
+    }
 
-        selected_df_name = st.selectbox('Seleccionar DataFrame', list(dfs.keys()))
-        df = dfs[selected_df_name].copy()
+    selected_df_name = st.selectbox('Seleccionar DataFrame', list(dfs.keys()))
+    df = dfs[selected_df_name].copy()
 
-        # Mostrar el DataFrame seleccionado
-        st.write(f'Seleccionaste: {selected_df_name}')
-        st.dataframe(df)
+    # Mostrar el DataFrame seleccionado
+    st.write(f'Seleccionaste: {selected_df_name}')
+    st.dataframe(df)
 
-        # Lista de columnas seleccionadas
-        columnas_seleccionadas = list(df.columns)
+    # Lista de columnas seleccionadas
+    columnas_seleccionadas = list(df.columns)
         
         
-        # Crear widgets de selección para cada columna seleccionada
-        filtros = {}
-        for col in columnas_seleccionadas:
-            if df[col].dtype == 'object':
-                valores_unicos = df[col].unique().tolist()
-                seleccion = st.multiselect(f'Seleccionar valores para {col}', valores_unicos)
-                if seleccion:
-                    filtros[col] = seleccion
-            else:
-                rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())))
-                if rango:
-                    filtros[col] = rango
+    # Crear widgets de selección para cada columna seleccionada
+    filtros = {}
+    for col in columnas_seleccionadas:
+        if df[col].dtype == 'object':
+            valores_unicos = df[col].unique().tolist()
+            seleccion = st.multiselect(f'Seleccionar valores para {col}', valores_unicos)
+            if seleccion:
+                filtros[col] = seleccion
+        else:
+            rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())))
+            if rango:
+                filtros[col] = rango
 
-        # Filtrar el DataFrame basado en los valores seleccionados
-        df_filtrado = df.copy()
-        for col, condicion in filtros.items():
-            if isinstance(condicion, list):
-                df_filtrado = df_filtrado[df_filtrado[col].isin(condicion)]
-            else:
-                df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
+    # Filtrar el DataFrame basado en los valores seleccionados
+    df_filtrado = df.copy()
+    for col, condicion in filtros.items():
+        if isinstance(condicion, list):
+            df_filtrado = df_filtrado[df_filtrado[col].isin(condicion)]
+        else:
+            df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
 
-        st.write('DataFrame Filtrado')
-        st.dataframe(df_filtrado)
+    st.write('DataFrame Filtrado')
+    st.dataframe(df_filtrado)
 
 
 
