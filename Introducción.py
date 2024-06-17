@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import gdown
 import io  # Asegúrate de importar el módulo io
-
+import tkinter as tk
+from tkinter import ttk
 
 # Enlaces a los archivos CSV en Google Drive
 file_urls = {
@@ -56,8 +57,6 @@ if option == "Introducción":
 
     st.subheader("Comorbilidades asociadas a la sarcopenia")
 
-        import tkinter as tk
-        from tkinter import ttk
         
         ventana = tk.Tk()
         ventana.title("Ventana con pestañas")
