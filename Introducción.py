@@ -58,7 +58,7 @@ if option == "Introducción":
 
     tab1, tab2, = st.tabs(["Diabetes Mellitus 2", "Hipertensión arterial",])
         
-        with tab1:
+    with tab1:
             st.header("Diabetes Mellitus 2")
             st.markdown(
 
