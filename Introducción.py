@@ -57,24 +57,24 @@ if option == "Introducción":
 
     st.subheader("Comorbilidades asociadas a la sarcopenia")
 
+    ventana = tk.Tk()
+    ventana.title("Ventana con pestañas")
         
-        ventana = tk.Tk()
-        ventana.title("Ventana con pestañas")
+    pestañas = ttk.Notebook(ventana)
+    pestañas.pack()
         
-        pestañas = ttk.Notebook(ventana)
-        pestañas.pack()
+    pestaña1 = ttk.Frame(pestañas)
+    pestaña2 = ttk.Frame(pestañas)
         
-        pestaña1 = ttk.Frame(pestañas)
-        pestaña2 = ttk.Frame(pestañas)
+    pestañas.add(pestaña1, text="Pestaña 1")
+    pestañas.add(pestaña2, text="Pestaña 2")
         
-        pestañas.add(pestaña1, text="Pestaña 1")
-        pestañas.add(pestaña2, text="Pestaña 2")
+    etiqueta1 = tk.Label(pestaña1, text="Etiqueta en la pestaña 1")
+    etiqueta1.pack()
         
-        etiqueta1 = tk.Label(pestaña1, text="Etiqueta en la pestaña 1")
-        etiqueta1.pack()
+    boton2 = tk.Button(pestaña2, text="Botón en la pestaña 2")
+    boton2.pack()   
         
-        boton2 = tk.Button(pestaña2, text="Botón en la pestaña 2")
-        boton2.pack()
 
 
 
