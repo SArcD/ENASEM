@@ -60,8 +60,9 @@ if option == "Introducción":
         
     with tab1:
             st.header("Diabetes Mellitus 2")
-            st.markdown(
-
+            
+    with tab2:
+            st.header("Hipertensión arterial")
 
 elif option == "Filtrar datos":
     # Menú desplegable para elegir el archivo
