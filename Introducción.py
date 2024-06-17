@@ -81,7 +81,10 @@ https://www.paho.org/es/temas/diabetes
             st.header("Hipertensión arterial")
             st.write("La hipertensión arterial, definida como presión arterial sistólica igual o superior a 140 mmHg o presión arterial diastólica igual o superior a 90 mmHg, es uno de los factores de riesgo más importantes para las enfermedades cardiovasculares y la enfermedad renal crónica. La presión arterial es un rasgo multifacético, afectado por la nutrición, el medio ambiente y el comportamiento a lo largo del curso de la vida, incluida la nutrición y el crecimiento fetal y la infancia, la adiposidad, los componentes específicos de la dieta, especialmente la ingesta de sodio y potasio, el consumo de alcohol, el tabaquismo y la actividad física, la contaminación del aire, el plomo, el ruido, el estrés psicosocial y el uso de medicamentos para bajar la presión arterial.")
             st.subheader("Impacto en la salud")
-            st.write("La hipertensión es un trastorno médico grave que puede incrementar el riesgo de enfermedades cardiovasculares, cerebrales, renales y otras. Esta importante causa de defunción prematura en todo el mundo afecta a más de uno de cada cuatro hombres y una de cada cinco mujeres, o sea, más de 1000 millones de personas. La carga de morbilidad por hipertensión es desproporcionadamente alta en los países de ingresos bajos y medianos, en los que se registran dos terceras partes de los casos, debido en gran medida al aumento de los factores de riesgo entre esas poblaciones en los últimos decenios.")
+            st.write("""
+            La hipertensión es un trastorno médico grave que puede incrementar el riesgo de enfermedades cardiovasculares, cerebrales, renales y otras. Esta importante causa de defunción prematura en todo el mundo afecta a más de uno de cada cuatro hombres y una de cada cinco mujeres, o sea, más de 1000 millones de personas. La carga de morbilidad por hipertensión es desproporcionadamente alta en los países de ingresos bajos y medianos, en los que se registran dos terceras partes de los casos, debido en gran medida al aumento de los factores de riesgo entre esas poblaciones en los últimos decenios. 
+            https://www.paho.org/es/enlace/hipertension
+            """)
 
 elif option == "Filtrar datos":
     # Menú desplegable para elegir el archivo
