@@ -56,11 +56,11 @@ if option == "Introducción":
 
     st.subheader("Comorbilidades asociadas a la sarcopenia")
 
-tab1, tab2, = st.tabs(["Diabetes Mellitus 2", "Hipertensión arterial",])
-
-with tab1:
-    st.header("Diabetes Mellitus 2")
-    st.markdown(
+        tab1, tab2, = st.tabs(["Diabetes Mellitus 2", "Hipertensión arterial",])
+        
+        with tab1:
+            st.header("Diabetes Mellitus 2")
+            st.markdown(
 
 
 elif option == "Filtrar datos":
