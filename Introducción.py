@@ -59,7 +59,7 @@ if option == "Introducción":
 import tkinter as tk
 from tkinter import ttk
 
-    ventana = tk.Tk()
+ventana = tk.Tk()
     ventana.title("Ventana con pestañas")
     
     pestañas = ttk.Notebook(ventana)
