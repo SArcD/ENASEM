@@ -1,4 +1,4 @@
-pip cache purge
+!pip cache purge
 
 import streamlit as st
 import pandas as pd
