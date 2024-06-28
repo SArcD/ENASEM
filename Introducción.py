@@ -1639,7 +1639,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
 
     # Botón para descargar el dataframe reducido en formato csv
-    csv_data = convert_df_to_csv(datos_filtrados)
+    csv_data = convert_df_to_csv(nuevo_dataframe_filtrado)
     st.download_button(
         label="Descargar Dataframe en formato CSV",
         data=csv_data,
@@ -1647,7 +1647,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
         mime="text/csv"
         )
 
-    xlsx_data = convert_df_to_xlsx(datos_filtrados)
+    xlsx_data = convert_df_to_xlsx(nuevo_dataframe_filtrado)
     st.download_button(
         label="Descargar Dataframe en formato XLSX",
         data=xlsx_data,
@@ -1839,7 +1839,6 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
 
 ##################
-
 
 
 ##################
