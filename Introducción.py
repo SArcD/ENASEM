@@ -435,6 +435,7 @@ elif option == "Buscador de datos":
 
         st.write('DataFrame Filtrado')
         st.dataframe(df_filtrado)
+##################
 
 elif option == "Relaciones de Indiscernibilidad 2018":
     
@@ -474,8 +475,22 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
 
 
-    st.title('Filtrar DataFrame por Columnas')
+    st.title('Estimación del nivel de riesgo por sarcopenia')
 
+    st.write("""En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la **Encuesta Nacional Sobre Salud y Envejecimiento**. Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario **SARC-F**.
+             """) 
+    st.markdown("""
+    1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los criterios de inclusión o presenten registros incompletos. Además se definen 5 cuestionamientos de la ENASEM que guardan similitud con SARC-F y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
+
+    2. **Clasificación de participantes**: Usando la teoría de conjuntos rugosos, se divide la base de datos en una colección de subconjuntos de pacientes que hayan contestado idénticamente a las preguntas clave (a estos subconjuntos se les llama relaciones de indiscernibilidad).
+
+    3. **Obtención de reglas de decisión**: Se entrena un modelo de árbol de decisión para determinar un conjunto de reglas que permitan clasificar a los pacientes de la base de datos (aún aquellos que inicialmente no tenían respuestas completas en todas las preguntas de interés).
+""")
+    
+    st.subheader("Carga y depuración de datos")
+    st.write("""
+    Por favor, cargue un archivo correspodiente a las secciones **conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018**. El archivo debe estar en formato csv y debe aparecer debajo, si se cargo correctamente. 
+""")
     # Crear una caja de carga de archivos
     uploaded_file = st.file_uploader("Elige un archivo CSV", type="csv")
 
@@ -488,42 +503,167 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     # Mostrar el DataFrame cargado
     #df.columns = df.columns.str.replace('_18', '', regex=False)
     #df.columns = df.columns.str.replace('_18', '', regex=False).str.replace('_21', '', regex=False)
-    st.write('DataFrame cargado:')
+    st.write('Cada **fila** corresponde a las respuestas de una o un participante de la ENASEM y cada **columna** corresponde a un pregunta en particular de las **secciones "a" a "i"** (si quiere revisar el significado de las claves de las preguntas revise la sección siguiente). Los registros vacíos (aquellos que muestren un **None**), los que contengan repuestas **"8" o "9"** (**"No sabe"** y **"No quiere contestar"** y los que tengan (**999**) **se eliminarán en la depuración**).')
     st.dataframe(df)
 
-    # Opcional: mostrar estadísticas básicas del DataFrame
-    st.write('Descripción del DataFrame:')
-    st.write(df.describe())
-    st.write(df.shape)
+    st. subheader("Selección de variables de interés")
+    st.write("""
+             En esta sección puede elegir entre dos posibles listas de variables de interés:
+             - La **selección estándar**: contiene una lista de variables que pude econtrarse en el apéndice (vea la parte final de esta página).
 
+             - **Lista personalizada**: Si selecciona esta opción aparecerá una barra en la que puede elegir entre las variables contenida en la base de datos para su búsqueda (**Nota:** para que el código funcione correctamente, su lista debe incluir a las siguientes variables: )
+             """)
+
+    # Ejemplo de contenido colapsable
+    with st.expander("Listado de variables incluidas en la **selección estándar**"):
+    
+        st.write("""
+                 
+- **Código AGE_18**: Edad en años cumplidos.
+
+- **Código SEX_18**: Sexo.
+
+- **Código C4_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene hipertensión o presión alta?
+
+- **Código C6_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene diabetes?
+
+- **Código C12_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene cáncer?
+
+- **Código C19_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene alguna enfermedad respiratoria, tal como asma o enfisema?
+
+- **Código C22A_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted ha tenido un ataque/infarto al corazón?
+
+- **Código C26_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted ha tenido una embolia cerebral, derrame cerebral o isquemia cerebral transitoria?
+
+- **Código C32_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene artritis o reumatismo?
+
+- **Código C37_18**: ¿Se ha caído en los últimos dos años?
+
+- **Código C49_1_18**: Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo se ha sentido deprimido?
+
+- **Código C49_2_18**: Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo ha sentido que todo lo que hacía era un esfuerzo?
+
+- **Código C49_8_18**: Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo se ha sentido cansado?
+
+- **Código C64_18**: ¿Comparado con hace dos años, usted...?
+
+- **Código C66_18**: ¿Como cuántos kilos pesa usted ahora?
+
+- **Código C67_1_18**: ¿Como cuánto mide usted sin zapatos? - Metros
+
+- **Código C67_2_18**: ¿Como cuánto mide usted sin zapatos? - Centímetros
+
+- **Código C68E_18**: Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente? - Fatiga severa o agotamiento serio
+
+- **Código C68G_18**: Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente? - Pérdida involuntaria de orina, al hacer cosas como toser, estornudar, recoger cosas o hacer ejercicio
+
+- **Código C68H_18**: Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente? - Pérdida involuntaria de orina, cuando tenía urgencia de orinar pero no pudo llegar al baño a tiempo
+
+- **Código C69A_18**: ¿Cómo evaluaría la fuerza de su mano (la que utiliza más)?, ¿diría que es...?
+
+- **Código C69B_18**: ¿Qué tan seguido tiene usted dificultad en mantener su equilibrio/balance?, ¿diría que...?
+
+- **Código C71A_18**: ¿Le falta alguna extremidad o parte de sus piernas o brazos debido a un accidente o enfermedad?
+
+- **Código C76_18**: En los últimos 12 meses, ¿cuánto efecto cree usted que el estrés ha tenido sobre su salud?
+
+- **Código H1_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene usted dificultad en caminar varias cuadras?
+
+- **Código H4_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en estar sentado(a) por dos horas?
+
+- **Código H5_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantarse de una silla después de haber estado sentado(a) durante largo tiempo?
+
+- **Código H6_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir varios pisos de escaleras sin descansar?
+
+- **Código H8_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en inclinar su cuerpo, arrodillarse, agacharse o ponerse en cuclillas?
+
+- **Código H9_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir o extender los brazos más arriba de los hombros?
+
+- **Código H10_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud ¿tiene alguna dificultad en jalar o empujar objetos grandes como un sillón?
+
+- **Código H11_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantar o transportar objetos que pesan más de 5 kilos, como una bolsa pesada de alimentos?
+
+- **Código H12_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en recoger una moneda de 1 peso de la mesa?
+
+- **Código H13_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene usted dificultad para vestirse, incluyendo ponerse los zapatos y los calcetines?
+
+- **Código H15A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad para caminar de un lado a otro de un cuarto?
+
+- **Código H15B_18**: ¿Usa usted equipo o aparatos, tales como bastón, caminador o silla de ruedas para caminar de un lado a otro de un cuarto?
+
+- **Código H15D_18**: ¿Alguien le ayuda a usted para caminar de un lado a otro de un cuarto?
+
+- **Código H16A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad para bañarse en una tina o regadera?
+
+- **Código H16D_18**: ¿Alguien le ayuda a usted para bañarse en una tina o regadera?
+
+- **Código H17A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad al comer, por ejemplo para cortar su comida?
+
+- **Código H17D_18**: ¿Alguien le ayuda a usted al comer, por ejemplo para cortar su comida?
+
+- **Código H18A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad al acostarse y levantarse de la cama?
+
+- **Código H18D_18**: ¿Alguien le ayuda a usted al acostarse y levantarse de la cama?
+
+- **Código H19A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad al usar el excusado, incluyendo subirse y bajarse o ponerse en cuclillas?
+
+- **Código H19D_18**: ¿Alguien le ayuda a usted al usar el excusado, incluyendo subirse y bajarse o ponerse en cuclillas?
+    """)
+
+
+    # Opcional: mostrar estadísticas básicas del DataFrame
+    st.write(f'**Descripción de la base de datos:** La base seleccionada contiene **{df.shape[0]}** filas y **{df.shape[1]}** columnas.')
+    df['Indice'] = df.index
+
+    # Lista predefinida "selección estándar"
+    seleccion_estandar = ['Indice',"AGE_18", 'SEX_18', 'C4_18', 'C6_18', 'C12_18', 'C19_18', 'C22A_18', 'C26_18', "C32_18", 'C37_18',
+                      "C49_1_18", 'C49_2_18', 'C49_8_18', 'C64_18', 'C66_18', 'C67_1_18', 'C67_2_18', 'C68E_18', 'C68G_18',
+                      'C68H_18', 'C69A_18', 'C69B_18', 'C71A_18', 'C76_18', 'H1_18', 'H4_18', 'H5_18', 'H6_18', 'H8_18',
+                      'H9_18', 'H10_18', 'H11_18', 'H12_18', 'H13_18', 'H15A_18', 'H15B_18', 'H15D_18', 'H16A_18', 'H16D_18',
+                      'H17A_18', 'H17D_18', 'H18A_18', 'H18D_18', 'H19A_18', 'H19D_18']
+###
+
+# Opción para seleccionar columnas
+    opcion_seleccion = st.radio("¿Cómo quieres seleccionar las columnas?", ("Usar selección estándar", "Usar lista personalizada"))
+
+    if opcion_seleccion == "Usar selección estándar":
+        selected_columns = seleccion_estandar
+    else:
+        selected_columns = st.multiselect("Usar lista personalizada", df.columns.tolist())
 
     # Lista de verificación para seleccionar columnas
-    selected_columns = st.multiselect("Selecciona las columnas para mostrar", df.columns.tolist())
+    #selected_columns = st.multiselect("Selecciona las columnas para mostrar", df.columns.tolist())
         
     if selected_columns:
         # Crear dataframe reducido
         df = df[selected_columns]
             
-        st.write("Dataframe reducido:")
+        st.write("Base de datos con la **lista de variables seleccionada:**")
         st.write(df)
             
         # Mostrar información del dataframe reducido
         num_rows, num_cols = df.shape
-        st.write(f"Número de filas: {num_rows}")
-        st.write(f"Número de columnas: {num_cols}")
-            
+        #st.write(f"Número de filas: {num_rows}")
+        #st.write(f"Número de columnas: {num_cols}")
+        # Opcional: mostrar estadísticas básicas del DataFrame
+        st.write(f'**Descripción de la base de datos:** La base seleccionada contiene **{df.shape[0]}** filas y **{df.shape[1]}** columnas.')
+
+
         # Contar valores NaN por columna
         nan_counts = df.isna().sum().reset_index()
-        nan_counts.columns = ["Clave", "Conteo"]
+        nan_counts.columns = ["Clave", "Conteo de filas vacias"]
             
-        st.write("Conteo de valores NaN por columna:")
-        st.write(nan_counts)
+        #st.write("Conteo de valores NaN por columna:")
+        #st.write(nan_counts)
+        #st.dataframe(nan_counts, use_container_width=True)
 
-######################################
+####################################
+
         import pandas as pd
         import gdown
         import streamlit as st
 
+        # Función para cargar el diccionario
         def cargar_diccionario(url, nombre):
             output = f'{nombre}.xlsx'
             gdown.download(url, output, quiet=False)
@@ -533,7 +673,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
                 xls = pd.ExcelFile(output)
                 sheet_name = xls.sheet_names[0]  # Obtener el nombre de la primera hoja
                 df = pd.read_excel(xls, sheet_name=sheet_name, header=None, engine='openpyxl')
-                st.write("Archivo xlsx cargado correctamente.")
+                #st.write("Archivo xlsx cargado correctamente.")
             except Exception as e:
                 st.error(f"Error al leer el archivo xlsx: {e}")
                 return {}
@@ -541,72 +681,65 @@ elif option == "Relaciones de Indiscernibilidad 2018":
             diccionario = {}
             for index, row in df.iterrows():
                 variable = row[0]
-                if variable.startswith("Pregunta"):
+                if isinstance(variable, str) and variable.startswith("Pregunta"):
                     partes = variable.split(" ", 2)
                     if len(partes) < 3:
                         continue
                     codigo = partes[1].replace('.', '_')
                     explicacion = partes[2]
                     diccionario[codigo] = explicacion
+
+            # Agregar explicaciones adicionales
+            diccionario.update({
+                "Indice": "El número de fila en la base de datos",
+                "AGE_18": "Edad en años cumplidos",
+                "SEX_18": "Sexo"
+            })
+
             return diccionario
 
-# URLs de los archivos en Google Drive (usando enlaces directos de descarga)
-        urls = {
-            '2018': 'https://drive.google.com/uc?id=17o5hDLk_RHU6kGKinJtmRGtApv927Abu',
-            '2021': 'https://drive.google.com/uc?id=1K0wPIeN5gE5NizkmzBdvCw0WNGpKZFbs'
-        }
+        # URL del archivo de 2018 en Google Drive
+        url_2018 = 'https://drive.google.com/uc?id=17o5hDLk_RHU6kGKinJtmRGtApv927Abu'
 
-# Nombres de los diccionarios
-        nombres_diccionarios = list(urls.keys())
+        # Interfaz en Streamlit
+        st.write("Estas son las variables que seleccionó (la primera columna corresponde a la **Clave**, la segunda es el **conteo de filas vacías** de cada variable, la tercera es la **explicación** de la clave para esa variable).")
 
-# Interfaz de selección múltiple en Streamlit
-        st.title("Buscador de Variables por Año")
-
-# Inicializar el estado de la sesión para el historial de búsquedas
+        # Inicializar el estado de la sesión para el historial de búsquedas
         if 'historico_busquedas' not in st.session_state:
             st.session_state.historico_busquedas = pd.DataFrame(columns=['Año', 'Código', 'Explicación'])
 
-        # Cargar el dataframe df_c (esto puede ser reemplazado con la carga real de df_c)
-        df_c = df.copy()
+        # Cargar el diccionario de 2018
+        diccionario_2018 = cargar_diccionario(url_2018, 'diccionario_2018')
+
+        df_c=df.copy()
         # Obtener la lista de nombres de columnas
         columnas = df_c.columns.tolist()
 
-        # Barra de selección múltiple para elegir el año
-        años_seleccionados = st.multiselect('Selecciona el año del diccionario', nombres_diccionarios)
+        # Contar valores NaN por columna
+        nan_counts = df_c.isna().sum().reset_index()
+        nan_counts.columns = ["Clave", "Conteo"]
 
-        # Si se seleccionan años, cargar los diccionarios correspondientes
-        diccionarios = {}
-        for año in años_seleccionados:
-            url = urls[año]
-            diccionarios[año] = cargar_diccionario(url, f'diccionario_{año}')
+        # Agregar explicaciones al DataFrame nan_counts
+        nan_counts['Explicación'] = nan_counts['Clave'].map(diccionario_2018)
 
-        # Interfaz de búsqueda por código en los diccionarios seleccionados usando una barra desplegable
-        if años_seleccionados:
-            codigos_busqueda = st.multiselect("Seleccione el código de la variable:", columnas)
-            if codigos_busqueda:
-                for codigo_busqueda in codigos_busqueda:
-                    for año, diccionario in diccionarios.items():
-                        explicacion = diccionario.get(codigo_busqueda, None)
-                        if explicacion:
-                            st.write(f"Explicación para el código {codigo_busqueda} en {año}: {explicacion}")
-                            # Agregar la búsqueda al histórico
-                            nueva_fila = pd.DataFrame([[año, codigo_busqueda, explicacion]], columns=['Año', 'Código', 'Explicación'])
-                            st.session_state.historico_busquedas = pd.concat([st.session_state.historico_busquedas, nueva_fila], ignore_index=True)
-                        else:
-                            st.write(f"No se encontró explicación para el código {codigo_busqueda} en {año}.")
-                # Mostrar el histórico de búsquedas
-                st.dataframe(st.session_state.historico_busquedas)
-            else:
-                st.write("Por favor, seleccione al menos un código de variable.")
-        else:
-            st.write("Por favor, selecciona al menos un año.")
+        # Mostrar el DataFrame con el conteo de valores NaN y explicaciones
+        #st.write("Conteo de valores NaN por columna con explicaciones:")
+        st.dataframe(nan_counts, use_container_width=True)
+
 
 
 
 ######################################
+
+        # Filtro inicial
         df = df[df['AGE_18'] < 100]
+
         # Lista de columnas a modificar
-        columnas_modificar = ['H5_18', 'H6_18', 'H11_18', 'H15A_18', 'C37_18']
+        columnas_modificar = ['C4_18', 'C6_18', 'C12_18', 'C19_18', 'C22A_18', 'C26_18', "C32_18", 'C37_18',
+                      "C49_1_18", 'C49_2_18', 'C49_8_18', 'C64_18', 'C66_18', 'C68E_18', 'C68G_18',
+                      'C68H_18', 'C69A_18', 'C69B_18', 'C71A_18', 'C76_18', 'H1_18', 'H4_18', 'H5_18', 'H6_18', 'H8_18',
+                      'H9_18', 'H10_18', 'H11_18', 'H12_18', 'H13_18', 'H15A_18', 'H15B_18', 'H15D_18', 'H16A_18', 'H16D_18',
+                      'H17A_18', 'H17D_18', 'H18A_18', 'H18D_18', 'H19A_18', 'H19D_18']
 
         # Convertir valores 6.0 o 7.0 en 1.0 en las columnas especificadas
         df[columnas_modificar] = df[columnas_modificar].replace({6.0: 1.0, 7.0: 1.0})
@@ -614,25 +747,22 @@ elif option == "Relaciones de Indiscernibilidad 2018":
         # Combinar los campos de las columnas de estatura en una sola columna de estatura en metros
         df['C67_18'] = df['C67_1_18'] + df['C67_2_18'] / 100
         df = df.drop(columns=['C67_1_18', 'C67_2_18'])
-        df['Indice'] = df.index
-
-
 
         # Eliminar filas que contengan valores 8.0 o 9.0 en cualquiera de las columnas especificadas
-        df = df[~df[columnas_modificar].isin([8.0, 9.0]).any(axis=1)]
-
+        df = df[~df[columnas_modificar].isin([8.0, 9.0, 999, 9.99]).any(axis=1)]
+        df = df[~df['C67_18'].isin([9.99, 8.88])]
         columnas_seleccionadas = list(df.columns)
-        
-        # Crear widgets de selección para cada columna seleccionada
+
+        # Crear widgets de selección para cada columna seleccionada en la barra lateral
         filtros = {}
         for col in columnas_seleccionadas:
             if df[col].dtype == 'object':
                 valores_unicos = df[col].unique().tolist()
-                seleccion = st.multiselect(f'Seleccionar valores para {col}', valores_unicos)
+                seleccion = st.sidebar.multiselect(f'Seleccionar valores para {col}', valores_unicos)
                 if seleccion:
                     filtros[col] = seleccion
             else:
-                rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())), step=1.0)
+                rango = st.sidebar.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())), step=1.0)
                 if rango:
                     filtros[col] = rango
 
@@ -644,15 +774,18 @@ elif option == "Relaciones de Indiscernibilidad 2018":
             else:
                 df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
 
-        st.write('DataFrame Filtrado')
-        st.dataframe(df_filtrado)
-        st.write("Las dimensiones de la base de datos son:")
-        df_filtrado.shape
-        datos_filtrados=df_filtrado.copy()
+        #st.write('DataFrame Filtrado')
+        st.dataframe(df_filtrado, use_container_width=True)
+        #st.write("Las dimensiones de la base de datos son:")
+        st.write(df_filtrado.shape)
+        datos_filtrados = df_filtrado.copy()
+
+#######################################
+
 
      # Definir condiciones para cada grupo
         conditions = {
-            "sanos": {
+            "Ninguna": {
                 'C4_18': 2.0,
                 'C6_18': 2.0,
                 'C12_18': 2.0,
@@ -661,7 +794,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
                 'C26_18': 2.0,
                 'C32_18': 2.0
             },
-            "diabetes": {
+            "Diabetes": {
                 'C4_18': 1.0,
                 'C6_18': 2.0,
                 'C12_18': 2.0,
@@ -670,7 +803,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
                 'C26_18': 2.0,
                 'C32_18': 2.0
             },
-            "Hipertension": {
+            "Hipertensión": {
                 'C4_18': 2.0,
                 'C6_18': 1.0,
                 'C12_18': 2.0,
@@ -679,7 +812,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
                 'C26_18': 2.0,
                 'C32_18': 2.0
             },
-            "diabetes e hipertension": {
+            "Hipertensión y Diabetes": {
                 'C4_18': 1.0,
                 'C6_18': 1.0,
                 'C12_18': 2.0,
@@ -691,13 +824,29 @@ elif option == "Relaciones de Indiscernibilidad 2018":
         }
 
 
+        st.markdown(
+            """
+            Aquí pude seleccionar entre hacer un análisis utilizando datos de la muestra completa o aislar un grupo de interés. Los grupos disponibles son:
+
+            - **Ninguna:** Declara **no tener diagnóstico de Diabetes o Hipertensión**.
+
+            - **Diabetes:** Declara tener diagnóstico **negativo en Hipertensión** pero **positivo en Diabetes**.
+
+            - **Hipertensión:** Declara tener diagnóstico **positivo en Hipertensión**  pero **negativo en Diabetes**.
+
+            - **Hipertensión y Diabetes:** Declara tener diagnóstico **positivo tanto en Hipertensión como en Diabetes**.
+            
+            """
+            )
 
         # Crear una selección en Streamlit para elegir entre los conjuntos
-        seleccion = st.selectbox("Selecciona un grupo", list(conditions.keys()))
+        seleccion = st.selectbox("**Seleccione un grupo**", list(conditions.keys()))
 
         # Crear una selección múltiple en Streamlit para el valor de SEX_18
         sex_values = df_filtrado['SEX_18'].unique()
-        sex_selection = st.multiselect("Selecciona el valor de SEX_18", sex_values, default=sex_values)
+        st.write("""Aquí pude seleccionar entre hacer un análisis utilizando datos de la muestra completa o sobre un solo sexo. La Clave numérica **"1.0"** corresponde a las **mujeres** y la **Clave "2.0"** corresponde a los **hombres.**
+        """)
+        sex_selection = st.multiselect("**Seleccione el sexo de la muestra** (puede seleccionar ambos si quiere analizar la muestra completa)", sex_values, default=sex_values)
 
         # Filtrar el DataFrame en función de las condiciones seleccionadas y el valor de SEX_18
         condiciones_seleccionadas = conditions[seleccion]
@@ -711,18 +860,26 @@ elif option == "Relaciones de Indiscernibilidad 2018":
         #nuevo_dataframe_filtrado = nuevo_dataframe_filtrado[nuevo_dataframe_filtrado['SEX_18'] == sex_selection]
         # Aplicar el filtro del valor de SEX_18
         nuevo_dataframe_filtrado = nuevo_dataframe_filtrado[nuevo_dataframe_filtrado['SEX_18'].isin(sex_selection)]
+        nuevo_dataframe_filtrado['Comorbilidad'] = seleccion
 
 
-
+        st.write("**")
         # Mostrar el DataFrame filtrado
-        st.dataframe(nuevo_dataframe_filtrado)
-        datos_limpios = nuevo_dataframe_filtrado.dropna()
-        st.write("Las dimensiones de la base de datos son:")
-        st.write(datos_limpios.shape)
-
+        st.dataframe(nuevo_dataframe_filtrado, use_container_width=True)
+        datos_limpios = nuevo_dataframe_filtrado.copy()
+        datos_limpios = datos_limpios.dropna()
+        st.write(f'La base depurada contiene **{datos_limpios.shape[0]}** filas y **{datos_limpios.shape[1]}** columnas.')
+        st.dataframe(datos_limpios, use_container_width=True)
+        datos_limpios.shape
 
 ##########################################
+    st.subheader("Clasificación de participantes.")
+    st.markdown(
+        """
+        En esta sección se utiliza la **Teoría de conjuntos rugosos** para agrupar a las y los participantes de la encuesta cuyas respuestas fueron idénticas. Esto se logra mediante el cálculo de las **relaciones de indiscerbibilidad** El gáfico de representa a las particiones de pacientes con respuestas idénticas en las preguntas (**'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'**).
 
+"""
+)
     ind=indiscernibility(['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'], datos_limpios)
     
 
@@ -738,10 +895,10 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     # Crear un diccionario para mapear el índice del conjunto al nuevo nombre
     nombres_conjuntos_nuevos = {num_conjunto: f"Conjunto {i}" for i, (num_conjunto, _) in enumerate(longitudes_conjuntos_ordenadas)}
 
-    st.write("Longitudes de los conjuntos con su respectivo nuevo nombre (en orden descendente):")
-    for num_conjunto, longitud in longitudes_conjuntos_ordenadas:
-        nombre_conjunto_nuevo = nombres_conjuntos_nuevos[num_conjunto]
-        st.write(f"{nombre_conjunto_nuevo}: {longitud}")
+    #st.write("Longitudes de los conjuntos con su respectivo nuevo nombre (en orden descendente):")
+    #for num_conjunto, longitud in longitudes_conjuntos_ordenadas:
+    #    nombre_conjunto_nuevo = nombres_conjuntos_nuevos[num_conjunto]
+    #    st.write(f"{nombre_conjunto_nuevo}: {longitud}")
 
     # Calcular el total de elementos en todos los conjuntos
     total_elementos = sum(longitud for _, longitud in longitudes_conjuntos_ordenadas)
@@ -758,16 +915,24 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     _, _, autopcts = ax.pie(porcentajes_valores, labels=nombres_conjuntos, autopct='%1.1f%%', startangle=140, textprops={'visible': False})
     for autopct in autopcts:
         autopct.set_visible(True)  # Mostrar los porcentajes solo para los grupos con más de 30 miembros
+    # Agregar el tamaño de la muestra total como texto
+    ax.annotate(f'Tamaño de la muestra total: {total_elementos}', 
+            xy=(0.5, -0.05), 
+            xycoords='axes fraction', 
+            ha='center', 
+            fontsize=12, 
+            bbox=dict(boxstyle="round,pad=0.3", edgecolor='black', facecolor='white'))
+
     ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     ax.set_title('Distribución de subconjuntos')
 
     # Mostrar el gráfico en Streamlit
     st.pyplot(fig)
-
+    st.write("Seleccione en el recuadro el **número mínimo de miembros** de los conjuntos que considerará. Esto simplifica el análisis. **Típicamente se define un número mínimo de 30 miembros** (o de 10 miembros si la muestra total es demasiado pequeña o si las relaciones de indiscernibilidad creadas tienen, en su mayoría, menos de 30 miembros).")
 
 
     # Entrada del usuario para el tamaño mínimo del conjunto
-    tamaño_mínimo = st.number_input("Introduce el tamaño mínimo del conjunto:", min_value=1, value=2, step=1)
+    tamaño_mínimo = st.number_input("**Defina el número mínimo de miebros que tendrán los conjuntos a considerar:**", min_value=1, value=2, step=1)
 
     # Calcular las longitudes de los conjuntos con longitud >= tamaño_mínimo
     longitudes_conjuntos = [(i, len(conjunto)) for i, conjunto in enumerate(ind) if len(conjunto) >= tamaño_mínimo]
@@ -776,12 +941,25 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     longitudes_conjuntos_ordenadas = sorted(longitudes_conjuntos, key=lambda x: x[1], reverse=True)
 
     # Crear un diccionario para mapear el índice del conjunto al nuevo nombre
-    nombres_conjuntos_nuevos = {num_conjunto: f"Conjunto {i}" for i, (num_conjunto, _) in enumerate(longitudes_conjuntos_ordenadas)}
+    nombres_conjuntos_nuevos = {num_conjunto: f"**Conjunto {i}**" for i, (num_conjunto, _) in enumerate(longitudes_conjuntos_ordenadas)}
 
-    st.write("Longitudes de los conjuntos con su respectivo nuevo nombre (en orden descendente):")
-    for num_conjunto, longitud in longitudes_conjuntos_ordenadas:
+
+##
+    st.write("Estos son los conjuntos considerados y su número de miembros:")
+#    for num_conjunto, longitud in longitudes_conjuntos_ordenadas:
+#        nombre_conjunto_nuevo = nombres_conjuntos_nuevos[num_conjunto]
+#        st.write(f"{nombre_conjunto_nuevo}: {longitud}")
+##
+#st.write("Longitudes de los conjuntos con su respectivo nuevo nombre (en orden descendente):")
+
+    #  Crear una fila con columnas
+    cols = st.columns(3)
+
+    # Rellenar cada columna con datos
+    for i, (num_conjunto, longitud) in enumerate(longitudes_conjuntos_ordenadas):
         nombre_conjunto_nuevo = nombres_conjuntos_nuevos[num_conjunto]
-        st.write(f"{nombre_conjunto_nuevo}: {longitud}")
+        cols[i % 3].write(f"{nombre_conjunto_nuevo}: {longitud}")
+
 
     # Calcular el total de elementos en todos los conjuntos
     total_elementos = sum(longitud for _, longitud in longitudes_conjuntos_ordenadas)
@@ -794,15 +972,15 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     porcentajes_valores = [valor for _, valor in porcentajes]
 
     # Crear el diagrama de pastel
-    fig, ax = plt.subplots(figsize=(10, 8))
-    _, _, autopcts = ax.pie(porcentajes_valores, labels=nombres_conjuntos, autopct='%1.1f%%', startangle=140, textprops={'visible': False})
-    for autopct in autopcts:
-        autopct.set_visible(True)  # Mostrar los porcentajes
-    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    ax.set_title('Distribución de subconjuntos')
+    #fig, ax = plt.subplots(figsize=(10, 8))
+    #_, _, autopcts = ax.pie(porcentajes_valores, labels=nombres_conjuntos, autopct='%1.1f%%', startangle=140, textprops={'visible': False})
+    #for autopct in autopcts:
+    #    autopct.set_visible(True)  # Mostrar los porcentajes
+    #ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    #ax.set_title('Distribución de subconjuntos')
 
     # Mostrar el gráfico en Streamlit
-    st.pyplot(fig)
+    #st.pyplot(fig)
 
     import numpy as np
     
@@ -811,9 +989,11 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     # Ordenar la lista de tuplas por la longitud de los conjuntos en orden descendente
     longitudes_conjuntos_ordenadas = sorted(longitudes_conjuntos, key=lambda x: x[1], reverse=True)
+    
+    num_conjuntos = st.number_input("Define el número de conjuntos para vizualizar los perfiles que los caracterizan:", min_value=1, max_value=len(ind), value=15)
 
     # Obtener los 15 conjuntos más numerosos
-    conjuntos_mas_numerosos = [conjunto for i, conjunto in enumerate(ind) if i in [num_conjunto for num_conjunto, _ in longitudes_conjuntos_ordenadas[:15]]]
+    conjuntos_mas_numerosos = [conjunto for i, conjunto in enumerate(ind) if i in [num_conjunto for num_conjunto, _ in longitudes_conjuntos_ordenadas[:num_conjuntos]]]
 
     # Crear DataFrames para cada uno de los 15 conjuntos más numerosos
     for i, conjunto in enumerate(conjuntos_mas_numerosos, 0):
@@ -825,7 +1005,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     columnas_interes_radar = ['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18']
 
     # Definir los nombres de los dataframes
-    nombres_dataframes = [f"df_Conjunto_{i}" for i in range(0, 15)]
+    nombres_dataframes = [f"df_Conjunto_{i}" for i in range(0, num_conjuntos)]
 
     # Definir los valores para cada dataframe en las columnas de interés
     valores_dataframes = []
@@ -834,6 +1014,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
         valores = df[columnas_interes_radar].iloc[0].tolist()  # Tomar solo la primera fila
         valores_dataframes.append(valores)
 
+    st.write("A continuación se muestran los perfiles de las relaciones de indiscernibilidad, en términos de los cinco ítems de la encuesta que guardan mayor similitud con los del test SARC-F. Los **gráficos de radar** muestran las respuestas a estos ítems:")
     # Colores para los gráficos
     colores = plt.cm.tab20(np.linspace(0, 1, len(nombres_dataframes)))
 
@@ -894,13 +1075,13 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     filas_seleccionadas = datos_limpios[datos_limpios['num_conjunto'].isin(range(15))]
 
     # Seleccionar solo las columnas requeridas
-    filas_seleccionadas = filas_seleccionadas[['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18', 'num_conjunto']]
+    filas_seleccionadas = filas_seleccionadas[['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18', 'num_conjunto', 'Comorbilidad']]
 
     # Crear un nuevo DataFrame con las filas seleccionadas
     nuevo_dataframe = pd.DataFrame(filas_seleccionadas)
 
     # Mostrar las primeras filas del nuevo DataFrame
-    nuevo_dataframe
+    #st.dataframe(nuevo_dataframe, use_container_width=True)
 
 
 
@@ -908,109 +1089,258 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
 #####################333
 
-    import pandas as pd
+#    import pandas as pd
 
-    # Definir las condiciones para asignar los valores a la nueva columna
-    def asignar_riesgo(num_conjunto):
-        if num_conjunto in [4, 13]:
-            return "Riesgo considerable"
-        elif num_conjunto in [3, 6, 9]:
-            return "Riesgo moderado"
-        elif num_conjunto in [1, 2, 5, 7, 8, 10, 11, 12, 14]:
-            return "Riesgo leve"
-        elif num_conjunto == 0:
+#    # Definir las condiciones para asignar los valores a la nueva columna
+#    def asignar_riesgo(num_conjunto):
+#        if num_conjunto in [6, 14]:
+#            return "Riesgo considerable"
+#        elif num_conjunto in [3, 5, 10]:
+#            return "Riesgo moderado"
+#        elif num_conjunto in [1, 2, 4, 7, 8, 9, 11, 12, 13]:
+#            return "Riesgo leve"
+#        elif num_conjunto == 0:
+#            return "Sin Riesgo"
+#        else:
+#            return "No clasificado"  # Manejar cualquier otro caso
+    with st.expander("Determinación de un nivel de riesgo"):
+        st.markdown("""
+                    Ya que las preguntas de la ENASEM no son idénticas a las del cuestionario SARC-F (las respuestas de ese cuestionario permiten establecer una escala de intensidad de dificultad para realizar ciertas actividades, mientras que la ENASEM solo permiten contestar *si* o *no*), se definió un criterio alternativo mediante el cual pudiera establecerse un nivel de riesgo de padecer sarcopenia. Los niveles de riesgo definidos son:
+
+                    - **Sin riesgo:** No se manifiesta tener dificultad en ninguno de los 5 cuestionamientos (o caídas recientes, en el caso de esa pregunta).
+
+                    - **Riesgo leve:** Se manifiesta tener dificultades en uno o dos de los cuestionamientos (o dificultad en uno y caídas recientes, en el caso de esa pregunta).
+
+                    - **Riesgo moderado:** Se manifiesta tener dificultades simultaneas en tres de los cuestionamientos (o dos cuestinamientos y caidas recientes).
+
+                    - **Riesgo severo:** Se manifiesta tener dificultades en cuatro o cinco de de los cuestionamientos (o en cuatro de ellos y caidas recientes).
+                    """)
+
+    
+#    # Función para determinar el nivel de riesgo
+#    def asignar_nivel_riesgo(row):
+#        valores = row[['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18']]
+#        if all(valores == 2.0):
+#            return "Sin Riesgo"
+#        cuenta_1_0 = (valores == 1.0).sum()
+#        if cuenta_1_0 == 1 or cuenta_1_0 == 2:
+#            return "Riesgo leve"
+#        elif cuenta_1_0 == 3:
+#            return "Riesgo moderado"
+#        elif cuenta_1_0 >= 4:
+#            return "Riesgo severo"
+#    # Función para determinar el nivel de riesgo
+
+    def asignar_nivel_riesgo(row):
+        valores = row[['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18']]
+    
+    # Contar cuántas columnas individualmente tienen el valor 1.0
+        cuenta_1_0 = (valores == 1.0).sum()
+    
+    # Verificar las condiciones para cada nivel de riesgo
+        if all(valores == 2.0):
             return "Sin Riesgo"
+        elif cuenta_1_0 == 1 or cuenta_1_0 == 2:
+            return "Riesgo leve"
+        elif cuenta_1_0 == 3:
+            return "Riesgo moderado"
+        elif cuenta_1_0 == 4 or cuenta_1_0 == 5:
+            return "Riesgo severo"
         else:
-            return "No clasificado"  # Manejar cualquier otro caso
+            return "Nivel de riesgo no determinado"  # En caso de que ninguna condición coincida, lo cual no debería ocurrir.
+
+
+
+
+    # Aplicar la función a cada fila del DataFrame
+    nuevo_dataframe['nivel_riesgo'] = nuevo_dataframe.apply(asignar_nivel_riesgo, axis=1)
+
+    # Mostrar el DataFrame con el nivel de riesgo asignado
+    #st.write(nuevo_dataframe)
+
 
     # Agregar la nueva columna al DataFrame
-    nuevo_dataframe['nivel_riesgo'] = nuevo_dataframe['num_conjunto'].apply(asignar_riesgo)
+    #nuevo_dataframe['nivel_riesgo'] = nuevo_dataframe['num_conjunto'].apply(asignar_riesgo)
+    
+    st.write("Debajo puede ver y descargar la base de datos de las respuestas que se usan para estimar el nivel de riesgo de sarcopenia, la etiqueta que indica al conjunto que corresponde cada paciente y el nivel de riesgo asociado.")
+    
+    st.dataframe(nuevo_dataframe, use_container_width=True)
 
-    # Mostrar las primeras filas del DataFrame con la nueva columna
-    nuevo_dataframe
+    # Botón para descargar el dataframe reducido en formato csv
+    csv_data = convert_df_to_csv(nuevo_dataframe)
+    st.download_button(
+        label="Descargar Dataframe en formato CSV",
+        data=csv_data,
+        file_name="Base de relaciones de indiscernibilidad y nivel de riesgo_2018.csv",
+        mime="text/csv"
+        )
+
+    xlsx_data = convert_df_to_xlsx(nuevo_dataframe)
+    st.download_button(
+        label="Descargar Dataframe en formato XLSX",
+        data=xlsx_data,
+        file_name="Base de relaciones de indiscernibilidad y nivel de riesgo_2018.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
 
 
 
 #######################
 
 
-    # Función para calcular la diferencia entre tamaños de conjuntos
-    def calcular_diferencia(lista1, lista2):
-        diferencia = sum(abs(len(conj1) - len(conj2)) for conj1, conj2 in zip(lista1, lista2))
-        return diferencia
+#    # Función para calcular la diferencia entre tamaños de conjuntos
+#    def calcular_diferencia(lista1, lista2):
+#        diferencia = sum(abs(len(conj1) - len(conj2)) for conj1, conj2 in zip(lista1, lista2))
+#        return diferencia
 
     # Definir las columnas de interés
-    columnas_interes = ['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18']
+#    columnas_interes = ['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18']
 
     # Generar listas de conjuntos
-    lista_1 = indiscernibility(columnas_interes, nuevo_dataframe)
-    lista_2_original = indiscernibility(columnas_interes, nuevo_dataframe)
+#    lista_1 = indiscernibility(columnas_interes, nuevo_dataframe)
+#    lista_2_original = indiscernibility(columnas_interes, nuevo_dataframe)
+
+    # Obtener lista de tamaños de cada conjunto
+#    tamaños_lista_1 = [len(conjunto) for conjunto in lista_1]
+#    tamaños_lista_2_original = [len(conjunto) for conjunto in lista_2_original]
+
+    # Inicializar variables para seguimiento de la lista más parecida
+#    mejor_lista = lista_2_original
+#    mejor_diferencia = calcular_diferencia(lista_1, lista_2_original)
+
+    # Eliminar una por una cada columna de lista_2 y mostrar los tamaños resultantes
+#    for columna1 in columnas_interes:
+#        columnas_sin_columna1 = columnas_interes.copy()
+#        columnas_sin_columna1.remove(columna1)
+#        lista_2_sin_columna1 = indiscernibility(columnas_sin_columna1, nuevo_dataframe)
+#        diferencia = calcular_diferencia(lista_1, lista_2_sin_columna1)
+    
+#        if diferencia < mejor_diferencia:
+#            mejor_lista = lista_2_sin_columna1
+#            mejor_diferencia = diferencia
+    
+#        # Eliminar pares de columnas de lista_2 y mostrar los tamaños resultantes
+#        for columna2 in columnas_sin_columna1:
+#            if columna2 != columna1:
+#                columnas_sin_par = columnas_sin_columna1.copy()
+#                columnas_sin_par.remove(columna2)
+#                lista_2_sin_par = indiscernibility(columnas_sin_par, nuevo_dataframe)
+#                diferencia = calcular_diferencia(lista_1, lista_2_sin_par)
+            
+#                if diferencia < mejor_diferencia:
+#                    mejor_lista = lista_2_sin_par
+#                    mejor_diferencia = diferencia
+
+    # Mostrar la mejor lista encontrada en Streamlit
+#    st.write("Tamaños de conjuntos en lista_1:", tamaños_lista_1)
+#    st.write("Tamaños de conjuntos en la mejor lista:", [len(conjunto) for conjunto in mejor_lista])
+
+    # Visualización con un gráfico de barras
+    #fig, ax = plt.subplots()
+    #labels = [f"Conjunto {i}" for i in range(len(tamaños_lista_1))]
+    #x = range(len(tamaños_lista_1))
+    #ax.bar(x, tamaños_lista_1, width=0.4, label='lista_1', align='center')
+    #ax.bar(x, [len(conjunto) for conjunto in mejor_lista], width=0.4, label='Mejor Lista', align='edge')
+    #ax.set_xlabel('Conjuntos')
+    #ax.set_ylabel('Tamaños')
+    #ax.set_title('Comparación de tamaños de conjuntos')
+    #ax.legend()
+
+   # st.pyplot(fig)
+
+
+    st.subheader("Identificación de un reducto")
+
+    st.markdown("""
+                Un **reducto** corresponde a una lista reducidad de preguntas que puede crear la misma clasificación de pacientes que la lista completa. En esta sección se identifica un reducto para la lista de preguntas 'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'. Se realiza una clasificación en la que de forma progresiva se van quitando preguntas de la lista original y se compara la partición que crea con la que logra la lista completa. El reducto corresponde a la lista de preguntas que genere una partición lo mas parecida posible a la de la lista original.
+""")
+
+
+    # Calcular la diferencia absoluta total de tamaños
+    def diferencia_total(lista_a, lista_b):
+        min_len = min(len(lista_a), len(lista_b))
+        return sum(abs(lista_a[i] - lista_b[i]) for i in range(min_len))
+
+    # Ejemplo de listas de conjuntos
+    lista_1 = indiscernibility(['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18'], nuevo_dataframe)
+    lista_2 = indiscernibility(['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18'], nuevo_dataframe)
+
+    # Mostrar tamaño de los conjuntos originales
+#    st.write("Tamaño de lista_1:", len(lista_1))
+#    st.write("Tamaño de lista_2:", len(lista_2))
 
     # Obtener lista de tamaños de cada conjunto
     tamaños_lista_1 = [len(conjunto) for conjunto in lista_1]
-    tamaños_lista_2_original = [len(conjunto) for conjunto in lista_2_original]
+    tamaños_lista_2 = [len(conjunto) for conjunto in lista_2]
 
-    # Inicializar variables para seguimiento de la lista más parecida
-    mejor_lista = lista_2_original
-    mejor_diferencia = calcular_diferencia(lista_1, lista_2_original)
+#    st.write("Tamaños de conjuntos en lista_1:", tamaños_lista_1)
+#    st.write("Tamaños de conjuntos en lista_2:", tamaños_lista_2)
 
-    # Eliminar una por una cada columna de lista_2 y mostrar los tamaños resultantes
-    for columna1 in columnas_interes:
-        columnas_sin_columna1 = columnas_interes.copy()
-        columnas_sin_columna1.remove(columna1)
-        lista_2_sin_columna1 = indiscernibility(columnas_sin_columna1, nuevo_dataframe)
-        diferencia = calcular_diferencia(lista_1, lista_2_sin_columna1)
-    
-        if diferencia < mejor_diferencia:
-            mejor_lista = lista_2_sin_columna1
-            mejor_diferencia = diferencia
-    
-        # Eliminar pares de columnas de lista_2 y mostrar los tamaños resultantes
-        for columna2 in columnas_sin_columna1:
-            if columna2 != columna1:
-                columnas_sin_par = columnas_sin_columna1.copy()
-                columnas_sin_par.remove(columna2)
-                lista_2_sin_par = indiscernibility(columnas_sin_par, nuevo_dataframe)
-                diferencia = calcular_diferencia(lista_1, lista_2_sin_par)
-            
-                if diferencia < mejor_diferencia:
-                    mejor_lista = lista_2_sin_par
-                    mejor_diferencia = diferencia
+    # Inicializar variables para el seguimiento de la mejor coincidencia
+    mejor_similitud = float('inf')
+    mejor_lista = None
 
-    # Mostrar la mejor lista encontrada en Streamlit
-    st.write("Tamaños de conjuntos en lista_1:", tamaños_lista_1)
-    st.write("Tamaños de conjuntos en la mejor lista:", [len(conjunto) for conjunto in mejor_lista])
+    # Expander para mostrar tamaños resultantes al eliminar columnas
+    with st.expander("**Búsqueda del reducto**"):
+        st.write("La partición creada por la lista completa se nombró como *lista_1*. La *lista_2* corresponde a copias de *lista_1* en la que se van quitando progresivamente ciertas preguntas (primero una sola, luego 2, luego 3 etc.). El **reducto** corresponde a la lista de preguntas que genere una partición igual, o lo más parecida posible a la de *lista_1*." )
+        #st.write(len(lista_1))
+        for columna1 in ['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18']:
+            columnas_sin_columna1 = ['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18']
+            columnas_sin_columna1.remove(columna1)
+            lista_2_sin_columna1 = indiscernibility(columnas_sin_columna1, nuevo_dataframe)
+            tamaños_lista_2_sin_columna1 = [len(conjunto) for conjunto in lista_2_sin_columna1]
+            st.write(f"Tamaño de lista_2 sin {columna1}: {len(lista_2_sin_columna1)}")
+            st.write("Tamaños de conjuntos en lista_2:", tamaños_lista_2_sin_columna1)
 
-    # Visualización con un gráfico de barras
-    fig, ax = plt.subplots()
-    labels = [f"Conjunto {i}" for i in range(len(tamaños_lista_1))]
-    x = range(len(tamaños_lista_1))
-    ax.bar(x, tamaños_lista_1, width=0.4, label='lista_1', align='center')
-    ax.bar(x, [len(conjunto) for conjunto in mejor_lista], width=0.4, label='Mejor Lista', align='edge')
-    ax.set_xlabel('Conjuntos')
-    ax.set_ylabel('Tamaños')
-    ax.set_title('Comparación de tamaños de conjuntos')
-    ax.legend()
+            # Comparar similitud
+            similitud = diferencia_total(tamaños_lista_1, tamaños_lista_2_sin_columna1)
+            if similitud < mejor_similitud:
+                mejor_similitud = similitud
+                mejor_lista = columnas_sin_columna1.copy()
 
-    st.pyplot(fig)
+            # Eliminar pares de columnas de lista_2 y mostrar los tamaños resultantes
+            for columna2 in columnas_sin_columna1:
+                if columna2 != columna1:
+                    columnas_sin_par = columnas_sin_columna1.copy()
+                    columnas_sin_par.remove(columna2)
+                    lista_2_sin_par = indiscernibility(columnas_sin_par, nuevo_dataframe)
+                    tamaños_lista_2_sin_par = [len(conjunto) for conjunto in lista_2_sin_par]
+                    st.write(f"Tamaño de lista_2 sin {columna1} y {columna2}: {len(lista_2_sin_par)}")
+                    st.write("Tamaños de conjuntos en lista_2:", tamaños_lista_2_sin_par)
+
+                    # Comparar similitud
+                    similitud = diferencia_total(tamaños_lista_1, tamaños_lista_2_sin_par)
+                    if similitud < mejor_similitud:
+                        mejor_similitud = similitud
+                        mejor_lista = columnas_sin_par.copy()
+
+    # Mostrar la lista de columnas que guarda mayor similitud con lista_1
+    st.write("El reducto es:")
+    st.write(mejor_lista)
+    #st.write(len(lista_1))
+    #st.write(len(lista_2))
+
+
+
 
     # Obtener los valores únicos de la columna 'nivel de riesgo'
     nivel_riesgo = nuevo_dataframe['nivel_riesgo'].unique()
 
 
-    # Crear una barra de selección múltiple para elegir niveles de riesgo
-    niveles_seleccionados = st.multiselect(
-        'Selecciona los niveles de riesgo a visualizar:',
-        nivel_riesgo
-    )
+#    # Crear una barra de selección múltiple para elegir niveles de riesgo
+#    niveles_seleccionados = st.multiselect(
+#        'En este recuadro puede seleccionar un subgrupo de pacientes que comparten el mismo nivel de riesgo',
+#        nivel_riesgo
+#    )
 
-    # Filtrar el DataFrame según los niveles de riesgo seleccionados
-    if niveles_seleccionados:
-        df_filtrado = nuevo_dataframe[nuevo_dataframe['nivel_riesgo'].isin(niveles_seleccionados)]
-        st.write(f"Filas con nivel de riesgo en {niveles_seleccionados}:")
-        st.dataframe(df_filtrado)
-    else:
-        st.write("Selecciona al menos un nivel de riesgo para visualizar las filas correspondientes.")
+#    # Filtrar el DataFrame según los niveles de riesgo seleccionados
+#    if niveles_seleccionados:
+#        df_filtrado = nuevo_dataframe[nuevo_dataframe['nivel_riesgo'].isin(niveles_seleccionados)]
+#        st.write(f"Filas con nivel de riesgo en {niveles_seleccionados}:")
+#        st.dataframe(df_filtrado, use_container_width=True)
+#    else:
+#        st.write("Selecciona al menos un nivel de riesgo para visualizar las filas correspondientes.")
 ########################
 
 
@@ -1022,7 +1352,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     # Generar listas de conjuntos (simulando lista_2)
     lista_2 = indiscernibility(['C37_18', 'H11_18', 'H5_18', 'H6_18'], datos_limpios)
-
+    #st.write(len(lista_2))
     # Obtener longitudes de conjuntos
     longitudes_conjuntos = [(i, len(conjunto)) for i, conjunto in enumerate(lista_2) if len(conjunto) >= 2]
 
@@ -1030,7 +1360,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     longitudes_conjuntos_ordenadas = sorted(longitudes_conjuntos, key=lambda x: x[1], reverse=True)
 
     # Obtener los 15 conjuntos más numerosos
-    conjuntos_mas_numerosos = [conjunto for i, conjunto in enumerate(lista_2) if i in [num_conjunto for num_conjunto, _ in longitudes_conjuntos_ordenadas[:15]]]
+    conjuntos_mas_numerosos = [conjunto for i, conjunto in enumerate(lista_2) if i in [num_conjunto for num_conjunto, _ in longitudes_conjuntos_ordenadas[: 15]]]
 
     # Crear DataFrames para cada uno de los 15 conjuntos más numerosos
     dataframes_con_filas = []
@@ -1058,8 +1388,8 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     valores_dataframes_ordenados = sorted(valores_dataframes, key=lambda x: x[2], reverse=True)
 
     # Configurar Streamlit
-    st.title("Visualización de Conjuntos Más Numerosos")
-    st.write("Comparación de los conjuntos más numerosos en los datos.")
+    #st.title("Visualización de Conjuntos Más Numerosos")
+    st.write("Perfiles de los pacientes construidos usando el reducto")
 
     # Crear un gráfico de radar individual para cada dataframe
     num_filas = 3
@@ -1097,7 +1427,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
 
     # Título de la aplicación
-    st.title("Filtrado de DataFrame por tamaño de conjuntos")
+    #st.title("Filtrado de DataFrame por tamaño de conjuntos")
 
     # Calcular el tamaño de cada conjunto y filtrar los conjuntos con menos de 30 miembros
     conjuntos_mayores_30 = [conjunto for conjunto in ind if len(conjunto) >= 30]
@@ -1109,17 +1439,49 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     datos_limpios_filtrados = datos_limpios.loc[indices_filtrados]
 
     # Mostrar el DataFrame filtrado en Streamlit
-    st.write("DataFrame filtrado con conjuntos mayores o iguales a 30 miembros:")
-    st.dataframe(datos_limpios_filtrados)
+    #st.write("DataFrame filtrado con conjuntos mayores o iguales a 30 miembros:")
+    #st.dataframe(datos_limpios_filtrados)
 
     # Mostrar el número total de conjuntos filtrados
-    st.write(f"Número de conjuntos mayores o iguales a 30 miembros: {len(conjuntos_mayores_30)}")
+    #st.write(f"Número de conjuntos mayores o iguales a 30 miembros: {len(conjuntos_mayores_30)}")
 
     # Mostrar el tamaño de cada conjunto filtrado
-    st.write("Tamaño de cada conjunto filtrado:")
+    #st.write("Tamaño de cada conjunto filtrado:")
     tamaños_conjuntos = [len(conjunto) for conjunto in conjuntos_mayores_30]
-    st.write(tamaños_conjuntos)
+    #st.write(tamaños_conjuntos)
 
+    with st.expander("Aproximaciones"):
+        X_No_indices = [set(nuevo_dataframe[nuevo_dataframe['nivel_riesgo'] == 'Sin Riesgo'].index.tolist())]
+        R=indiscernibility(mejor_lista, nuevo_dataframe)
+        L=lower_approximation(R, X_No_indices)
+        R=indiscernibility(mejor_lista, nuevo_dataframe)
+        upper_approximation(R,  X_No_indices)
+        U=upper_approximation(R,  X_No_indices)
+        U-L
+
+        X_leve_indices = [set(nuevo_dataframe[nuevo_dataframe['nivel_riesgo'] == 'Riesgo leve'].index.tolist())]
+        R=indiscernibility(mejor_lista, nuevo_dataframe)
+        L=lower_approximation(R, X_leve_indices)
+        R=indiscernibility(mejor_lista, nuevo_dataframe)
+        upper_approximation(R,  X_leve_indices)
+        U=upper_approximation(R,  X_leve_indices)
+        U-L
+
+        X_moderado_indices = [set(nuevo_dataframe[nuevo_dataframe['nivel_riesgo'] == 'Riesgo moderado'].index.tolist())]
+        R=indiscernibility(mejor_lista, nuevo_dataframe)
+        L=lower_approximation(R, X_moderado_indices)
+        R=indiscernibility(mejor_lista, nuevo_dataframe)
+        upper_approximation(R,  X_moderado_indices)
+        U=upper_approximation(R,  X_moderado_indices)
+        U-L
+
+        X_severo_indices = [set(nuevo_dataframe[nuevo_dataframe['nivel_riesgo'] == 'Riesgo severo'].index.tolist())]
+        R=indiscernibility(mejor_lista, nuevo_dataframe)
+        L=lower_approximation(R, X_severo_indices)
+        R=indiscernibility(mejor_lista, nuevo_dataframe)
+        upper_approximation(R,  X_severo_indices)
+        U=upper_approximation(R,  X_severo_indices)
+        U-L
 
 
 #######################
@@ -1130,7 +1492,15 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
 
     # Título de la aplicación
-    st.title("Clasificador de Árbol de Decisión")
+    st.subheader("Creación de un modelo de árbol de decisión")
+
+    st.markdown("""
+    En esta sección se obtiene un modelo de **arbol de decisión** que permite determinar las reglas de clasificación, a partir de las preguntas que conforman el reducto, y que produce la misma partición que la lista completa. El modelo de árbol que se obtiene permite clasificar incluso a aquellos participantes que no hayan contestado a los cinco cuestionamientos que se necesitan para asignar un nivel de riesgo de padecer sarcopenia. Además, permite establecer una gearquía sobre la importancia relativa que cada pregunta tiene para determinar un nivel de riesgo.
+""")    
+
+    from sklearn.tree import DecisionTreeClassifier, plot_tree
+    from sklearn.model_selection import train_test_split
+    import matplotlib.pyplot as plt
 
     # Definir las columnas de atributos
     columnas_atributos = ['C37_18', 'H11_18', 'H5_18', 'H6_18']
@@ -1140,7 +1510,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     y = nuevo_dataframe['nivel_riesgo']
 
     # Dividir los datos en conjuntos de entrenamiento y prueba
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=5)
 
     # Crear el clasificador de árbol de decisión
     clf = DecisionTreeClassifier()
@@ -1154,47 +1524,45 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     # Calcular la precisión del modelo
     accuracy = accuracy_score(y_test, y_pred)
 
-    # Mostrar la precisión del modelo en Streamlit
-    st.write(f'Precisión del modelo: {accuracy:.2f}')
-
-    # Mostrar el reporte de clasificación en Streamlit
-    st.subheader("Reporte de Clasificación:")
-    st.text(classification_report(y_test, y_pred))
-
-    # Mostrar la matriz de confusión en Streamlit
-    st.subheader("Matriz de Confusión:")
-    st.write(pd.DataFrame(confusion_matrix(y_test, y_pred), columns=clf.classes_, index=clf.classes_))
-
-##################
-
-    from sklearn.tree import DecisionTreeClassifier, plot_tree
-    from sklearn.model_selection import train_test_split
-    import matplotlib.pyplot as plt
-
-    # Título de la aplicación
-    st.title("Visualización del Árbol de Decisión")
-
-    # Definir las columnas de atributos
-    columnas_atributos = ['C37_18', 'H11_18', 'H5_18', 'H6_18']
-
-    # Separar los datos en atributos (X) y etiquetas (y)
-    X = nuevo_dataframe[columnas_atributos]
-    y = nuevo_dataframe['nivel_riesgo']
-
-    # Dividir los datos en conjuntos de entrenamiento y prueba
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Crear el clasificador de árbol de decisión
-    clf = DecisionTreeClassifier(random_state=42)
-
-    # Entrenar el clasificador
-    clf.fit(X_train, y_train)
-
     # Visualizar el árbol de decisión en Streamlit
     st.set_option('deprecation.showPyplotGlobalUse', False)  # Para evitar advertencias de Streamlit
     plt.figure(figsize=(15, 10))
     plot_tree(clf, filled=True, feature_names=columnas_atributos, class_names=clf.classes_)
     st.pyplot()
+
+
+    with st.expander("**Métricas de evaluación de la precisión del modelo**"):
+        # Mostrar la precisión del modelo en Streamlit
+        st.write(f'Precisión del modelo: {accuracy:.2f}')
+
+        # Mostrar el reporte de clasificación en Streamlit
+        st.subheader("Reporte de Clasificación:")
+        st.text(classification_report(y_test, y_pred))
+
+        # Mostrar la matriz de confusión en Streamlit
+        st.subheader("Matriz de Confusión:")
+        st.write(pd.DataFrame(confusion_matrix(y_test, y_pred), columns=clf.classes_, index=clf.classes_))
+
+##################
+
+
+#    # Definir las columnas de atributos
+#    columnas_atributos = ['C37_18', 'H11_18', 'H5_18', 'H6_18']
+
+#    # Separar los datos en atributos (X) y etiquetas (y)
+#    X = nuevo_dataframe[columnas_atributos]
+#    y = nuevo_dataframe['nivel_riesgo']
+
+#    # Dividir los datos en conjuntos de entrenamiento y prueba
+#    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#    # Crear el clasificador de árbol de decisión
+#    clf = DecisionTreeClassifier(random_state=42)
+
+    # Entrenar el clasificador
+#    clf.fit(X_train, y_train)
+
+
 ##################
 
     import pandas as pd
@@ -1216,7 +1584,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 #        df['Diagnóstico_árbol'] = y_pred
     
 #        return df
-
+    import seaborn as sns
     import streamlit as st
     import pandas as pd
     from sklearn.tree import DecisionTreeClassifier
@@ -1225,39 +1593,27 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     import matplotlib.pyplot as plt
 
     # Definir las columnas de atributos
-    columnas_atributos = ['C37_18', 'H11_18', 'H5_18', 'H6_18']
+    #columnas_atributos = ['C37_18', 'H11_18', 'H5_18', 'H6_18']
 
     # Suponiendo que 'datos_limpios' ya está definido y contiene los datos necesarios
 
     # Función para asignar nivel de riesgo a una fila
     def asignar_nivel_riesgo(fila, modelo, columnas_atributos):
         X = fila[columnas_atributos].values.reshape(1, -1)
-        y_pred = modelo.predict(X)
+        y_pred = clf.predict(X)
         return y_pred[0]
-
-#    # Entrenar el modelo
-#    X = datos_limpios[columnas_atributos]
-#    y = datos_limpios['nivel_riesgo']
-#    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-#    clf = DecisionTreeClassifier(random_state=42)
-#    clf.fit(X_train, y_train)
-
-    # Visualizar el árbol de decisión
-    #fig, ax = plt.subplots(figsize=(15, 10))
-    #plot_tree(clf, filled=True, feature_names=columnas_atributos, class_names=clf.classes_, ax=ax)
-    #st.pyplot(fig)
 
     # Aplicar la función asignar_nivel_riesgo al DataFrame datos_limpios
     #datos_limpios['Diagnóstico_árbol'] = datos_limpios.apply(asignar_nivel_riesgo, args=(clf, columnas_atributos), axis=1)
     nuevo_dataframe['Diagnóstico_árbol'] = nuevo_dataframe.apply(asignar_nivel_riesgo, args=(clf, columnas_atributos), axis=1)
 
     # Mostrar los resultados en Streamlit
-    st.write("Resultados de asignación de nivel de riesgo:")
-    st.dataframe(nuevo_dataframe[['C37_18', 'H11_18', 'H6_18', 'H5_18', 'Diagnóstico_árbol']])
+    #st.write("Resultados de asignación de nivel de riesgo:")
+    #st.dataframe(nuevo_dataframe[['C37_18', 'H11_18', 'H6_18', 'H5_18', 'Diagnóstico_árbol']], use_container_width=True)
 
     # Calcular el número de coincidencias y no coincidencias
     coincidencias = (nuevo_dataframe['nivel_riesgo'] == nuevo_dataframe['Diagnóstico_árbol']).sum()
-    total_filas = len(datos_limpios)
+    total_filas = len(nuevo_dataframe)
     no_coincidencias = total_filas - coincidencias
 
     # Mostrar los resultados en Streamlit
@@ -1266,19 +1622,42 @@ elif option == "Relaciones de Indiscernibilidad 2018":
  
     datos_limpios['Diagnóstico_árbol'] = datos_limpios.apply(asignar_nivel_riesgo, args=(clf, columnas_atributos), axis=1)
     # Aplicar la función asignar_nivel_riesgo al dataframe datos_limpios
-    datos_limpios[['C37_18','H11_18', 'H6_18','H5_18','Diagnóstico_árbol']]
+    #datos_limpios[['C37_18','H11_18', 'H6_18','H5_18','Diagnóstico_árbol']]
 
     #datos_filtrados.drop('H15A_18', axis=1, inplace=True) 
-    datos_filtrados = datos_filtrados.dropna()
+    datos_filtrados = datos_limpios_filtrados.dropna()
  
     datos_filtrados['Diagnóstico_árbol'] = datos_filtrados.apply(asignar_nivel_riesgo, args=(clf, columnas_atributos), axis=1)
     datos_filtrados = datos_filtrados[['H11_18', 'H5_18', 'H6_18','C37_18','Diagnóstico_árbol']].dropna()
-    datos_filtrados[['H11_18', 'H5_18', 'H6_18','C37_18','Diagnóstico_árbol']]
+    #datos_filtrados[['H11_18', 'H5_18', 'H6_18','C37_18','Diagnóstico_árbol']]
 
-    import streamlit as st
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    import seaborn as sns
+    nuevo_dataframe_filtrado['Diagnóstico_árbol'] = nuevo_dataframe_filtrado.apply(asignar_nivel_riesgo, args=(clf, columnas_atributos), axis=1)
+    #df_filtrado = df.dropna()
+    st.dataframe(nuevo_dataframe_filtrado, use_container_width=True)
+
+    st.write(f'La base seleccionada contiene **{datos_filtrados.shape[0]}** filas y **{datos_filtrados.shape[1]}** columnas.')
+
+
+    # Botón para descargar el dataframe reducido en formato csv
+    csv_data = convert_df_to_csv(datos_filtrados)
+    st.download_button(
+        label="Descargar Dataframe en formato CSV",
+        data=csv_data,
+        file_name="dataframe_reducido.csv",
+        mime="text/csv"
+        )
+
+    xlsx_data = convert_df_to_xlsx(datos_filtrados)
+    st.download_button(
+        label="Descargar Dataframe en formato XLSX",
+        data=xlsx_data,
+        file_name="dataframe_reducido.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    st.markdown("""
+    El modelo de árbol, obtenido a partir del reducto, permite estimar el nivel de riesgo aún en el caso de pacientes que no hayan contestado la encuesta completa. En la Figura debajo se comparan los tamaños de los conjuntos de pacientes en cada nivel de riesgo de acuerdo a la lista completa (izquierda) con la del reducto (derecha).
+""")
 
     # Suponiendo que 'datos_filtrados' ya está definido y contiene los datos necesarios
 
@@ -1286,7 +1665,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     grupo_diagnostico_nuevo = nuevo_dataframe.groupby('Diagnóstico_árbol').size()
 
     # Agrupar por 'Diagnóstico_árbol' y contar el número de ocurrencias para datos_filtrados
-    grupo_diagnostico_filtrados = datos_filtrados.groupby('Diagnóstico_árbol').size()
+    grupo_diagnostico_filtrados = nuevo_dataframe_filtrado.groupby('Diagnóstico_árbol').size()
 
     # Crear el panel con dos subplots
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))
@@ -1296,14 +1675,14 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     axes[0].spines[['top', 'right']].set_visible(False)
     axes[0].set_xlabel('Número de filas')
     axes[0].set_ylabel('Diagnóstico')
-    axes[0].set_title('Conteo de diagnósticos (nuevo_dataframe)')
+    axes[0].set_title('Conteo de diagnósticos (Lista completa)')
 
     # Gráfico para datos_filtrados
     sns.barplot(x=grupo_diagnostico_filtrados.values, y=grupo_diagnostico_filtrados.index, palette='Dark2', ax=axes[1])
     axes[1].spines[['top', 'right']].set_visible(False)
     axes[1].set_xlabel('Número de filas')
     axes[1].set_ylabel('Diagnóstico')
-    axes[1].set_title('Conteo de diagnósticos (datos_filtrados)')
+    axes[1].set_title('Conteo de diagnósticos (Reducto)')
 
     # Mostrar el panel con subplots en Streamlit
     st.pyplot(fig)
@@ -1311,9 +1690,157 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 # Crear una nueva columna "Diagnóstico_árbol" en el dataframe "nuevo_dataframe"
 #nuevo_dataframe['Diagnóstico_árbol'] = nuevo_dataframe.apply(asignar_nivel_riesgo, axis=1)
 
-    nuevo_dataframe.shape
+    #nuevo_dataframe.shape
 
-    datos_filtrados.shape
+    #datos_filtrados.shape
+
+    #df_filtrado.shape
+
+
+
+    # Configurar la interfaz de usuario de Streamlit
+    st.title("Comparación por comorbilidad")
+
+    st.markdown("""
+    En esta sección puede compararse la distribución de niveles de riesgo para pacientes con diversas comorbilidades. En su verisón actual (01-06-2024) se comparan 4 grupos: pacientes sanos, pacientes con diabetes, pacientes con hipertensión y pacientes con diabetes e hipertensión. Para visualizar los resultados es necesario que carge los archivos de participantes de la encuesta con cada tipo de comorbilidad o sanos en los que ya se halla estimado un nivel de riesgo por sarcopenia (estos archivos se obtienen al correr los pasos previos a esta sección, usando el archivo **conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018**.)
+""")
+    # Cargar hasta 4 archivos
+    archivos = st.file_uploader("Cargar archivos (máximo 4 archivos, CSV o Excel)", 
+                                type=["csv", "xlsx"], 
+                                accept_multiple_files=True, 
+                               key="archivos_uploader")
+
+    # Verificar que no se carguen más de 4 archivos
+    if len(archivos) > 4:
+        st.error("Por favor, carga un máximo de 4 archivos.")
+    else:
+        # Inicializar una lista para almacenar los dataframes
+        dfs = []
+
+        # Procesar cada archivo
+        for i, archivo in enumerate(archivos):
+            if archivo.name.endswith('.csv'):
+                df = pd.read_csv(archivo)
+                #st.write(f"Archivo {archivo.name} cargado correctamente como df_{i+1}:")
+                st.dataframe(df)
+            elif archivo.name.endswith('.xlsx'):
+                xls = pd.ExcelFile(archivo)
+                sheet_name = xls.sheet_names[0]  # Obtener el nombre de la primera hoja
+                df = pd.read_excel(xls, sheet_name=sheet_name, engine='openpyxl')
+                #st.write(f"Archivo {archivo.name} cargado correctamente como df_{i+1}:")
+                #st.dataframe(df)
+        
+            # Asignar el dataframe a una variable dinámica
+            globals()[f'df_{i+1}'] = df
+            dfs.append(df)
+
+        # Mostrar los nombres de los dataframes creados
+        #for i in range(len(dfs)):
+        #    st.write(f"df_{i+1} creado.")
+        # Concatenar los dataframes verticalmente
+    
+    # Crear la columna 'comorbilidad' con el valor 'negativo'
+    #df_1['Comorbilidad'] = 'Ninguna'
+    #df_2['Comorbilidad'] = 'Diabetes'
+    #df_3['Comorbilidad'] = 'Hipertensión'
+    #df_4['Comorbilidad'] = 'Hipertensión y Diabetes'
+
+    datos_concatenados = pd.concat([df_1, df_2, df_3, df_4], ignore_index=True)
+
+    # Mostrar el dataframe resultante
+    st.dataframe(datos_concatenados, use_container_width=True)
+
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import streamlit as st
+
+
+    # Contar el número de ocurrencias de cada valor en la columna "Diagnóstico_árbol"
+    diagnosticos_counts = datos_concatenados['Diagnóstico_árbol'].value_counts()
+
+    # Crear el diagrama de pastel
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.pie(diagnosticos_counts, labels=diagnosticos_counts.index, autopct='%1.1f%%', startangle=140)
+    ax.set_title('Porcentaje por evaluación de riesgo de Sarcopenia')
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+    # Agregar leyenda de texto
+    plt.text(-1.3, -1.1, "Muestra de la ENASEM de 2018 de voluntarios mayores de 60 años", fontsize=10, bbox=dict(facecolor='white', alpha=0.5))
+
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(fig)
+
+
+
+#    # Crear figura y ejes para los subplots
+#    fig, axs = plt.subplots(2, 2, figsize=(14, 10))
+
+#    # Iterar sobre cada nivel de riesgo y crear un gráfico de pastel
+#    for i, nivel in enumerate(nivel_riesgo):
+#        # Filtrar el dataframe para obtener solo las filas con el nivel de riesgo actual
+#        filtro_riesgo = datos_concatenados[datos_concatenados['Diagnóstico_árbol'] == nivel]
+    
+#        # Contar el número de ocurrencias de cada valor en la columna "Comorbilidad"
+#        comorbilidad_counts = filtro_riesgo['Comorbilidad'].value_counts()
+    
+#        # Crear el gráfico de pastel en el subplot correspondiente
+#        ax = axs[i // 2, i % 2]
+#        ax.pie(comorbilidad_counts, labels=comorbilidad_counts.index, autopct='%1.1f%%', startangle=140)
+#        ax.set_title(f'Porcentaje de comorbilidades - {nivel}')
+#        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+#    # Agregar leyenda de texto en el subplot inferior izquierdo
+#    fig.text(0.5, 0.02, "Muestra de la ENASEM de 2021 de voluntarios mayores de 60 años", ha='center', fontsize=10, bbox=dict(facecolor='white', alpha=0.5))
+
+#    # Ajustar diseño de subplots
+#    plt.tight_layout(rect=[0, 0.04, 1, 0.96])
+
+#    # Mostrar el gráfico en Streamlit
+#    st.pyplot(fig)
+
+
+
+
+
+    st.title("Análisis de Comorbilidades y Diagnóstico de Sarcopenia")
+
+    # Agrupar por "Diagnóstico árbol" y "Comorbilidad" y contar el número de filas en cada grupo
+    grupo_diagnostico_comorbilidad = datos_concatenados.groupby(['Diagnóstico_árbol', 'Comorbilidad']).size().unstack(fill_value=0)
+
+    # Calcular el porcentaje para cada subgrupo
+    grupo_diagnostico_comorbilidad_porcentaje = grupo_diagnostico_comorbilidad.div(grupo_diagnostico_comorbilidad.sum(axis=1), axis=0) * 100
+
+    # Ordenar las barras según las categorías "Sin Riesgo", "Riesgo leve", "Riesgo moderado" y "Riesgo considerable"
+    orden_categorias = ["Sin Riesgo", "Riesgo leve", "Riesgo moderado", "Riesgo severo"]
+    grupo_diagnostico_comorbilidad_porcentaje = grupo_diagnostico_comorbilidad_porcentaje.reindex(orden_categorias)
+
+    # Crear el diagrama de barras con colores específicos para cada tipo de comorbilidad
+    fig, ax = plt.subplots(figsize=(10, 6))
+    grupo_diagnostico_comorbilidad_porcentaje.plot(kind='bar', stacked=True, ax=ax, color=['green', 'orange', 'red', 'blue'])
+
+    # Configurar el gráfico 
+    plt.title('Muestra de la ENASEM de 2018 de voluntarios mayores de 60 años')
+    plt.xlabel('Diagnóstico árbol')
+    plt.ylabel('Porcentaje')
+    plt.xticks(rotation=45)
+    plt.legend(title='Comorbilidad', bbox_to_anchor=(1.01, 0.89), loc='center left')
+
+    # Mostrar los porcentajes numéricos dentro de las barras
+    for i, (index, row) in enumerate(grupo_diagnostico_comorbilidad_porcentaje.iterrows()):
+        acumulado = 0
+        for j, value in enumerate(row):
+            if value != 0:  # Mostrar el valor solo si no es cero
+                altura_fraccion = acumulado + value / 2
+                ax.text(i, altura_fraccion, f'{value:.1f}%', ha='center', va='center', color='white')
+                acumulado += value
+
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(fig)
+
+
+##################
+
+
 
 ##################
 
