@@ -1840,9 +1840,6 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
 ##################
 
-
-##################
-
 elif option == "Relaciones de Indiscernibilidad 2021":
     
     def indiscernibility(attr, table):
@@ -1904,11 +1901,11 @@ elif option == "Relaciones de Indiscernibilidad 2021":
         # Cargar el archivo como un DataFrame de pandas
         df = pd.read_csv(uploaded_file)
 
-    #df.columns = df.columns.str.replace(r'(_18|_19)$', '', regex=True)
+    #df.columns = df.columns.str.replace(r'(_21|_19)$', '', regex=True)
 
     # Mostrar el DataFrame cargado
-    #df.columns = df.columns.str.replace('_18', '', regex=False)
-    #df.columns = df.columns.str.replace('_18', '', regex=False).str.replace('_21', '', regex=False)
+    #df.columns = df.columns.str.replace('_21', '', regex=False)
+    #df.columns = df.columns.str.replace('_21', '', regex=False).str.replace('_21', '', regex=False)
     st.write('Cada **fila** corresponde a las respuestas de una o un participante de la ENASEM y cada **columna** corresponde a un pregunta en particular de las **secciones "a" a "i"** (si quiere revisar el significado de las claves de las preguntas revise la sección siguiente). Los registros vacíos (aquellos que muestren un **None**), los que contengan repuestas **"8" o "9"** (**"No sabe"** y **"No quiere contestar"** y los que tengan (**999**) **se eliminarán en la depuración**).')
     st.dataframe(df)
 
@@ -1925,95 +1922,95 @@ elif option == "Relaciones de Indiscernibilidad 2021":
     
         st.write("""
                  
-- **Código AGE_18**: Edad en años cumplidos.
+- **Código AGE_21**: Edad en años cumplidos.
 
-- **Código SEX_18**: Sexo.
+- **Código SEX_21**: Sexo.
 
-- **Código C4_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene hipertensión o presión alta?
+- **Código C4_21**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene hipertensión o presión alta?
 
-- **Código C6_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene diabetes?
+- **Código C6_21**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene diabetes?
 
-- **Código C12_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene cáncer?
+- **Código C12_21**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene cáncer?
 
-- **Código C19_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene alguna enfermedad respiratoria, tal como asma o enfisema?
+- **Código C19_21**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene alguna enfermedad respiratoria, tal como asma o enfisema?
 
-- **Código C22A_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted ha tenido un ataque/infarto al corazón?
+- **Código C22A_21**: ¿Alguna vez le ha dicho un doctor o personal médico que usted ha tenido un ataque/infarto al corazón?
 
-- **Código C26_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted ha tenido una embolia cerebral, derrame cerebral o isquemia cerebral transitoria?
+- **Código C26_21**: ¿Alguna vez le ha dicho un doctor o personal médico que usted ha tenido una embolia cerebral, derrame cerebral o isquemia cerebral transitoria?
 
-- **Código C32_18**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene artritis o reumatismo?
+- **Código C32_21**: ¿Alguna vez le ha dicho un doctor o personal médico que usted tiene artritis o reumatismo?
 
-- **Código C37_18**: ¿Se ha caído en los últimos dos años?
+- **Código C37_21**: ¿Se ha caído en los últimos dos años?
 
-- **Código C49_1_18**: Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo se ha sentido deprimido?
+- **Código C49_1_21**: Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo se ha sentido deprimido?
 
-- **Código C49_2_18**: Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo ha sentido que todo lo que hacía era un esfuerzo?
+- **Código C49_2_21**: Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo ha sentido que todo lo que hacía era un esfuerzo?
 
-- **Código C49_8_18**: Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo se ha sentido cansado?
+- **Código C49_8_21**: Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo se ha sentido cansado?
 
-- **Código C64_18**: ¿Comparado con hace dos años, usted...?
+- **Código C64_21**: ¿Comparado con hace dos años, usted...?
 
-- **Código C66_18**: ¿Como cuántos kilos pesa usted ahora?
+- **Código C66_21**: ¿Como cuántos kilos pesa usted ahora?
 
-- **Código C67_1_18**: ¿Como cuánto mide usted sin zapatos? - Metros
+- **Código C67_1_21**: ¿Como cuánto mide usted sin zapatos? - Metros
 
-- **Código C67_2_18**: ¿Como cuánto mide usted sin zapatos? - Centímetros
+- **Código C67_2_21**: ¿Como cuánto mide usted sin zapatos? - Centímetros
 
-- **Código C68E_18**: Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente? - Fatiga severa o agotamiento serio
+- **Código C68E_21**: Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente? - Fatiga severa o agotamiento serio
 
-- **Código C68G_18**: Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente? - Pérdida involuntaria de orina, al hacer cosas como toser, estornudar, recoger cosas o hacer ejercicio
+- **Código C68G_21**: Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente? - Pérdida involuntaria de orina, al hacer cosas como toser, estornudar, recoger cosas o hacer ejercicio
 
-- **Código C68H_18**: Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente? - Pérdida involuntaria de orina, cuando tenía urgencia de orinar pero no pudo llegar al baño a tiempo
+- **Código C68H_21**: Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente? - Pérdida involuntaria de orina, cuando tenía urgencia de orinar pero no pudo llegar al baño a tiempo
 
-- **Código C69A_18**: ¿Cómo evaluaría la fuerza de su mano (la que utiliza más)?, ¿diría que es...?
+- **Código C69A_21**: ¿Cómo evaluaría la fuerza de su mano (la que utiliza más)?, ¿diría que es...?
 
-- **Código C69B_18**: ¿Qué tan seguido tiene usted dificultad en mantener su equilibrio/balance?, ¿diría que...?
+- **Código C69B_21**: ¿Qué tan seguido tiene usted dificultad en mantener su equilibrio/balance?, ¿diría que...?
 
-- **Código C71A_18**: ¿Le falta alguna extremidad o parte de sus piernas o brazos debido a un accidente o enfermedad?
+- **Código C71A_21**: ¿Le falta alguna extremidad o parte de sus piernas o brazos debido a un accidente o enfermedad?
 
-- **Código C76_18**: En los últimos 12 meses, ¿cuánto efecto cree usted que el estrés ha tenido sobre su salud?
+- **Código C76_21**: En los últimos 12 meses, ¿cuánto efecto cree usted que el estrés ha tenido sobre su salud?
 
-- **Código H1_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene usted dificultad en caminar varias cuadras?
+- **Código H1_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene usted dificultad en caminar varias cuadras?
 
-- **Código H4_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en estar sentado(a) por dos horas?
+- **Código H4_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en estar sentado(a) por dos horas?
 
-- **Código H5_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantarse de una silla después de haber estado sentado(a) durante largo tiempo?
+- **Código H5_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantarse de una silla después de haber estado sentado(a) durante largo tiempo?
 
-- **Código H6_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir varios pisos de escaleras sin descansar?
+- **Código H6_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir varios pisos de escaleras sin descansar?
 
-- **Código H8_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en inclinar su cuerpo, arrodillarse, agacharse o ponerse en cuclillas?
+- **Código H8_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en inclinar su cuerpo, arrodillarse, agacharse o ponerse en cuclillas?
 
-- **Código H9_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir o extender los brazos más arriba de los hombros?
+- **Código H9_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir o extender los brazos más arriba de los hombros?
 
-- **Código H10_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud ¿tiene alguna dificultad en jalar o empujar objetos grandes como un sillón?
+- **Código H10_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud ¿tiene alguna dificultad en jalar o empujar objetos grandes como un sillón?
 
-- **Código H11_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantar o transportar objetos que pesan más de 5 kilos, como una bolsa pesada de alimentos?
+- **Código H11_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantar o transportar objetos que pesan más de 5 kilos, como una bolsa pesada de alimentos?
 
-- **Código H12_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en recoger una moneda de 1 peso de la mesa?
+- **Código H12_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en recoger una moneda de 1 peso de la mesa?
 
-- **Código H13_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene usted dificultad para vestirse, incluyendo ponerse los zapatos y los calcetines?
+- **Código H13_21**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene usted dificultad para vestirse, incluyendo ponerse los zapatos y los calcetines?
 
-- **Código H15A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad para caminar de un lado a otro de un cuarto?
+- **Código H15A_21**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad para caminar de un lado a otro de un cuarto?
 
-- **Código H15B_18**: ¿Usa usted equipo o aparatos, tales como bastón, caminador o silla de ruedas para caminar de un lado a otro de un cuarto?
+- **Código H15B_21**: ¿Usa usted equipo o aparatos, tales como bastón, caminador o silla de ruedas para caminar de un lado a otro de un cuarto?
 
-- **Código H15D_18**: ¿Alguien le ayuda a usted para caminar de un lado a otro de un cuarto?
+- **Código H15D_21**: ¿Alguien le ayuda a usted para caminar de un lado a otro de un cuarto?
 
-- **Código H16A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad para bañarse en una tina o regadera?
+- **Código H16A_21**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad para bañarse en una tina o regadera?
 
-- **Código H16D_18**: ¿Alguien le ayuda a usted para bañarse en una tina o regadera?
+- **Código H16D_21**: ¿Alguien le ayuda a usted para bañarse en una tina o regadera?
 
-- **Código H17A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad al comer, por ejemplo para cortar su comida?
+- **Código H17A_21**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad al comer, por ejemplo para cortar su comida?
 
-- **Código H17D_18**: ¿Alguien le ayuda a usted al comer, por ejemplo para cortar su comida?
+- **Código H17D_21**: ¿Alguien le ayuda a usted al comer, por ejemplo para cortar su comida?
 
-- **Código H18A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad al acostarse y levantarse de la cama?
+- **Código H18A_21**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad al acostarse y levantarse de la cama?
 
-- **Código H18D_18**: ¿Alguien le ayuda a usted al acostarse y levantarse de la cama?
+- **Código H18D_21**: ¿Alguien le ayuda a usted al acostarse y levantarse de la cama?
 
-- **Código H19A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad al usar el excusado, incluyendo subirse y bajarse o ponerse en cuclillas?
+- **Código H19A_21**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad al usar el excusado, incluyendo subirse y bajarse o ponerse en cuclillas?
 
-- **Código H19D_18**: ¿Alguien le ayuda a usted al usar el excusado, incluyendo subirse y bajarse o ponerse en cuclillas?
+- **Código H19D_21**: ¿Alguien le ayuda a usted al usar el excusado, incluyendo subirse y bajarse o ponerse en cuclillas?
     """)
 
 
@@ -2022,11 +2019,11 @@ elif option == "Relaciones de Indiscernibilidad 2021":
     df['Indice'] = df.index
 
     # Lista predefinida "selección estándar"
-    seleccion_estandar = ['Indice',"AGE_18", 'SEX_18', 'C4_18', 'C6_18', 'C12_18', 'C19_18', 'C22A_18', 'C26_18', "C32_18", 'C37_18',
-                      "C49_1_18", 'C49_2_18', 'C49_8_18', 'C64_18', 'C66_18', 'C67_1_18', 'C67_2_18', 'C68E_18', 'C68G_18',
-                      'C68H_18', 'C69A_18', 'C69B_18', 'C71A_18', 'C76_18', 'H1_18', 'H4_18', 'H5_18', 'H6_18', 'H8_18',
-                      'H9_18', 'H10_18', 'H11_18', 'H12_18', 'H13_18', 'H15A_18', 'H15B_18', 'H15D_18', 'H16A_18', 'H16D_18',
-                      'H17A_18', 'H17D_18', 'H18A_18', 'H18D_18', 'H19A_18', 'H19D_18']
+    seleccion_estandar = ['Indice',"AGE_21", 'SEX_21', 'C4_21', 'C6_21', 'C12_21', 'C19_21', 'C22A_21', 'C26_21', "C32_21", 'C37_21',
+                      "C49_1_21", 'C49_2_21', 'C49_8_21', 'C64_21', 'C66_21', 'C67_1_21', 'C67_2_21', 'C68E_21', 'C68G_21',
+                      'C68H_21', 'C69A_21', 'C69B_21', 'C71A_21', 'C76_21', 'H1_21', 'H4_21', 'H5_21', 'H6_21', 'H8_21',
+                      'H9_21', 'H10_21', 'H11_21', 'H12_21', 'H13_21', 'H15A_21', 'H15B_21', 'H15D_21', 'H16A_21', 'H16D_21',
+                      'H17A_21', 'H17D_21', 'H18A_21', 'H18D_21', 'H19A_21', 'H19D_21']
 ###
 
 # Opción para seleccionar columnas
@@ -2098,8 +2095,8 @@ elif option == "Relaciones de Indiscernibilidad 2021":
             # Agregar explicaciones adicionales
             diccionario.update({
                 "Indice": "El número de fila en la base de datos",
-                "AGE_18": "Edad en años cumplidos",
-                "SEX_18": "Sexo"
+                "AGE_21": "Edad en años cumplidos",
+                "SEX_21": "Sexo"
             })
 
             return diccionario
@@ -2138,25 +2135,25 @@ elif option == "Relaciones de Indiscernibilidad 2021":
 ######################################
 
         # Filtro inicial
-        df = df[df['AGE_18'] < 100]
+        df = df[df['AGE_21'] < 100]
 
         # Lista de columnas a modificar
-        columnas_modificar = ['C4_18', 'C6_18', 'C12_18', 'C19_18', 'C22A_18', 'C26_18', "C32_18", 'C37_18',
-                      "C49_1_18", 'C49_2_18', 'C49_8_18', 'C64_18', 'C66_18', 'C68E_18', 'C68G_18',
-                      'C68H_18', 'C69A_18', 'C69B_18', 'C71A_18', 'C76_18', 'H1_18', 'H4_18', 'H5_18', 'H6_18', 'H8_18',
-                      'H9_18', 'H10_18', 'H11_18', 'H12_18', 'H13_18', 'H15A_18', 'H15B_18', 'H15D_18', 'H16A_18', 'H16D_18',
-                      'H17A_18', 'H17D_18', 'H18A_18', 'H18D_18', 'H19A_18', 'H19D_18']
+        columnas_modificar = ['C4_21', 'C6_21', 'C12_21', 'C19_21', 'C22A_21', 'C26_21', "C32_21", 'C37_21',
+                      "C49_1_21", 'C49_2_21', 'C49_8_21', 'C64_21', 'C66_21', 'C68E_21', 'C68G_21',
+                      'C68H_21', 'C69A_21', 'C69B_21', 'C71A_21', 'C76_21', 'H1_21', 'H4_21', 'H5_21', 'H6_21', 'H8_21',
+                      'H9_21', 'H10_21', 'H11_21', 'H12_21', 'H13_21', 'H15A_21', 'H15B_21', 'H15D_21', 'H16A_21', 'H16D_21',
+                      'H17A_21', 'H17D_21', 'H18A_21', 'H18D_21', 'H19A_21', 'H19D_21']
 
         # Convertir valores 6.0 o 7.0 en 1.0 en las columnas especificadas
         df[columnas_modificar] = df[columnas_modificar].replace({6.0: 1.0, 7.0: 1.0})
 
         # Combinar los campos de las columnas de estatura en una sola columna de estatura en metros
-        df['C67_18'] = df['C67_1_18'] + df['C67_2_18'] / 100
-        df = df.drop(columns=['C67_1_18', 'C67_2_18'])
+        df['C67_21'] = df['C67_1_21'] + df['C67_2_21'] / 100
+        df = df.drop(columns=['C67_1_21', 'C67_2_21'])
 
         # Eliminar filas que contengan valores 8.0 o 9.0 en cualquiera de las columnas especificadas
         df = df[~df[columnas_modificar].isin([8.0, 9.0, 999, 9.99]).any(axis=1)]
-        df = df[~df['C67_18'].isin([9.99, 8.88])]
+        df = df[~df['C67_21'].isin([9.99, 8.88])]
         columnas_seleccionadas = list(df.columns)
 
         # Crear widgets de selección para cada columna seleccionada en la barra lateral
@@ -2192,40 +2189,40 @@ elif option == "Relaciones de Indiscernibilidad 2021":
      # Definir condiciones para cada grupo
         conditions = {
             "Ninguna": {
-                'C4_18': 2.0,
-                'C6_18': 2.0,
-                'C12_18': 2.0,
-                'C19_18': 2.0,
-                'C22A_18': 2.0,
-                'C26_18': 2.0,
-                'C32_18': 2.0
+                'C4_21': 2.0,
+                'C6_21': 2.0,
+                'C12_21': 2.0,
+                'C19_21': 2.0,
+                'C22A_21': 2.0,
+                'C26_21': 2.0,
+                'C32_21': 2.0
             },
             "Diabetes": {
-                'C4_18': 1.0,
-                'C6_18': 2.0,
-                'C12_18': 2.0,
-                'C19_18': 2.0,
-                'C22A_18': 2.0,
-                'C26_18': 2.0,
-                'C32_18': 2.0
+                'C4_21': 1.0,
+                'C6_21': 2.0,
+                'C12_21': 2.0,
+                'C19_21': 2.0,
+                'C22A_21': 2.0,
+                'C26_21': 2.0,
+                'C32_21': 2.0
             },
             "Hipertensión": {
-                'C4_18': 2.0,
-                'C6_18': 1.0,
-                'C12_18': 2.0,
-                'C19_18': 2.0,
-                'C22A_18': 2.0,
-                'C26_18': 2.0,
-                'C32_18': 2.0
+                'C4_21': 2.0,
+                'C6_21': 1.0,
+                'C12_21': 2.0,
+                'C19_21': 2.0,
+                'C22A_21': 2.0,
+                'C26_21': 2.0,
+                'C32_21': 2.0
             },
             "Hipertensión y Diabetes": {
-                'C4_18': 1.0,
-                'C6_18': 1.0,
-                'C12_18': 2.0,
-                'C19_18': 2.0,
-                'C22A_18': 2.0,
-                'C26_18': 2.0,
-                'C32_18': 2.0
+                'C4_21': 1.0,
+                'C6_21': 1.0,
+                'C12_21': 2.0,
+                'C19_21': 2.0,
+                'C22A_21': 2.0,
+                'C26_21': 2.0,
+                'C32_21': 2.0
             }
         }
 
@@ -2248,13 +2245,13 @@ elif option == "Relaciones de Indiscernibilidad 2021":
         # Crear una selección en Streamlit para elegir entre los conjuntos
         seleccion = st.selectbox("**Seleccione un grupo**", list(conditions.keys()))
 
-        # Crear una selección múltiple en Streamlit para el valor de SEX_18
-        sex_values = df_filtrado['SEX_18'].unique()
+        # Crear una selección múltiple en Streamlit para el valor de SEX_21
+        sex_values = df_filtrado['SEX_21'].unique()
         st.write("""Aquí pude seleccionar entre hacer un análisis utilizando datos de la muestra completa o sobre un solo sexo. La Clave numérica **"1.0"** corresponde a las **mujeres** y la **Clave "2.0"** corresponde a los **hombres.**
         """)
         sex_selection = st.multiselect("**Seleccione el sexo de la muestra** (puede seleccionar ambos si quiere analizar la muestra completa)", sex_values, default=sex_values)
 
-        # Filtrar el DataFrame en función de las condiciones seleccionadas y el valor de SEX_18
+        # Filtrar el DataFrame en función de las condiciones seleccionadas y el valor de SEX_21
         condiciones_seleccionadas = conditions[seleccion]
         nuevo_dataframe_filtrado = df_filtrado.copy()
 
@@ -2262,10 +2259,10 @@ elif option == "Relaciones de Indiscernibilidad 2021":
         for columna, valor in condiciones_seleccionadas.items():
             nuevo_dataframe_filtrado = nuevo_dataframe_filtrado[nuevo_dataframe_filtrado[columna] == valor]
 
-        # Aplicar el filtro del valor de SEX_18
-        #nuevo_dataframe_filtrado = nuevo_dataframe_filtrado[nuevo_dataframe_filtrado['SEX_18'] == sex_selection]
-        # Aplicar el filtro del valor de SEX_18
-        nuevo_dataframe_filtrado = nuevo_dataframe_filtrado[nuevo_dataframe_filtrado['SEX_18'].isin(sex_selection)]
+        # Aplicar el filtro del valor de SEX_21
+        #nuevo_dataframe_filtrado = nuevo_dataframe_filtrado[nuevo_dataframe_filtrado['SEX_21'] == sex_selection]
+        # Aplicar el filtro del valor de SEX_21
+        nuevo_dataframe_filtrado = nuevo_dataframe_filtrado[nuevo_dataframe_filtrado['SEX_21'].isin(sex_selection)]
         nuevo_dataframe_filtrado['Comorbilidad'] = seleccion
 
 
@@ -2282,11 +2279,11 @@ elif option == "Relaciones de Indiscernibilidad 2021":
     st.subheader("Clasificación de participantes.")
     st.markdown(
         """
-        En esta sección se utiliza la **Teoría de conjuntos rugosos** para agrupar a las y los participantes de la encuesta cuyas respuestas fueron idénticas. Esto se logra mediante el cálculo de las **relaciones de indiscerbibilidad** El gáfico de representa a las particiones de pacientes con respuestas idénticas en las preguntas (**'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'**).
+        En esta sección se utiliza la **Teoría de conjuntos rugosos** para agrupar a las y los participantes de la encuesta cuyas respuestas fueron idénticas. Esto se logra mediante el cálculo de las **relaciones de indiscerbibilidad** El gáfico de representa a las particiones de pacientes con respuestas idénticas en las preguntas (**'C37_21', 'H11_21', 'H15A_21', 'H5_21', 'H6_21'**).
 
 """
 )
-    ind=indiscernibility(['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'], datos_limpios)
+    ind=indiscernibility(['C37_21', 'H11_21', 'H15A_21', 'H5_21', 'H6_21'], datos_limpios)
     
 
     import matplotlib.pyplot as plt
@@ -2408,7 +2405,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
         globals()[f"df_Conjunto_{i}"] = df_conjunto
 
     # Definir las columnas de interés
-    columnas_interes_radar = ['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18']
+    columnas_interes_radar = ['C37_21', 'H11_21', 'H15A_21', 'H5_21', 'H6_21']
 
     # Definir los nombres de los dataframes
     nombres_dataframes = [f"df_Conjunto_{i}" for i in range(0, num_conjuntos)]
@@ -2481,7 +2478,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
     filas_seleccionadas = datos_limpios[datos_limpios['num_conjunto'].isin(range(15))]
 
     # Seleccionar solo las columnas requeridas
-    filas_seleccionadas = filas_seleccionadas[['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18', 'num_conjunto', 'Comorbilidad']]
+    filas_seleccionadas = filas_seleccionadas[['C37_21', 'H11_21', 'H15A_21', 'H5_21', 'H6_21', 'num_conjunto', 'Comorbilidad']]
 
     # Crear un nuevo DataFrame con las filas seleccionadas
     nuevo_dataframe = pd.DataFrame(filas_seleccionadas)
@@ -2525,7 +2522,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
     
 #    # Función para determinar el nivel de riesgo
 #    def asignar_nivel_riesgo(row):
-#        valores = row[['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18']]
+#        valores = row[['C37_21', 'H11_21', 'H15A_21', 'H5_21', 'H6_21']]
 #        if all(valores == 2.0):
 #            return "Sin Riesgo"
 #        cuenta_1_0 = (valores == 1.0).sum()
@@ -2538,7 +2535,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
 #    # Función para determinar el nivel de riesgo
 
     def asignar_nivel_riesgo(row):
-        valores = row[['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18']]
+        valores = row[['C37_21', 'H11_21', 'H15A_21', 'H5_21', 'H6_21']]
     
     # Contar cuántas columnas individualmente tienen el valor 1.0
         cuenta_1_0 = (valores == 1.0).sum()
@@ -2601,7 +2598,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
 #        return diferencia
 
     # Definir las columnas de interés
-#    columnas_interes = ['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18']
+#    columnas_interes = ['H15A_21', 'H11_21', 'H5_21', 'H6_21', 'C37_21']
 
     # Generar listas de conjuntos
 #    lista_1 = indiscernibility(columnas_interes, nuevo_dataframe)
@@ -2659,7 +2656,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
     st.subheader("Identificación de un reducto")
 
     st.markdown("""
-                Un **reducto** corresponde a una lista reducidad de preguntas que puede crear la misma clasificación de pacientes que la lista completa. En esta sección se identifica un reducto para la lista de preguntas 'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'. Se realiza una clasificación en la que de forma progresiva se van quitando preguntas de la lista original y se compara la partición que crea con la que logra la lista completa. El reducto corresponde a la lista de preguntas que genere una partición lo mas parecida posible a la de la lista original.
+                Un **reducto** corresponde a una lista reducidad de preguntas que puede crear la misma clasificación de pacientes que la lista completa. En esta sección se identifica un reducto para la lista de preguntas 'C37_21', 'H11_21', 'H15A_21', 'H5_21', 'H6_21'. Se realiza una clasificación en la que de forma progresiva se van quitando preguntas de la lista original y se compara la partición que crea con la que logra la lista completa. El reducto corresponde a la lista de preguntas que genere una partición lo mas parecida posible a la de la lista original.
 """)
 
 
@@ -2669,8 +2666,8 @@ elif option == "Relaciones de Indiscernibilidad 2021":
         return sum(abs(lista_a[i] - lista_b[i]) for i in range(min_len))
 
     # Ejemplo de listas de conjuntos
-    lista_1 = indiscernibility(['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18'], nuevo_dataframe)
-    lista_2 = indiscernibility(['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18'], nuevo_dataframe)
+    lista_1 = indiscernibility(['H15A_21', 'H11_21', 'H5_21', 'H6_21', 'C37_21'], nuevo_dataframe)
+    lista_2 = indiscernibility(['H15A_21', 'H11_21', 'H5_21', 'H6_21', 'C37_21'], nuevo_dataframe)
 
     # Mostrar tamaño de los conjuntos originales
 #    st.write("Tamaño de lista_1:", len(lista_1))
@@ -2691,8 +2688,8 @@ elif option == "Relaciones de Indiscernibilidad 2021":
     with st.expander("**Búsqueda del reducto**"):
         st.write("La partición creada por la lista completa se nombró como *lista_1*. La *lista_2* corresponde a copias de *lista_1* en la que se van quitando progresivamente ciertas preguntas (primero una sola, luego 2, luego 3 etc.). El **reducto** corresponde a la lista de preguntas que genere una partición igual, o lo más parecida posible a la de *lista_1*." )
         #st.write(len(lista_1))
-        for columna1 in ['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18']:
-            columnas_sin_columna1 = ['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18']
+        for columna1 in ['H15A_21', 'H11_21', 'H5_21', 'H6_21', 'C37_21']:
+            columnas_sin_columna1 = ['H15A_21', 'H11_21', 'H5_21', 'H6_21', 'C37_21']
             columnas_sin_columna1.remove(columna1)
             lista_2_sin_columna1 = indiscernibility(columnas_sin_columna1, nuevo_dataframe)
             tamaños_lista_2_sin_columna1 = [len(conjunto) for conjunto in lista_2_sin_columna1]
@@ -2757,7 +2754,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
 
 
     # Generar listas de conjuntos (simulando lista_2)
-    lista_2 = indiscernibility(['C37_18', 'H11_18', 'H5_18', 'H6_18'], datos_limpios)
+    lista_2 = indiscernibility(['C37_21', 'H11_21', 'H5_21', 'H6_21'], datos_limpios)
     #st.write(len(lista_2))
     # Obtener longitudes de conjuntos
     longitudes_conjuntos = [(i, len(conjunto)) for i, conjunto in enumerate(lista_2) if len(conjunto) >= 2]
@@ -2776,7 +2773,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
         dataframes_con_filas.append((f"df_Conjunto_{i}", df_conjunto, len(df_conjunto)))
 
     # Definir las columnas de interés
-    columnas_interes_radar = ['C37_18', 'H11_18', 'H5_18', 'H6_18']
+    columnas_interes_radar = ['C37_21', 'H11_21', 'H5_21', 'H6_21']
 
     # Definir los valores para cada dataframe en las columnas de interés
     valores_dataframes = []
@@ -2909,7 +2906,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
     import matplotlib.pyplot as plt
 
     # Definir las columnas de atributos
-    columnas_atributos = ['C37_18', 'H11_18', 'H5_18', 'H6_18']
+    columnas_atributos = ['C37_21', 'H11_21', 'H5_21', 'H6_21']
 
     # Separar los datos en atributos (X) y etiquetas (y)
     X = nuevo_dataframe[columnas_atributos]
@@ -2953,7 +2950,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
 
 
 #    # Definir las columnas de atributos
-#    columnas_atributos = ['C37_18', 'H11_18', 'H5_18', 'H6_18']
+#    columnas_atributos = ['C37_21', 'H11_21', 'H5_21', 'H6_21']
 
 #    # Separar los datos en atributos (X) y etiquetas (y)
 #    X = nuevo_dataframe[columnas_atributos]
@@ -2999,7 +2996,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
     import matplotlib.pyplot as plt
 
     # Definir las columnas de atributos
-    #columnas_atributos = ['C37_18', 'H11_18', 'H5_18', 'H6_18']
+    #columnas_atributos = ['C37_21', 'H11_21', 'H5_21', 'H6_21']
 
     # Suponiendo que 'datos_limpios' ya está definido y contiene los datos necesarios
 
@@ -3015,7 +3012,7 @@ elif option == "Relaciones de Indiscernibilidad 2021":
 
     # Mostrar los resultados en Streamlit
     #st.write("Resultados de asignación de nivel de riesgo:")
-    #st.dataframe(nuevo_dataframe[['C37_18', 'H11_18', 'H6_18', 'H5_18', 'Diagnóstico_árbol']], use_container_width=True)
+    #st.dataframe(nuevo_dataframe[['C37_21', 'H11_21', 'H6_21', 'H5_21', 'Diagnóstico_árbol']], use_container_width=True)
 
     # Calcular el número de coincidencias y no coincidencias
     coincidencias = (nuevo_dataframe['nivel_riesgo'] == nuevo_dataframe['Diagnóstico_árbol']).sum()
@@ -3028,14 +3025,14 @@ elif option == "Relaciones de Indiscernibilidad 2021":
  
     datos_limpios['Diagnóstico_árbol'] = datos_limpios.apply(asignar_nivel_riesgo, args=(clf, columnas_atributos), axis=1)
     # Aplicar la función asignar_nivel_riesgo al dataframe datos_limpios
-    #datos_limpios[['C37_18','H11_18', 'H6_18','H5_18','Diagnóstico_árbol']]
+    #datos_limpios[['C37_21','H11_21', 'H6_21','H5_21','Diagnóstico_árbol']]
 
-    #datos_filtrados.drop('H15A_18', axis=1, inplace=True) 
+    #datos_filtrados.drop('H15A_21', axis=1, inplace=True) 
     datos_filtrados = datos_limpios_filtrados.dropna()
  
     datos_filtrados['Diagnóstico_árbol'] = datos_filtrados.apply(asignar_nivel_riesgo, args=(clf, columnas_atributos), axis=1)
-    datos_filtrados = datos_filtrados[['H11_18', 'H5_18', 'H6_18','C37_18','Diagnóstico_árbol']].dropna()
-    #datos_filtrados[['H11_18', 'H5_18', 'H6_18','C37_18','Diagnóstico_árbol']]
+    datos_filtrados = datos_filtrados[['H11_21', 'H5_21', 'H6_21','C37_21','Diagnóstico_árbol']].dropna()
+    #datos_filtrados[['H11_21', 'H5_21', 'H6_21','C37_21','Diagnóstico_árbol']]
 
     nuevo_dataframe_filtrado['Diagnóstico_árbol'] = nuevo_dataframe_filtrado.apply(asignar_nivel_riesgo, args=(clf, columnas_atributos), axis=1)
     #df_filtrado = df.dropna()
@@ -3248,9 +3245,6 @@ elif option == "Relaciones de Indiscernibilidad 2021":
 
 
 ##################
-
-
-
 
 ##################
 
