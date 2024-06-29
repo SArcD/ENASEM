@@ -1,5 +1,3 @@
-!pip cache purge
-
 import streamlit as st
 import pandas as pd
 import gdown
