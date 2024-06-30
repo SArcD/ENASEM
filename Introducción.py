@@ -505,10 +505,10 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     #df.columns = df.columns.str.replace('_18', '', regex=False).str.replace('_21', '', regex=False)
     # Aplicar un gradiente de color
     # Establecer el fondo de la tabla a blanco utilizando Styler
-    df_styled = df.style.applymap(lambda x: 'background-color: white; color: black')
+    #df_styled = df.style.applymap(lambda x: 'background-color: white; color: black')
 
     # Mostrar el dataframe estilizado en Streamlit
-    st.dataframe(df_styled)
+    st.dataframe(df)
     st.write(f'*La base seleccionada contiene **{df.shape[0]}** filas y **{df.shape[1]}** columnas.*')
     
     st.write('Cada **fila** corresponde a las respuestas de una o un participante de la ENASEM y cada **columna** corresponde a un pregunta en particular de las **secciones de la "a" a la "i"** (si quiere revisar el significado de las claves de las preguntas revise la sección de "Buscador de variables"). Los registros vacíos (aquellos que muestren un **None**), los que contengan repuestas **"8" o "9"** (**"No sabe"** y **"No quiere contestar"** y los que tengan (**999**) **se eliminarán en la depuración**).')
