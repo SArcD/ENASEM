@@ -503,6 +503,11 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     # Mostrar el DataFrame cargado
     #df.columns = df.columns.str.replace('_18', '', regex=False)
     #df.columns = df.columns.str.replace('_18', '', regex=False).str.replace('_21', '', regex=False)
+    # Aplicar un gradiente de color
+    df = df.style.applymap(color_negative_red)\
+                    .apply(highlight_max)\
+                    .background_gradient(cmap='viridis')\
+                    .set_properties(**{'background-color': 'white'})
 
     st.dataframe(df)
     st.write(f'*La base seleccionada contiene **{df.shape[0]}** filas y **{df.shape[1]}** columnas.*')
