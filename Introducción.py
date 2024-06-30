@@ -487,9 +487,9 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     3. **Obtención de reglas de decisión**: Se entrena un modelo de árbol de decisión para determinar un conjunto de reglas que permitan clasificar a los pacientes de la base de datos (aún aquellos que inicialmente no tenían respuestas completas en todas las preguntas de interés).
 """)
     
-    st.subheader("Carga y depuración de datos")
+    st.subheader("Sección 1: Carga y depuración de datos")
     st.write("""
-    Por favor, cargue un archivo correspodiente a las secciones **conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018**. El archivo debe estar en formato csv y debe aparecer debajo, si se cargo correctamente. 
+    Por favor, cargue un archivo correspodiente a las secciones **conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018**. El archivo debe estar en formato csv y si se carga correctamente podrá vizualizarse en el recuadro de abajo. 
 """)
     # Crear una caja de carga de archivos
     uploaded_file = st.file_uploader("Elige un archivo CSV", type="csv")
