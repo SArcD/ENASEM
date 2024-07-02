@@ -887,12 +887,12 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
         st.write("**La base de datos a analizar se muestra aquí:**")
         # Mostrar el DataFrame filtrado
-        st.dataframe(nuevo_dataframe_filtrado, use_container_width=True)
+        #st.dataframe(nuevo_dataframe_filtrado, use_container_width=True)
         datos_limpios = nuevo_dataframe_filtrado.copy()
         datos_limpios = datos_limpios.dropna()
-        st.write(f'La base depurada contiene **{datos_limpios.shape[0]}** filas y **{datos_limpios.shape[1]}** columnas.')
         st.dataframe(datos_limpios, use_container_width=True)
-        datos_limpios.shape
+        st.write(f'La base depurada contiene **{datos_limpios.shape[0]}** filas y **{datos_limpios.shape[1]}** columnas.')
+        #datos_limpios.shape
 
 ##########################################
     st.subheader("Clasificación de participantes.")
