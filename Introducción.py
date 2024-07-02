@@ -898,7 +898,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     st.subheader("Sección 2: Clasificación de participantes")
     st.markdown(
         """
-        En esta sección se utiliza la **Teoría de conjuntos rugosos** para agrupar a las y los participantes de la encuesta cuyas respuestas fueron idénticas. Esto se logra mediante el cálculo de las **relaciones de indiscerbibilidad** El gáfico de representa a las particiones de pacientes con respuestas idénticas en las preguntas (**'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'**).
+        En esta sección se utiliza la [**teoría de conjuntos rugosos**](https://shre.ink/DjYi)para agrupar a las y los participantes de la encuesta cuyas respuestas fueron idénticas. Esto se logra mediante el cálculo de las [**relaciones de indiscerbibilidad**](https://en.wikipedia.org/wiki/Rough_set). El gáfico de representa a las particiones de pacientes con respuestas idénticas en las preguntas (**'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'**).
 
 """
 )
