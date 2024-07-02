@@ -795,11 +795,11 @@ elif option == "Relaciones de Indiscernibilidad 2018":
                 df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
 
         #st.write('DataFrame Filtrado')
-        st.markdown("Aquí puede ver la base de datos depurada:")
+        st.markdown("Aquí puede ver la **base de datos depurada:**")
         st.dataframe(df_filtrado, use_container_width=True)
         #st.write("Las dimensiones de la base de datos son:")
         #st.write(df_filtrado.shape)
-        st.write(f'La base seleccionada contiene **{df_filtrado.shape[0]}** filas y **{df_filtrado.shape[1]}** columnas.')
+        st.write(f'La base depurada contiene **{df_filtrado.shape[0]}** filas y **{df_filtrado.shape[1]}** columnas.')
         datos_filtrados = df_filtrado.copy()
 
 #######################################
@@ -885,7 +885,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
         nuevo_dataframe_filtrado['Comorbilidad'] = seleccion
 
 
-        st.write("**")
+        st.write("**La base de datos a analizar se muestra aquí:**")
         # Mostrar el DataFrame filtrado
         st.dataframe(nuevo_dataframe_filtrado, use_container_width=True)
         datos_limpios = nuevo_dataframe_filtrado.copy()
