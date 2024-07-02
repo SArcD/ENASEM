@@ -482,7 +482,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     st.markdown("""
     El proceso se realiza en las siguientes fases:
     
-    1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los *criterios de inclusión* (los cuales se describen en el siguiente apartado '[Ir a los criterios de inclusión](#criterios_de_inclusión)') o presenten registros incompletos. Además, se definen 5 cuestionamientos de la ENASEM que guardan similitud con los que conforman el test *SARC-F* y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
+    1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los *criterios de inclusión* (los cuales se describen en el [siguiente apartado](#criterios_de_inclusión)') o presenten registros incompletos. Además, se definen 5 cuestionamientos de la ENASEM que guardan similitud con los que conforman el test *SARC-F* y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
 
     2. **Clasificación de participantes**: Usando la [**teoría de conjuntos rugosos**](https://shre.ink/DjYi), se divide la base de datos en una colección de subconjuntos de pacientes que hayan contestado idénticamente a las preguntas clave (a estos subconjuntos se les llama relaciones de indiscernibilidad).
 
@@ -522,9 +522,10 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     Los criterios de inclusión utilizados fueron:
     - Participantes de ambos sexos con 65 años o mas.
     - Participantes sin extremidades faltantes.
-    - Participantes sin diagnóstico confirmado de cáncer u otros padecimientos o comorbilidades (a excepción de los que se describen en la sección de variables de interés).
+    - Participantes sin diagnóstico confirmado de cáncer u otros padecimientos o comorbilidades (a excepción de los que se describen en la sección de [variables de interés][(#variables_de_interés)).
     """)
-    
+
+    st.write('<a id="variables_de_interés"></a>', unsafe_allow_html=True)
     st.subheader("Selección de variables de interés")
     st.write("""
              En esta sección puede elegir entre dos posibles listas de variables de interés:
