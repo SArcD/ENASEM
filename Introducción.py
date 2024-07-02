@@ -894,6 +894,23 @@ elif option == "Relaciones de Indiscernibilidad 2018":
         st.write(f'La base depurada contiene **{datos_limpios.shape[0]}** filas y **{datos_limpios.shape[1]}** columnas.')
         #datos_limpios.shape
 
+        # Botón para descargar el dataframe reducido en formato csv
+        csv_data = convert_df_to_csv(datos_limpios)
+        st.download_button(
+            label="Descargar Dataframe en formato CSV",
+            data=csv_data,
+            file_name="Base depurada 2018.csv",
+            mime="text/csv"
+            )
+
+        xlsx_data = convert_df_to_xlsx(datos_limpios)
+        st.download_button(
+            label="Descargar Dataframe en formato XLSX",
+            data=xlsx_data,
+            file_name="Base depurada 2018.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
 ##########################################
     st.subheader("Sección 2: Clasificación de participantes")
     st.markdown(
@@ -1290,7 +1307,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
    # st.pyplot(fig)
 
 
-    st.subheader("Identificación de un reducto")
+    st.subheader("Sección 3: Identificación de un reducto")
 
     st.markdown("""
                 Un **reducto** corresponde a una lista reducidad de preguntas que puede crear la misma clasificación de pacientes que la lista completa. En esta sección se identifica un reducto para la lista de preguntas 'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'. Se realiza una clasificación en la que de forma progresiva se van quitando preguntas de la lista original y se compara la partición que crea con la que logra la lista completa. El reducto corresponde a la lista de preguntas que genere una partición lo mas parecida posible a la de la lista original.
