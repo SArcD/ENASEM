@@ -1379,8 +1379,10 @@ elif option == "Relaciones de Indiscernibilidad 2018":
                         mejor_lista = columnas_sin_par.copy()
 
     # Mostrar la lista de columnas que guarda mayor similitud con lista_1
-    st.write("El reducto es:")
-    st.write(mejor_lista)
+    #st.write("El reducto es:")
+    st.text("El reducto es: " + ', '.join(map(str, mejor_lista)))
+
+    #st.write(mejor_lista)
     #st.write(len(lista_1))
     #st.write(len(lista_2))
 
