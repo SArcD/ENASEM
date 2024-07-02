@@ -477,7 +477,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     st.title('Estimación del nivel de riesgo por sarcopenia')
 
-    st.write("""En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la **Encuesta Nacional Sobre Salud y Envejecimiento** (esta sección analiza los datos de la Edición 2018, puede acceder alas otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario **SARC-F**.
+    st.markdown("""En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la **Encuesta Nacional Sobre Salud y Envejecimiento** (esta sección analiza los datos de la Edición 2018, puede acceder alas otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario **SARC-F** [Visita Google](https://www.google.com).
              """) 
     st.markdown("""
     1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los criterios de inclusión o presenten registros incompletos. Además se definen 5 cuestionamientos de la ENASEM que guardan similitud con *SARC-F* y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
