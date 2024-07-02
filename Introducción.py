@@ -898,10 +898,28 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     st.subheader("Sección 2: Clasificación de participantes")
     st.markdown(
         """
-        En esta sección se utiliza la [**teoría de conjuntos rugosos**](https://shre.ink/DjYi)para agrupar a las y los participantes de la encuesta cuyas respuestas fueron idénticas. Esto se logra mediante el cálculo de las [**relaciones de indiscerbibilidad**](https://en.wikipedia.org/wiki/Rough_set). El gáfico de representa a las particiones de pacientes con respuestas idénticas en las preguntas (**'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'**).
+        En esta sección se utiliza la [**teoría de conjuntos rugosos**](https://shre.ink/DjYi) para agrupar a las y los participantes de la encuesta cuyas respuestas fueron idénticas. Esto se logra mediante el cálculo de las [**relaciones de indiscerbibilidad**](https://en.wikipedia.org/wiki/Rough_set). El gáfico de representa a las particiones de pacientes con respuestas idénticas en las preguntas (**'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'**).
+
 
 """
 )
+    with st.expander("Preguntas similares a las de SARC-F"):    
+        st.write("""
+                 
+- **Código C37_18**: ¿Se ha caído en los últimos dos años?
+
+- **Código H5_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantarse de una silla después de haber estado sentado(a) durante largo tiempo?
+
+- **Código H6_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir varios pisos de escaleras sin descansar?
+
+- **Código H11_18**: Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantar o transportar objetos que pesan más de 5 kilos, como una bolsa pesada de alimentos?
+
+- **Código H15A_18**: Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad para caminar de un lado a otro de un cuarto?
+
+    """)
+
+
+    
     ind=indiscernibility(['C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'], datos_limpios)
     
 
