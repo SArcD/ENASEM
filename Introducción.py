@@ -903,7 +903,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
 """
 )
-    with st.expander("Preguntas similares a las de SARC-F"):    
+    with st.expander("**Preguntas similares a las de SARC-F**"):    
         st.write("""
                  
 - **Código C37_18**: ¿Se ha caído en los últimos dos años?
@@ -956,7 +956,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     for autopct in autopcts:
         autopct.set_visible(True)  # Mostrar los porcentajes solo para los grupos con más de 30 miembros
     # Agregar el tamaño de la muestra total como texto
-    ax.annotate(f'Tamaño de la muestra total: {total_elementos}', 
+    ax.annotate(f'Tamaño de la muestra total a partir de los datos de 2018: {total_elementos}', 
             xy=(0.5, -0.05), 
             xycoords='axes fraction', 
             ha='center', 
@@ -968,7 +968,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     # Mostrar el gráfico en Streamlit
     st.pyplot(fig)
-    st.write("Seleccione en el recuadro el **número mínimo de miembros** de los conjuntos que considerará. Esto simplifica el análisis. **Típicamente se define un número mínimo de 30 miembros** (o de 10 miembros si la muestra total es demasiado pequeña o si las relaciones de indiscernibilidad creadas tienen, en su mayoría, menos de 30 miembros).")
+    st.write("Seleccione en el recuadro el **número mínimo de miembros** de los conjuntos que considerará. Esto simplifica el análisis. **Típicamente se define un número mínimo de 30 miembros** (o de 10 miembros si la muestra total es demasiado pequeña).")
 
 
     # Entrada del usuario para el tamaño mínimo del conjunto
@@ -1143,7 +1143,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 #            return "Sin Riesgo"
 #        else:
 #            return "No clasificado"  # Manejar cualquier otro caso
-    with st.expander("Determinación de un nivel de riesgo"):
+    with st.expander("**Determinación de un nivel de riesgo**"):
         st.markdown("""
                     Ya que las preguntas de la ENASEM no son idénticas a las del cuestionario SARC-F (las respuestas de ese cuestionario permiten establecer una escala de intensidad de dificultad para realizar ciertas actividades, mientras que la ENASEM solo permiten contestar *si* o *no*), se definió un criterio alternativo mediante el cual pudiera establecerse un nivel de riesgo de padecer sarcopenia. Los niveles de riesgo definidos son:
 
