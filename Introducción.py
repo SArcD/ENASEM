@@ -522,7 +522,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     Los criterios de inclusión utilizados fueron:
     - Participantes de ambos sexos con 65 años o mas.
     - Participantes sin extremidades faltantes.
-    - Participantes sin diagnóstico confirmado de cáncer u otros padecimientos o comorbilidades (a excepción de los que se describen en la sección de [variables de interés][(#variables_de_interés)).
+    - Participantes sin diagnóstico confirmado de cáncer u otros padecimientos o comorbilidades (a excepción de los que se describen en la sección de [variables de interés](#variables_de_interés)).
     """)
 
     st.write('<a id="variables_de_interés"></a>', unsafe_allow_html=True)
