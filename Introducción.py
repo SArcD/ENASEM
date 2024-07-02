@@ -1310,7 +1310,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     st.subheader("Sección 3: Identificación de un reducto")
 
     st.markdown("""
-                Un **reducto** corresponde a una lista reducidad de preguntas que puede crear la misma clasificación de pacientes que la lista completa. En esta sección se identifica un reducto para la lista de preguntas 'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'. Se realiza una clasificación en la que de forma progresiva se van quitando preguntas de la lista original y se compara la partición que crea con la que logra la lista completa. El reducto corresponde a la lista de preguntas que genere una partición lo mas parecida posible a la de la lista original.
+                Un **reducto** corresponde a una lista reducidad de preguntas que puede crear la misma clasificación de pacientes que la lista completa. En esta sección se identifica un [reducto](https://www.researchgate.net/publication/262252197_The_Concept_of_Reducts_in_Pawlak_Three-Step_Rough_Set_Analysis) para la lista de preguntas 'C37_18', 'H11_18', 'H15A_18', 'H5_18', 'H6_18'. Se realiza una clasificación en la que de forma progresiva se van quitando preguntas de la lista original y se compara la partición que crea con la que logra la lista completa. El reducto corresponde a la lista de preguntas que genere una partición lo mas parecida posible a la de la lista original.
 """)
 
 
