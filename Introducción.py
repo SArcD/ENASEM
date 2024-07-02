@@ -484,7 +484,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     
     1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los *criterios de inclusión* (los cuales se describen en el siguiente apartado) o presenten registros incompletos. Además, se definen 5 cuestionamientos de la ENASEM que guardan similitud con los que conforman el test *SARC-F* y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
 
-    2. **Clasificación de participantes**: Usando la [**teoría de conjuntos rugosos**] (https://shre.ink/DjYi), se divide la base de datos en una colección de subconjuntos de pacientes que hayan contestado idénticamente a las preguntas clave (a estos subconjuntos se les llama relaciones de indiscernibilidad).
+    2. **Clasificación de participantes**: Usando la [**teoría de conjuntos rugosos**](https://shre.ink/DjYi), se divide la base de datos en una colección de subconjuntos de pacientes que hayan contestado idénticamente a las preguntas clave (a estos subconjuntos se les llama relaciones de indiscernibilidad).
 
     3. **Obtención de reglas de decisión**: Se entrena un modelo de árbol de decisión para determinar un conjunto de reglas que permitan clasificar a los pacientes de la base de datos (aún aquellos que inicialmente no tenían respuestas completas en todas las preguntas de interés).
 """)
