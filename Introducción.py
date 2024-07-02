@@ -477,12 +477,14 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     st.title('Estimación del nivel de riesgo por sarcopenia')
 
-    st.markdown("""En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la [**Encuesta Nacional Sobre Salud y Envejecimiento**](https://enasem.org/Home/index_esp.aspx) (esta sección analiza los datos de la Edición 2018, puede acceder alas otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario [**SARC-F**](https://nutricionemocional.es/sites/default/files/tests_frailsarcf_web_2.pdf).
+    st.markdown("""En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la [**Encuesta Nacional Sobre Salud y Envejecimiento**](https://enasem.org/Home/index_esp.aspx) (esta sección analiza los datos de la **Edición 2018**, puede acceder a las otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario [**SARC-F**](https://nutricionemocional.es/sites/default/files/tests_frailsarcf_web_2.pdf).
              """) 
     st.markdown("""
-    1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los criterios de inclusión o presenten registros incompletos. Además se definen 5 cuestionamientos de la ENASEM que guardan similitud con *SARC-F* y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
+    El proceso se realiza en las siguientes fases:
+    
+    1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los *criterios de inclusión* (los cuales se describen en el siguiente apartado) o presenten registros incompletos. Además, se definen 5 cuestionamientos de la ENASEM que guardan similitud con los que conforman el test *SARC-F* y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
 
-    2. **Clasificación de participantes**: Usando la teoría de conjuntos rugosos, se divide la base de datos en una colección de subconjuntos de pacientes que hayan contestado idénticamente a las preguntas clave (a estos subconjuntos se les llama relaciones de indiscernibilidad).
+    2. **Clasificación de participantes**: Usando la [**teoría de conjuntos rugosos**] (https://shre.ink/DjYi), se divide la base de datos en una colección de subconjuntos de pacientes que hayan contestado idénticamente a las preguntas clave (a estos subconjuntos se les llama relaciones de indiscernibilidad).
 
     3. **Obtención de reglas de decisión**: Se entrena un modelo de árbol de decisión para determinar un conjunto de reglas que permitan clasificar a los pacientes de la base de datos (aún aquellos que inicialmente no tenían respuestas completas en todas las preguntas de interés).
 """)
