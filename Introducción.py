@@ -1380,15 +1380,9 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     # Mostrar la lista de columnas que guarda mayor similitud con lista_1
     #st.write("El reducto es:")
-    st.text("El reducto es: " + ', '.join(map(str, mejor_lista)))
+    st.text("**El reducto es: **" + ', '.join(map(str, mejor_lista)))
 
-    #st.write(mejor_lista)
-    #st.write(len(lista_1))
-    #st.write(len(lista_2))
-
-
-
-
+    
     # Obtener los valores únicos de la columna 'nivel de riesgo'
     nivel_riesgo = nuevo_dataframe['nivel_riesgo'].unique()
 
