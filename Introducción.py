@@ -1341,7 +1341,11 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     # Expander para mostrar tamaños resultantes al eliminar columnas
     with st.expander("**Búsqueda del reducto**"):
         st.write("La partición creada por la lista completa se nombró como *lista_1*. La *lista_2* corresponde a copias de *lista_1* en la que se van quitando progresivamente ciertas preguntas (primero una sola, luego 2, luego 3 etc.). El **reducto** corresponde a la lista de preguntas que genere una partición igual, o lo más parecida posible a la de *lista_1*." )
-        [len(conjunto) for conjunto in lista_1]
+        #st.write(f'La base depurada contiene **{datos_limpios.shape[0]}** filas y **{datos_limpios.shape[1]}** columnas.')
+        st.write(f'Las particiones creadas usando las cinco preguntas de interés son: {len(lista_1)}')
+        longitudes = [len(conjunto) for conjunto in lista_1]
+        st.text("Longitudes de los conjuntos: " + ', '.join(map(str, longitudes)))
+
         for columna1 in ['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18']:
             columnas_sin_columna1 = ['H15A_18', 'H11_18', 'H5_18', 'H6_18', 'C37_18']
             columnas_sin_columna1.remove(columna1)
