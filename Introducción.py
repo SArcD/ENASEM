@@ -632,7 +632,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
 
     # Opcional: mostrar estadísticas básicas del DataFrame
-    st.write(f'**Descripción de la base de datos:** La base seleccionada contiene **{df.shape[0]}** filas y **{df.shape[1]}** columnas.')
+    #st.write(f'**Descripción de la base de datos:** La base seleccionada contiene **{df.shape[0]}** filas y **{df.shape[1]}** columnas.')
     df['Indice'] = df.index
 
     # Lista predefinida "selección estándar"
@@ -795,9 +795,11 @@ elif option == "Relaciones de Indiscernibilidad 2018":
                 df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
 
         #st.write('DataFrame Filtrado')
+        st.markdown("Aquí puede ver la base de datos depurada:")
         st.dataframe(df_filtrado, use_container_width=True)
         #st.write("Las dimensiones de la base de datos son:")
-        st.write(df_filtrado.shape)
+        #st.write(df_filtrado.shape)
+        st.write(f'La base seleccionada contiene **{df_filtrado.shape[0]}** filas y **{df_filtrado.shape[1]}** columnas.')
         datos_filtrados = df_filtrado.copy()
 
 #######################################
