@@ -1380,7 +1380,8 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     # Mostrar la lista de columnas que guarda mayor similitud con lista_1
     #st.write("El reducto es:")
-    st.text("**El reducto es: **" + ', '.join(map(str, mejor_lista)))
+    #st.text("**El reducto es: **" + ', '.join(map(str, mejor_lista)))
+    st.markdown("**El reducto es: **" + ', '.join(map(str, mejor_lista)))
 
     
     # Obtener los valores únicos de la columna 'nivel de riesgo'
@@ -1510,6 +1511,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     #st.write(tamaños_conjuntos)
 
     with st.expander("Aproximaciones"):
+        st.write('El reducto puede generar particiones que no coinciden del todo con las que crea la lista completa. Esto puede hacer que los participantes queden clasificados con niveles de riesgo distintos por el reducto y por la lista completa. En esta sección se muestra la listas de elementos que no son clasificados de la misma manera. Si las listas están vacias significa que las clasificacones coinciden. Si aparecen números, estos corresponden a los índices de los participantes que son clasificados en niveles de riesgo distintos.')
         X_No_indices = [set(nuevo_dataframe[nuevo_dataframe['nivel_riesgo'] == 'Sin Riesgo'].index.tolist())]
         R=indiscernibility(mejor_lista, nuevo_dataframe)
         L=lower_approximation(R, X_No_indices)
