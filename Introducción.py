@@ -482,7 +482,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     st.markdown("""
     El proceso se realiza en las siguientes fases:
     
-    1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los [criterios de inclusión](#criterios_de_inclusión)') o presenten registros incompletos. Además, se definen 5 cuestionamientos de la ENASEM que guardan similitud con los que conforman el test *SARC-F* y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
+    1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los [criterios de inclusión](#criterios_de_inclusión) o presenten registros incompletos. Además, se definen 5 cuestionamientos de la ENASEM que guardan similitud con los que conforman el test *SARC-F* y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
 
     2. **Clasificación de participantes**: Usando la [**teoría de conjuntos rugosos**](https://shre.ink/DjYi), se divide la base de datos en una colección de subconjuntos de pacientes que hayan contestado idénticamente a las preguntas clave (a estos subconjuntos se les llama relaciones de indiscernibilidad).
 
