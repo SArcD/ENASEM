@@ -1351,7 +1351,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
             columnas_sin_columna1.remove(columna1)
             lista_2_sin_columna1 = indiscernibility(columnas_sin_columna1, nuevo_dataframe)
             tamaños_lista_2_sin_columna1 = [len(conjunto) for conjunto in lista_2_sin_columna1]
-            st.write(f"Tamaño de lista_2 sin {columna1}: {len(lista_2_sin_columna1)}")
+            st.write(f"**Tamaño de lista_2 sin** {columna1}: {len(lista_2_sin_columna1)}")
             st.text("Longitudes de los conjuntos: " + ', '.join(map(str, tamaños_lista_2_sin_columna1)))
             #st.write("Tamaños de conjuntos en lista_2:", tamaños_lista_2_sin_columna1)
 
@@ -1368,7 +1368,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
                     columnas_sin_par.remove(columna2)
                     lista_2_sin_par = indiscernibility(columnas_sin_par, nuevo_dataframe)
                     tamaños_lista_2_sin_par = [len(conjunto) for conjunto in lista_2_sin_par]
-                    st.write(f"Tamaño de lista_2 sin {columna1} y {columna2}: {len(lista_2_sin_par)}")
+                    st.write(f"**Tamaño de lista_2 sin** {columna1} **y** {columna2}: {len(lista_2_sin_par)}")
                     st.text("Longitudes de los conjuntos: " + ', '.join(map(str, tamaños_lista_2_sin_par)))
                     #st.write("Tamaños de conjuntos en lista_2:", tamaños_lista_2_sin_par)
 
