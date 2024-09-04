@@ -117,18 +117,19 @@ elif option == "Filtrar datos":
             st.write("")  # Esto agrega un espacio en blanco
             st.write("**Base de datos con las columnas seleccionadas:**")
             st.dataframe(reduced_data, use_container_width=True)
+
+            with st.expander("*Información adicional*"):
+                # Mostrar información del dataframe reducido
+                num_rows, num_cols = reduced_data.shape
+                st.write(f"**Número de filas**: {num_rows}")
+                st.write(f"**Número de columnas**: {num_cols}")
             
-            # Mostrar información del dataframe reducido
-            num_rows, num_cols = reduced_data.shape
-            st.write(f"**Número de filas**: {num_rows}")
-            st.write(f"**Número de columnas**: {num_cols}")
+                # Contar valores NaN por columna
+                nan_counts = reduced_data.isna().sum().reset_index()
+                nan_counts.columns = ["Clave", "Conteo"]
             
-            # Contar valores NaN por columna
-            nan_counts = reduced_data.isna().sum().reset_index()
-            nan_counts.columns = ["Clave", "Conteo"]
-            
-            st.write("**Conteo de valores NaN por columna:**")
-            st.write(nan_counts)
+                st.write("**Conteo de valores NaN por columna:**")
+                st.write(nan_counts)
 
             # Botón para descargar el dataframe reducido en formato csv
             csv_data = convert_df_to_csv(reduced_data)
