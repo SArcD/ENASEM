@@ -118,7 +118,7 @@ elif option == "Filtrar datos":
             st.write("**Base de datos con las columnas seleccionadas:**")
             st.dataframe(reduced_data, use_container_width=True)
 
-            with st.expander("*Información adicional*"):
+            with st.expander("**Información adicional**"):
                 # Mostrar información del dataframe reducido
                 num_rows, num_cols = reduced_data.shape
                 st.write(f"**Número de filas**: {num_rows}")
@@ -134,7 +134,7 @@ elif option == "Filtrar datos":
             # Botón para descargar el dataframe reducido en formato csv
             csv_data = convert_df_to_csv(reduced_data)
             st.download_button(
-                label="Descargar Dataframe en formato CSV",
+                label="**Descargar Dataframe en formato CSV**",
                 data=csv_data,
                 file_name="dataframe_reducido.csv",
                 mime="text/csv"
@@ -142,7 +142,7 @@ elif option == "Filtrar datos":
 
             xlsx_data = convert_df_to_xlsx(reduced_data)
             st.download_button(
-                label="Descargar Dataframe en formato XLSX",
+                label="**Descargar Dataframe en formato XLSX**",
                 data=xlsx_data,
                 file_name="dataframe_reducido.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -167,18 +167,20 @@ elif option == "Filtrar datos":
             
             st.write("**Base de datos unida**:")
             st.dataframe(merged_data, use_container_width=True)
+
+            with st.expander("**Información adicional**"):
+                # Mostrar información del dataframe reducido
+                num_rows, num_cols = merged_data.shape
+                st.write(f"**Número de filas**: {num_rows}")
+                st.write(f"**Número de columnas**: {num_cols}")
             
-            # Mostrar información del dataframe reducido
-            num_rows, num_cols = merged_data.shape
-            st.write(f"**Número de filas**: {num_rows}")
-            st.write(f"**Número de columnas**: {num_cols}")
+                # Contar valores NaN por columna
+                nan_counts = merged_data.isna().sum().reset_index()
+                nan_counts.columns = ["Clave", "Conteo"]
             
-            # Contar valores NaN por columna
-            nan_counts = merged_data.isna().sum().reset_index()
-            nan_counts.columns = ["Clave", "Conteo"]
+                st.write("**Conteo de valores NaN por columna:**")
+                st.write(nan_counts)
             
-            st.write("**Conteo de valores NaN por columna:**")
-            st.write(nan_counts)
 
             # Botón para descargar el dataframe reducido en formato csv
             csv_data = convert_df_to_csv(merged_data)
@@ -212,18 +214,20 @@ elif option == "Filtrar datos":
             st.write("**Base de datos:**")
             st.write(reduced_merged_data)
 
-            # Mostrar información del dataframe reducido
-            num_rows, num_cols = reduced_merged_data.shape
-            st.write(f"**Número de filas:** {num_rows}")
-            st.write(f"**Número de columnas:** {num_cols}")
+            with st.expander("**Información adicional**"):
+                # Mostrar información del dataframe reducido
+                num_rows, num_cols = reduced_merged_data.shape
+                st.write(f"**Número de filas**: {num_rows}")
+                st.write(f"**Número de columnas**: {num_cols}")
             
-            # Contar valores NaN por columna
-            nan_counts = reduced_merged_data.isna().sum().reset_index()
-            nan_counts.columns = ["Clave", "Conteo"]
+                # Contar valores NaN por columna
+                nan_counts = reduced_merged_data.isna().sum().reset_index()
+                nan_counts.columns = ["Clave", "Conteo"]
             
-            st.write("**Conteo de valores NaN por columna:**")
-            st.write(nan_counts)
+                st.write("**Conteo de valores NaN por columna:**")
+                st.write(nan_counts)
 
+            
             # Botón para descargar el dataframe reducido en formato csv
             csv_data = convert_df_to_csv(reduced_merged_data)
             st.download_button(
