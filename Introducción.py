@@ -246,69 +246,6 @@ elif option == "Filtrar datos":
             )
 elif option == "Buscador de variables":
 
-#    import pandas as pd
-#    import gdown
-#    import streamlit as st
-
-#    def cargar_diccionario(url, nombre):
-#        output = f'{nombre}.csv'
-#        gdown.download(url, output, quiet=False)
-
-#        try:
-#            # Intentar leer el archivo CSV
-#            df = pd.read_csv(output, header=None, encoding='utf-8', on_bad_lines='skip')
-#            st.write("Archivo CSV cargado correctamente.")
-#        except pd.errors.ParserError as e:
-#            st.error(f"Error al leer el archivo CSV: {e}")
-#            return {}
-
-#        diccionario = {}
-#        for index, row in df.iterrows():
-#            variable = row[0]
-#            if variable.startswith("Pregunta"):
-#                partes = variable.split(" ", 2)
-#                if len(partes) < 3:
-#                    continue
-#                codigo = partes[1].replace('.', '_')
-#                explicacion = partes[2]
-#                diccionario[codigo] = explicacion
-#        return diccionario
-
-#    # URLs de los archivos en Google Drive
-#    urls = {
-#        '2018': 'https://drive.google.com/uc?id=1ChWgiZ7JY0H-pAOqrUhsgoUyXfACz-qR',
-#        '2021': 'https://drive.google.com/uc?id=1DTEFIkQVc2D-KwBBHlK4ed2qEn2EiZUg'
-#    }
-
-#    # Nombres de los diccionarios
-#    nombres_diccionarios = list(urls.keys())
-
-#    # Interfaz de selección múltiple en Streamlit
-#    st.title("Buscador de Variables por Año")
-
-#    # Barra de selección múltiple para elegir el año
-#    años_seleccionados = st.multiselect('Selecciona el año del diccionario', nombres_diccionarios)
-
-#    # Si se seleccionan años, cargar los diccionarios correspondientes
-#    diccionarios = {}
-#    for año in años_seleccionados:
-#        url = urls[año]
-#        diccionarios[año] = cargar_diccionario(url, f'diccionario_{año}')
-
-#    # Interfaz de búsqueda por código en los diccionarios seleccionados
-#    if años_seleccionados:
-#        codigo_busqueda = st.text_input("Ingrese el código de la variable (por ejemplo, AA21_21):")
-#        if codigo_busqueda:
-#            for año, diccionario in diccionarios.items():
-#                explicacion = diccionario.get(codigo_busqueda, None)
-#                if explicacion:
-#                    st.write(f"Explicación para el código {codigo_busqueda} en {año}: {explicacion}")
-#                else:
-#                    st.write(f"No se encontró explicación para el código {codigo_busqueda} en {año}.")
-#        else:
-#            st.write("Por favor, ingrese un código de variable.")
-#    else:
-#        st.write("Por favor, selecciona al menos un año.")
 
     import pandas as pd
     import gdown
@@ -350,14 +287,14 @@ elif option == "Buscador de variables":
     nombres_diccionarios = list(urls.keys())
 
     # Interfaz de selección múltiple en Streamlit
-    st.title("Buscador de Variables por Año")
-
+    st.title("Buscador de Variables por año")
+    st.markdown("""<div style="text-align: justify;"> En esta sección puede visualizar la explicación de cualquiera de las claves para las variables de la ENASEM (ya sea de la edición 2018 o 2021). Primero, use el menú desplegable para seleccionar el año del diccionario a consultar. </div> """,  unsafe_allow_html=True)
     # Inicializar el estado de la sesión para el historial de búsquedas
     if 'historico_busquedas' not in st.session_state:
         st.session_state.historico_busquedas = pd.DataFrame(columns=['Año', 'Código', 'Explicación'])
 
     # Barra de selección múltiple para elegir el año
-    años_seleccionados = st.multiselect('Selecciona el año del diccionario', nombres_diccionarios)
+    años_seleccionados = st.multiselect('**Selecciona el año del diccionario**', nombres_diccionarios)
 
     # Si se seleccionan años, cargar los diccionarios correspondientes
     diccionarios = {}
@@ -367,23 +304,23 @@ elif option == "Buscador de variables":
 
     # Interfaz de búsqueda por código en los diccionarios seleccionados
     if años_seleccionados:
-        codigo_busqueda = st.text_input("Ingrese el código de la variable (por ejemplo, AA21_21):")
+        codigo_busqueda = st.text_input("**Ingrese el código de la variable (por ejemplo, AA21_21):**")
         if codigo_busqueda:
             for año, diccionario in diccionarios.items():
                 explicacion = diccionario.get(codigo_busqueda, None)
                 if explicacion:
-                    st.write(f"Explicación para el código {codigo_busqueda} en {año}: {explicacion}")
+                    st.write(f"**Explicación para el código {codigo_busqueda} en {año}**: {explicacion}")
                     # Agregar la búsqueda al histórico
                     nueva_fila = pd.DataFrame([[año, codigo_busqueda, explicacion]], columns=['Año', 'Código', 'Explicación'])
                     st.session_state.historico_busquedas = pd.concat([st.session_state.historico_busquedas, nueva_fila], ignore_index=True)
                 else:
-                    st.write(f"No se encontró explicación para el código {codigo_busqueda} en {año}.")
+                    st.write(f"**No se encontró explicación para el código {codigo_busqueda} en {año}.**")
             # Mostrar el histórico de búsquedas
             st.dataframe(st.session_state.historico_busquedas)
         else:
-            st.write("Por favor, ingrese un código de variable.")
+            st.write("**Por favor, ingrese un código de variable.**")
     else:
-        st.write("Por favor, selecciona al menos un año.")
+        st.write("**Por favor, selecciona al menos un año.**")
 
 
 elif option == "Buscador de datos":
