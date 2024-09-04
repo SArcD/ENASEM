@@ -150,7 +150,7 @@ elif option == "Filtrar datos":
 
     st.markdown("""<div style="text-align: justify;"> En esta sección puede unir dos archivos .csv para formar una base de datos mas grande (recuerde seleccionar archivos que correspondan al mismo año). La base de datos se mostrará abajo, así como información sobre el conteo de filas con columnas vacías </div> """,  unsafe_allow_html=True)
     # Seleccionar dos archivos CSV para unir
-    selected_files = st.multiselect("Selecciona dos archivos CSV para unir", list(file_urls.keys()), default=None, max_selections=2)
+    selected_files = st.multiselect("**Selecciona dos archivos CSV para unir**", list(file_urls.keys()), default=None, max_selections=2)
 
     if len(selected_files) == 2:
         # Cargar los dos archivos seleccionados
