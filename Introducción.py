@@ -523,12 +523,20 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     st.write('<a id="variables_de_interés"></a>', unsafe_allow_html=True)
     st.subheader("Selección de variables de interés")
-    st.write("""
-             En esta sección puede elegir entre dos posibles listas de variables de interés:
-             - La **selección estándar**: contiene una lista de variables que pude econtrarse en el apéndice (vea la parte final de esta página).
+    
+    st.markdown(
+    """
+    <div style="text-align: justify;">
+        En esta sección puede elegir entre dos posibles listas de variables de interés:
+        - La <strong>selección estándar</strong>: contiene una lista de variables que puede encontrarse en el apéndice (vea la parte final de esta página).
+        
+        - <strong>Lista personalizada</strong>: Si selecciona esta opción, aparecerá una barra en la que puede elegir entre las variables contenidas en la base de datos para su búsqueda. <strong>Nota:</strong> para que el código funcione correctamente, su lista debe incluir a las siguientes variables.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-             - **Lista personalizada**: Si selecciona esta opción aparecerá una barra en la que puede elegir entre las variables contenida en la base de datos para su búsqueda (**Nota:** para que el código funcione correctamente, su lista debe incluir a las siguientes variables: )
-             """)
+    
 
     # Ejemplo de contenido colapsable
     with st.expander("Listado de variables incluidas en la **selección estándar**"):
