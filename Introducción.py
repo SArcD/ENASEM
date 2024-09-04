@@ -96,36 +96,36 @@ elif option == "Filtrar datos":
     st.markdown(""" En esta sección puede cargar algunos de los conjuntos de datos de la ENASEM (ya sea de las ediciones de 2018 o de 2021). En el menú desplegable puede seleccionar el archivo a cargar. </div> """,  unsafe_allow_html=True)
     
     # Menú desplegable para elegir el archivo
-    selected_file = st.selectbox("Selecciona un archivo CSV", list(file_urls.keys()))
+    selected_file = st.selectbox("**Selecciona un archivo CSV**", list(file_urls.keys()))
 
     if selected_file:
         # Cargar el archivo seleccionado
         data = load_csv_from_drive(file_urls[selected_file])
         
-        st.write(f"Archivo seleccionado: {selected_file}")
+        st.write(f"**Archivo seleccionado:** {selected_file}")
         st.write(data)
         
         # Lista de verificación para seleccionar columnas
         st.markdown(""" <div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
-        selected_columns = st.multiselect("Selecciona las columnas para mostrar", data.columns.tolist())
+        selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", data.columns.tolist())
         
         if selected_columns:
             # Crear dataframe reducido
             reduced_data = data[selected_columns]
             
-            st.write("Base de datos con las columnas seleccionadas:")
+            st.write("**Base de datos con las columnas seleccionadas:**")
             st.write(reduced_data)
             
             # Mostrar información del dataframe reducido
             num_rows, num_cols = reduced_data.shape
-            st.write(f"Número de filas: {num_rows}")
-            st.write(f"Número de columnas: {num_cols}")
+            st.write(f"**Número de filas**: {num_rows}")
+            st.write(f"**Número de columnas**: {num_cols}")
             
             # Contar valores NaN por columna
             nan_counts = reduced_data.isna().sum().reset_index()
             nan_counts.columns = ["Clave", "Conteo"]
             
-            st.write("Conteo de valores NaN por columna:")
+            st.write("**Conteo de valores NaN por columna:**")
             st.write(nan_counts)
 
             # Botón para descargar el dataframe reducido en formato csv
@@ -161,25 +161,25 @@ elif option == "Filtrar datos":
             # Unir los dataframes usando la columna 'CUNICAH'
             merged_data = pd.merge(df1, df2, on='CUNICAH', how='inner')
             
-            st.write("Dataframe unido:")
+            st.write("**Base de datos unida**:")
             st.write(merged_data)
             
             # Mostrar información del dataframe reducido
             num_rows, num_cols = merged_data.shape
-            st.write(f"Número de filas: {num_rows}")
-            st.write(f"Número de columnas: {num_cols}")
+            st.write(f"**Número de filas**: {num_rows}")
+            st.write(f"**Número de columnas**: {num_cols}")
             
             # Contar valores NaN por columna
             nan_counts = merged_data.isna().sum().reset_index()
             nan_counts.columns = ["Clave", "Conteo"]
             
-            st.write("Conteo de valores NaN por columna:")
+            st.write("**Conteo de valores NaN por columna:**")
             st.write(nan_counts)
 
             # Botón para descargar el dataframe reducido en formato csv
             csv_data = convert_df_to_csv(merged_data)
             st.download_button(
-                label="Descargar Dataframe en formato CSV",
+                label="**Descargar Dataframe en formato CSV**",
                 data=csv_data,
                 file_name="dataframe_unificado.csv",
                 mime="text/csv"
@@ -188,7 +188,7 @@ elif option == "Filtrar datos":
             # Botón para descargar el dataframe unido en formato CSV
             csv_data = convert_df_to_csv(merged_data)
             st.download_button(
-                label="Descargar Dataframe unido en formato CSV",
+                label="**Descargar Dataframe unido en formato CSV**",
                 data=csv_data,
                 file_name="dataframe_unido.csv",
                 mime="text/csv"
@@ -198,31 +198,31 @@ elif option == "Filtrar datos":
         st.markdown("""<div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
     # Seleccionar dos archivos CSV para unir
         # Lista de verificación para seleccionar columnas
-        selected_columns = st.multiselect("Selecciona las columnas para mostrar", merged_data.columns.tolist())
+        selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", merged_data.columns.tolist())
         
         if selected_columns:
             # Crear dataframe reducido
             reduced_merged_data = merged_data[selected_columns]
             
-            st.write("Dataframe reducido:")
+            st.write("**Base de datos:**")
             st.write(reduced_merged_data)
 
             # Mostrar información del dataframe reducido
             num_rows, num_cols = reduced_merged_data.shape
-            st.write(f"Número de filas: {num_rows}")
-            st.write(f"Número de columnas: {num_cols}")
+            st.write(f"**Número de filas:** {num_rows}")
+            st.write(f"**Número de columnas:** {num_cols}")
             
             # Contar valores NaN por columna
             nan_counts = reduced_merged_data.isna().sum().reset_index()
             nan_counts.columns = ["Clave", "Conteo"]
             
-            st.write("Conteo de valores NaN por columna:")
+            st.write("**Conteo de valores NaN por columna:**")
             st.write(nan_counts)
 
             # Botón para descargar el dataframe reducido en formato csv
             csv_data = convert_df_to_csv(reduced_merged_data)
             st.download_button(
-                label="Descargar Dataframe en formato CSV",
+                label="**Descargar Dataframe en formato CSV**",
                 data=csv_data,
                 file_name="dataframe_unificado_reducido.csv",
                 mime="text/csv"
@@ -230,7 +230,7 @@ elif option == "Filtrar datos":
 
             xlsx_data = convert_df_to_xlsx(reduced_merged_data)
             st.download_button(
-                label="Descargar Dataframe en formato XLSX",
+                label="**Descargar Dataframe en formato XLSX**",
                 data=xlsx_data,
                 file_name="dataframe_unificado_reducido.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
