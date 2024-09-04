@@ -36,7 +36,6 @@ def convert_df_to_xlsx(df):
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
 option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de variables", "Buscador de datos", "Relaciones de Indiscernibilidad 2018", "Relaciones de Indiscernibilidad 2021", "Equipo de trabajo"])
-#option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Equipo de trabajo"])
 
 
 if option == "Introducción":
@@ -106,14 +105,14 @@ elif option == "Filtrar datos":
         st.write(data)
         
         # Lista de verificación para seleccionar columnas
-        st.markdown(""" A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla. </div> """,  unsafe_allow_html=True)
+        st.markdown(""" A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
         selected_columns = st.multiselect("Selecciona las columnas para mostrar", data.columns.tolist())
         
         if selected_columns:
             # Crear dataframe reducido
             reduced_data = data[selected_columns]
             
-            st.write("Dataframe reducido:")
+            st.write("Base de datos con las columnas seleccionadas:")
             st.write(reduced_data)
             
             # Mostrar información del dataframe reducido
@@ -148,7 +147,7 @@ elif option == "Filtrar datos":
 
     st.subheader("Unir dataframes")
 
-    
+    st.markdown(""" En esta sección puede unir dos archivos .csv para formar una base de datos mas grande (recuerde seleccionar archivos que correspondan al mismo año). La base de datos se mostrará abajo, así como información sobre el conteo de filas con columnas vacías </div> """,  unsafe_allow_html=True)
     # Seleccionar dos archivos CSV para unir
     selected_files = st.multiselect("Selecciona dos archivos CSV para unir", list(file_urls.keys()), default=None, max_selections=2)
 
@@ -195,7 +194,8 @@ elif option == "Filtrar datos":
             )
 
         st.subheader("Selección de columnas")
-
+        st.markdown("""  A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
+    # Seleccionar dos archivos CSV para unir
         # Lista de verificación para seleccionar columnas
         selected_columns = st.multiselect("Selecciona las columnas para mostrar", merged_data.columns.tolist())
         
