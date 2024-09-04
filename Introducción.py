@@ -212,7 +212,7 @@ elif option == "Filtrar datos":
             reduced_merged_data = merged_data[selected_columns]
             
             st.write("**Base de datos:**")
-            st.write(reduced_merged_data)
+            st.dataframe(reduced_merged_data, use_container_width=True)
 
             with st.expander("**Información adicional**"):
                 # Mostrar información del dataframe reducido
