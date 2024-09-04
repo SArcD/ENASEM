@@ -529,9 +529,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
         En esta sección puede elegir entre dos posibles listas de variables de interés:
         - La **selección estándar**: contiene una lista de variables que puede encontrarse en el apéndice (vea la parte final de esta página).
         
-        - **Lista personalizada**: Si selecciona esta opción, aparecerá una barra en la que puede elegir entre las variables contenidas en la base de datos para su búsqueda. <strong>Nota:</strong> para que el código funcione correctamente, su lista debe incluir a las siguientes variables.
-    </div>
-    """)
+        - **Lista personalizada**: Si selecciona esta opción, aparecerá una barra en la que puede elegir entre las variables contenidas en la base de datos para su búsqueda. <strong>Nota:</strong> para que el código funcione correctamente, su lista debe incluir a las siguientes variables.""")
 
     
 
