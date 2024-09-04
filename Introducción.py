@@ -516,7 +516,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     with st.expander("**Criterios de inclusión**"):
         st.markdown("""
     Los criterios de inclusión utilizados fueron:
-    - Participantes de ambos sexos con 65 años o mas.
+    - Participantes de ambos sexos con 60 años o mas.
     - Participantes sin extremidades faltantes.
     - Participantes sin diagnóstico confirmado de cáncer u otros padecimientos o comorbilidades (a excepción de los que se describen en la sección de [variables de interés](#variables_de_interés)).
     """)
