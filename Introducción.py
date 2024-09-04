@@ -58,7 +58,7 @@ if option == "Introducción":
 
     st.subheader("Comorbilidades asociadas a la sarcopenia")
 
-    tab1, tab2, = st.tabs(["Diabetes Mellitus 2", "Hipertensión arterial",])
+    tab1, tab2, = st.tabs(["Diabetes Mellitus 2", "Hipertensión arterial"])
         
     with tab1:
             st.header("Diabetes Mellitus 2")
@@ -114,7 +114,7 @@ elif option == "Filtrar datos":
             reduced_data = data[selected_columns]
             
             st.write("**Base de datos con las columnas seleccionadas:**")
-            st.write(reduced_data)
+            st.dataframe(reduced_data, use_container_width=True)
             
             # Mostrar información del dataframe reducido
             num_rows, num_cols = reduced_data.shape
@@ -162,7 +162,7 @@ elif option == "Filtrar datos":
             merged_data = pd.merge(df1, df2, on='CUNICAH', how='inner')
             
             st.write("**Base de datos unida**:")
-            st.write(merged_data)
+            st.dataframe(merged_data, use_container_width=True)
             
             # Mostrar información del dataframe reducido
             num_rows, num_cols = merged_data.shape
