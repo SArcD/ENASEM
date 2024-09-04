@@ -433,7 +433,16 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     st.title('Estimación del nivel de riesgo por sarcopenia')
 
-    st.markdown(""" <div style="text-align: justify;"> En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la [**Encuesta Nacional Sobre Salud y Envejecimiento**](https://enasem.org/Home/index_esp.aspx) (esta sección analiza los datos de la **Edición 2018**, puede acceder a las otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario [**SARC-F**](https://nutricionemocional.es/sites/default/files/tests_frailsarcf_web_2.pdf). </div> """,  unsafe_allow_html=True)
+    st.markdown("""<div style="text-align: justify;"> En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la [**Encuesta Nacional Sobre Salud y Envejecimiento**](https://enasem.org/Home/index_esp.aspx) (esta sección analiza los datos de la **Edición 2018**, puede acceder a las otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario [**SARC-F**](https://nutricionemocional.es/sites/default/files/tests_frailsarcf_web_2.pdf). </div> """,  unsafe_allow_html=True)
+
+    st.markdown(
+    """
+    <div style="text-align: justify;">
+        En esta sección se calcula el <strong>riesgo de padecer sarcopenia</strong> a partir de las respuestas de las y los participantes de la <a href="https://enasem.org/Home/index_esp.aspx"><strong>Encuesta Nacional Sobre Salud y Envejecimiento</strong></a> (esta sección analiza los datos de la <strong>Edición 2018</strong>, puede acceder a las otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario <a href="https://nutricionemocional.es/sites/default/files/tests_frailsarcf_web_2.pdf"><strong>SARC-F</strong></a>.
+    </div>
+    """,
+    unsafe_allow_html=True
+    )
     
     st.write("")
     st.markdown(""" <div style="text-align: justify;"> 
