@@ -316,7 +316,7 @@ elif option == "Buscador de variables":
                 else:
                     st.write(f"**No se encontró explicación para el código {codigo_busqueda} en {año}.**")
             # Mostrar el histórico de búsquedas
-            st.dataframe(st.session_state.historico_busquedas)
+            st.dataframe(st.session_state.historico_busquedas, use_container_width=True)
         else:
             st.write("**Por favor, ingrese un código de variable.**")
     else:
