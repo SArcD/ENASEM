@@ -35,8 +35,8 @@ def convert_df_to_xlsx(df):
 
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
-option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de variables", "Buscador de datos", "Relaciones de Indiscernibilidad 2018", "Relaciones de Indiscernibilidad 2021", "Equipo de trabajo"])
-
+#option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de variables", "Buscador de datos", "Relaciones de Indiscernibilidad 2018", "Relaciones de Indiscernibilidad 2021", "Equipo de trabajo"])
+option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de variables", "Relaciones de Indiscernibilidad 2018", "Relaciones de Indiscernibilidad 2021", "Equipo de trabajo"])
 
 if option == "Introducción":
     #
@@ -323,74 +323,74 @@ elif option == "Buscador de variables":
         st.write("**Por favor, selecciona al menos un año.**")
 
 
-elif option == "Buscador de datos":
+#elif option == "Buscador de datos":
 
-    st.title('Filtrar DataFrame por Columnas')
+#    st.title('Filtrar DataFrame por Columnas')
 
-    # Crear una caja de carga de archivos
-    uploaded_file = st.file_uploader("Elige un archivo CSV", type="csv")
+#    # Crear una caja de carga de archivos
+#    uploaded_file = st.file_uploader("Elige un archivo CSV", type="csv")
 
-    if uploaded_file is not None:
-        # Cargar el archivo como un DataFrame de pandas
-        df = pd.read_csv(uploaded_file)
+#    if uploaded_file is not None:
+#        # Cargar el archivo como un DataFrame de pandas
+#        df = pd.read_csv(uploaded_file)
 
-    # Mostrar el DataFrame cargado
-    st.write('DataFrame cargado:')
-    st.dataframe(df)
+#    # Mostrar el DataFrame cargado
+#    st.write('DataFrame cargado:')
+#    st.dataframe(df)
 
-    # Opcional: mostrar estadísticas básicas del DataFrame
-    st.write('Descripción del DataFrame:')
-    st.write(df.describe())
+#    # Opcional: mostrar estadísticas básicas del DataFrame
+#    st.write('Descripción del DataFrame:')
+#    st.write(df.describe())
 
-    # Lista de verificación para seleccionar columnas
-    selected_columns = st.multiselect("Selecciona las columnas para mostrar", df.columns.tolist())
+#    # Lista de verificación para seleccionar columnas
+#    selected_columns = st.multiselect("Selecciona las columnas para mostrar", df.columns.tolist())
         
-    if selected_columns:
-        # Crear dataframe reducido
-        df = df[selected_columns]
+#    if selected_columns:
+#        # Crear dataframe reducido
+#        df = df[selected_columns]
             
-        st.write("Dataframe reducido:")
-        st.write(df)
+#        st.write("Dataframe reducido:")
+#        st.write(df)
             
-        # Mostrar información del dataframe reducido
-        num_rows, num_cols = df.shape
-        st.write(f"Número de filas: {num_rows}")
-        st.write(f"Número de columnas: {num_cols}")
+#        # Mostrar información del dataframe reducido
+#        num_rows, num_cols = df.shape
+#        st.write(f"Número de filas: {num_rows}")
+#        st.write(f"Número de columnas: {num_cols}")
             
-        # Contar valores NaN por columna
-        nan_counts = df.isna().sum().reset_index()
-        nan_counts.columns = ["Clave", "Conteo"]
+#        # Contar valores NaN por columna
+#        nan_counts = df.isna().sum().reset_index()
+#        nan_counts.columns = ["Clave", "Conteo"]
             
-        st.write("Conteo de valores NaN por columna:")
-        st.write(nan_counts)
+#        st.write("Conteo de valores NaN por columna:")
+#        st.write(nan_counts)
 
     
-        columnas_seleccionadas = list(df.columns)
+#        columnas_seleccionadas = list(df.columns)
         
         
-        # Crear widgets de selección para cada columna seleccionada
-        filtros = {}
-        for col in columnas_seleccionadas:
-            if df[col].dtype == 'object':
-                valores_unicos = df[col].unique().tolist()
-                seleccion = st.multiselect(f'Seleccionar valores para {col}', valores_unicos)
-                if seleccion:
-                    filtros[col] = seleccion
-            else:
-                rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())), step=1.0)
-                if rango:
-                    filtros[col] = rango
+#        # Crear widgets de selección para cada columna seleccionada
+#        filtros = {}
+#        for col in columnas_seleccionadas:
+#            if df[col].dtype == 'object':
+#                valores_unicos = df[col].unique().tolist()
+#                seleccion = st.multiselect(f'Seleccionar valores para {col}', valores_unicos)
+#                if seleccion:
+#                    filtros[col] = seleccion
+#            else:
+#                rango = st.slider(f'Seleccionar rango para {col}', min_value=float(df[col].min()), max_value=float(df[col].max()), value=(float(df[col].min()), float(df[col].max())), step=1.0)
+#                if rango:
+#                    filtros[col] = rango
 
-        # Filtrar el DataFrame basado en los valores seleccionados
-        df_filtrado = df.copy()
-        for col, condicion in filtros.items():
-            if isinstance(condicion, list):
-                df_filtrado = df_filtrado[df_filtrado[col].isin(condicion)]
-            else:
-                df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
+#        # Filtrar el DataFrame basado en los valores seleccionados
+#        df_filtrado = df.copy()
+#        for col, condicion in filtros.items():
+#            if isinstance(condicion, list):
+#                df_filtrado = df_filtrado[df_filtrado[col].isin(condicion)]
+#            else:
+#                df_filtrado = df_filtrado[(df_filtrado[col] >= condicion[0]) & (df_filtrado[col] <= condicion[1])]
 
-        st.write('DataFrame Filtrado')
-        st.dataframe(df_filtrado)
+#        st.write('DataFrame Filtrado')
+        #st.dataframe(df_filtrado)
 ##################
 
 elif option == "Relaciones de Indiscernibilidad 2018":
