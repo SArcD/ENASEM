@@ -108,12 +108,13 @@ elif option == "Filtrar datos":
         
         # Lista de verificación para seleccionar columnas
         st.markdown(""" <div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
+        st.write("")  # Esto agrega un espacio en blanco
         selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", data.columns.tolist())
         
         if selected_columns:
             # Crear dataframe reducido
             reduced_data = data[selected_columns]
-            
+            st.write("")  # Esto agrega un espacio en blanco
             st.write("**Base de datos con las columnas seleccionadas:**")
             st.dataframe(reduced_data, use_container_width=True)
             
@@ -150,6 +151,7 @@ elif option == "Filtrar datos":
     st.subheader("Unir dataframes")
 
     st.markdown("""<div style="text-align: justify;"> En esta sección puede unir dos archivos .csv para formar una base de datos mas grande (recuerde seleccionar archivos que correspondan al mismo año). La base de datos se mostrará abajo, así como información sobre el conteo de filas con columnas vacías </div> """,  unsafe_allow_html=True)
+    st.write("")  # Esto agrega un espacio en blanco
     # Seleccionar dos archivos CSV para unir
     selected_files = st.multiselect("**Selecciona dos archivos CSV para unir**", list(file_urls.keys()), default=None, max_selections=2)
 
@@ -199,6 +201,7 @@ elif option == "Filtrar datos":
         st.markdown("""<div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
     # Seleccionar dos archivos CSV para unir
         # Lista de verificación para seleccionar columnas
+        st.write("")  # Esto agrega un espacio en blanco
         selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", merged_data.columns.tolist())
         
         if selected_columns:
