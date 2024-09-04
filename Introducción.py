@@ -63,11 +63,12 @@ if option == "Introducción":
         
     with tab1:
             st.header("Diabetes Mellitus 2")
-            st.write("La diabetes es una enfermedad crónica que se produce cuando el páncreas no produce suficiente insulina o cuando el cuerpo no puede utilizar de forma eficaz la insulina que produce. La insulina es una hormona que regula el azúcar en sangre. La hiperglucemia, o aumento del nivel de azúcar en sangre, es un efecto común de la diabetes no controlada y, con el tiempo, conduce a daños graves en muchos de los sistemas del cuerpo, especialmente los nervios y los vasos sanguíneos.")
-            st.write("(En 2014, en la región de las Américas, el 8,3% de los adultos mayores de 18 años tenía diabetes (8,5% a nivel mundial). En 2019, la diabetes fue la causa directa de 284,049 muertes y el 44% de todas las muertes por diabetes ocurrieron antes de los 70 años, 1,5 millones de muertes y el 48% antes de los 70 años, a nivel mundial. Con el tiempo, la diabetes puede dañar el corazón, los vasos sanguíneos, los ojos, los riñones y los nervios.")
+            st.markdown(""" <div style="text-align: justify;"> La diabetes es una enfermedad crónica que se produce cuando el páncreas no produce suficiente insulina o cuando el cuerpo no puede utilizar de forma eficaz la insulina que produce. La insulina es una hormona que regula el azúcar en sangre. La hiperglucemia, o aumento del nivel de azúcar en sangre, es un efecto común de la diabetes no controlada y, con el tiempo, conduce a daños graves en muchos de los sistemas del cuerpo, especialmente los nervios y los vasos sanguíneos.""",  unsafe_allow_html=True)
+        
+            st.markdown(""" <div style="text-align: justify;"> En 2014, en la región de las Américas, el 8,3% de los adultos mayores de 18 años tenía diabetes (8,5% a nivel mundial). En 2019, la diabetes fue la causa directa de 284,049 muertes y el 44% de todas las muertes por diabetes ocurrieron antes de los 70 años, 1,5 millones de muertes y el 48% antes de los 70 años, a nivel mundial. Con el tiempo, la diabetes puede dañar el corazón, los vasos sanguíneos, los ojos, los riñones y los nervios.""",  unsafe_allow_html=True)
+        
             st.subheader("Impacto en la salud")
-            st.write(
-                """
+            st.markdown(""" <div style="text-align: justify;"> 
 -Los adultos con diabetes tienen un riesgo dos o tres veces mayor de sufrir ataques cardíacos y accidentes cerebrovasculares.
 
 -Combinado con un flujo sanguíneo reducido, la neuropatía (daño a los nervios) en los pies aumenta la posibilidad de úlceras en el pie, infección y eventual necesidad de amputación de una extremidad.
@@ -77,7 +78,7 @@ if option == "Introducción":
 -La diabetes es una de las principales causas de insuficiencia renal.
 
 https://www.paho.org/es/temas/diabetes
-""")
+.""",  unsafe_allow_html=True)
                
                     
     with tab2:
