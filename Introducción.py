@@ -433,8 +433,6 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     st.title('Estimación del nivel de riesgo por sarcopenia')
 
-    st.markdown("""<div style="text-align: justify;"> En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la [**Encuesta Nacional Sobre Salud y Envejecimiento**](https://enasem.org/Home/index_esp.aspx) (esta sección analiza los datos de la **Edición 2018**, puede acceder a las otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario [**SARC-F**](https://nutricionemocional.es/sites/default/files/tests_frailsarcf_web_2.pdf). </div> """,  unsafe_allow_html=True)
-
     st.markdown(
     """
     <div style="text-align: justify;">
@@ -454,6 +452,23 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     3. **Obtención de reglas de decisión**: Se entrena un modelo de árbol de decisión para determinar un conjunto de reglas que permitan clasificar a los pacientes de la base de datos (aún aquellos que inicialmente no tenían respuestas completas en todas las preguntas de interés).
 </div> """,  unsafe_allow_html=True)
+
+    st.markdown(
+    """
+    <div style="text-align: justify;">
+        El proceso se realiza en las siguientes fases:
+        
+        1. <strong>Depuración de datos</strong>: se eliminan datos de pacientes que no cumplan con los <a href="#criterios_de_inclusión">criterios de inclusión</a> o presenten registros incompletos. Además, se definen 5 cuestionamientos de la ENASEM que guardan similitud con los que conforman el test <em>SARC-F</em> y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
+
+        2. <strong>Clasificación de participantes</strong>: Usando la <a href="https://shre.ink/DjYi"><strong>teoría de conjuntos rugosos</strong></a>, se divide la base de datos en una colección de subconjuntos de pacientes que hayan contestado idénticamente a las preguntas clave (a estos subconjuntos se les llama relaciones de indiscernibilidad).
+
+        3. <strong>Obtención de reglas de decisión</strong>: Se entrena un modelo de árbol de decisión para determinar un conjunto de reglas que permitan clasificar a los pacientes de la base de datos (aún aquellos que inicialmente no tenían respuestas completas en todas las preguntas de interés).
+    </div>
+    """,
+    unsafe_allow_html=True
+    )
+
+
     
     st.subheader("Sección 1: Carga y depuración de datos")
     st.markdown(""" <div style="text-align: justify;"> 
