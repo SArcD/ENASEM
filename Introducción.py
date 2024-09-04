@@ -499,8 +499,11 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     st.dataframe(df, use_container_width=True)
     with st.expander("**Resumen de la base cargada**"):
         st.write(f'*La base seleccionada contiene **{df.shape[0]}** filas y **{df.shape[1]}** columnas.*')
+
+
+    st.write('Cada **fila** corresponde a las respuestas de un o una participante de la ENASEM, y cada **columna** corresponde a una pregunta en particular de las **secciones de la "a" a la "i"**. Si desea revisar el significado de las claves de las preguntas, consulte la sección de "Buscador de variables". Los registros vacíos (aquellos que muestren un **None**), los que contengan respuestas **"8" o "9"** (**"No sabe"** y **"No quiere contestar"**), y los que tengan (**999**) **se eliminarán en la depuración**.')
+
     
-    st.write('Cada **fila** corresponde a las respuestas de una o un participante de la ENASEM y cada **columna** corresponde a un pregunta en particular de las **secciones de la "a" a la "i"** (si quiere revisar el significado de las claves de las preguntas revise la sección de "Buscador de variables"). Los registros vacíos (aquellos que muestren un **None**), los que contengan repuestas **"8" o "9"** (**"No sabe"** y **"No quiere contestar"** y los que tengan (**999**) **se eliminarán en la depuración**).')
 
     st.write('<a id="criterios_de_inclusión"></a>', unsafe_allow_html=True)
     with st.expander("**Criterios de inclusión**"):
