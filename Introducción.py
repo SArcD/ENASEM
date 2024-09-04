@@ -93,6 +93,8 @@ https://www.paho.org/es/temas/diabetes
             """,  unsafe_allow_html=True)
 
 elif option == "Filtrar datos":
+    st.markdown(""" En esta sección puede cargar algunos de los conjuntos de datos de la ENASEM (ya sea de las ediciones de 2018 o de 2021). En el menú desplegable puede seleccionar el archivo a cargar. </div> """,  unsafe_allow_html=True)
+    
     # Menú desplegable para elegir el archivo
     selected_file = st.selectbox("Selecciona un archivo CSV", list(file_urls.keys()))
 
