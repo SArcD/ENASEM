@@ -69,6 +69,7 @@ if option == "Introducción":
         
             st.subheader("Impacto en la salud")
             st.markdown(""" <div style="text-align: justify;"> 
+            
 - Los adultos con diabetes tienen un riesgo dos o tres veces mayor de sufrir ataques cardíacos y accidentes cerebrovasculares.
 
 - Combinado con un flujo sanguíneo reducido, la neuropatía (daño a los nervios) en los pies aumenta la posibilidad de úlceras en el pie, infección y eventual necesidad de amputación de una extremidad.
