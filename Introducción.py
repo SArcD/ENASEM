@@ -433,9 +433,9 @@ elif option == "Relaciones de Indiscernibilidad 2018":
 
     st.title('Estimación del nivel de riesgo por sarcopenia')
 
-    st.markdown("""En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la [**Encuesta Nacional Sobre Salud y Envejecimiento**](https://enasem.org/Home/index_esp.aspx) (esta sección analiza los datos de la **Edición 2018**, puede acceder a las otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario [**SARC-F**](https://nutricionemocional.es/sites/default/files/tests_frailsarcf_web_2.pdf).
-             """) 
-    st.markdown("""
+    st.markdown(""" <div style="text-align: justify;"> En esta sección se calcula el **riesgo de padecer sarcopenia** a partir de las respuestas de las y los participantes de la [**Encuesta Nacional Sobre Salud y Envejecimiento**](https://enasem.org/Home/index_esp.aspx) (esta sección analiza los datos de la **Edición 2018**, puede acceder a las otras ediciones en la barra lateral izquierda). Esto se hace partiendo de la identificación de las preguntas de la encuesta que guarden la mayor similitud posible con las que contiene el cuestionario [**SARC-F**](https://nutricionemocional.es/sites/default/files/tests_frailsarcf_web_2.pdf).""",  unsafe_allow_html=True)
+    st.write("")
+    st.markdown(""" <div style="text-align: justify;"> 
     El proceso se realiza en las siguientes fases:
     
     1. **Depuración de datos**: se eliminan datos de pacientes que no cumplan con los [criterios de inclusión](#criterios_de_inclusión) o presenten registros incompletos. Además, se definen 5 cuestionamientos de la ENASEM que guardan similitud con los que conforman el test *SARC-F* y se crea una submuestra de participantes que hayan contestado a estos cuestionamientos.
@@ -443,14 +443,14 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     2. **Clasificación de participantes**: Usando la [**teoría de conjuntos rugosos**](https://shre.ink/DjYi), se divide la base de datos en una colección de subconjuntos de pacientes que hayan contestado idénticamente a las preguntas clave (a estos subconjuntos se les llama relaciones de indiscernibilidad).
 
     3. **Obtención de reglas de decisión**: Se entrena un modelo de árbol de decisión para determinar un conjunto de reglas que permitan clasificar a los pacientes de la base de datos (aún aquellos que inicialmente no tenían respuestas completas en todas las preguntas de interés).
-""")
+""",  unsafe_allow_html=True)
     
     st.subheader("Sección 1: Carga y depuración de datos")
-    st.write("""
+    st.markdown(""" <div style="text-align: justify;"> 
     Por favor, cargue un archivo correspodiente a las secciones **conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018**. El archivo debe estar en formato csv y si se carga correctamente podrá vizualizarse en el recuadro de abajo. 
-""")
+""",  unsafe_allow_html=True)
     # Crear una caja de carga de archivos
-    uploaded_file = st.file_uploader("Elige un archivo CSV", type="csv")
+    uploaded_file = st.file_uploader("**Elige un archivo CSV**", type="csv")
 
     if uploaded_file is not None:
         # Cargar el archivo como un DataFrame de pandas
@@ -466,7 +466,7 @@ elif option == "Relaciones de Indiscernibilidad 2018":
     #df_styled = df.style.applymap(lambda x: 'background-color: white; color: black')
 
     # Mostrar el dataframe estilizado en Streamlit
-    st.dataframe(df)
+    st.dataframe(df, use_container_width=True)
     with st.expander("**Resumen de la base cargada**"):
         st.write(f'*La base seleccionada contiene **{df.shape[0]}** filas y **{df.shape[1]}** columnas.*')
     
