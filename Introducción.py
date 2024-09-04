@@ -106,6 +106,7 @@ elif option == "Filtrar datos":
         st.write(data)
         
         # Lista de verificación para seleccionar columnas
+        st.markdown(""" A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla. </div> """,  unsafe_allow_html=True)
         selected_columns = st.multiselect("Selecciona las columnas para mostrar", data.columns.tolist())
         
         if selected_columns:
