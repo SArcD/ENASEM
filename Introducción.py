@@ -40,6 +40,7 @@ option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filt
 
 if option == "Introducción":
     #
+    st.title("Analizador ENASEM-RS")
     st.header("Sobre el envejecimiento en México")
     st.markdown(""" <div style="text-align: justify;"> Al igual que para otros países, la tendencia actual para la distribución por grupos de edad en México indica que en el futuro cercano la población de personas adultas mayores será considerablemente superior que la de personas jóvenes. De acuerdo con un estudio publicado por el Centro Latinoamericano y Caribeño de Demografía, esto podría ocurrir en el año 2027 y, si la tendencia continúa, para el año 2085 la población de personas adultas mayores podría llegar a 48 millones (CEPAL, 2013). Debido a lo anterior, las estrategías de prevención de enfermedades de alta incidencia en personas adultas mayores se volverán cada vez más relevantes. </div> """,  unsafe_allow_html=True)
     
