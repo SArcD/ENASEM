@@ -118,9 +118,17 @@ En 2014, se estimaba que en la región de las Américas el <strong>8,3%</strong>
 
 Los adultos con diabetes tienen un riesgo dos o tres veces mayor de sufrir ataques cardíacos y accidentes cerebrovasculares (<a href="https://www.niddk.nih.gov/health-information/informacion-de-la-salud/diabetes/informacion-general/prevenir-problemas/diabetes-enfermedades-cardiacas-accidentes-cerebrovasculares" target="_blank"><strong>NIDDK</strong></a>). Combinado con un flujo sanguíneo reducido, la neuropatía (daño a los nervios) en los pies aumenta la posibilidad de úlceras, infecciones y la eventual necesidad de amputación de una extremidad (<a href="https://www.imss.gob.mx/sites/all/statics/profesionalesSalud/investigacionSalud/historico/programas/16-pai-retinopatia-diabetica.pdf" target="_blank"><strong>IMSS</strong></a>). 
 
-La retinopatía diabética es una causa importante de ceguera y se produce como resultado del daño acumulado a largo plazo en los pequeños vasos sanguíneos de la retina, afectando a cerca de 1 millón de personas en todo el mundo (<a href="https://www.imss.gob.mx/sites/all/statics/profesionalesSalud/investigacionSalud/historico/programas/16-pai-retinopatia-diabetica.pdf" target="_blank"><strong>IMSS</strong></a>). Además, la diabetes es una de las principales causas de insuficiencia renal crónica (<a href="https://www.baxter.mx/es/es/noticias-baxter/la-diabetes-entre-las-principales-causas-de-la-enfermedad-renal-cronica" target="_blank"><strong>Baxter</strong></a>).
+La retinopatía diabética es una causa importante de ceguera y se produce como resultado del daño acumulado a largo plazo en los pequeños vasos sanguíneos de la retina, afectando a cerca de 1 millón de personas en todo el mundo (<a href="https://www.imss.gob.mx/sites/all/statics/profesionalesSalud/investigacionSalud/historico/programas/16-pai-retinopatia-diabetica.pdf" target="_blank"><strong>IMSS</strong></a>). Además, la diabetes es una de las principales causas de insuficiencia renal crónica (<a href="https://www.baxter.mx/es/es/noticias-baxter/la-diabetes-entre-las-principales-causas-de-la-enfermedad-renal-cronica" target="_blank"><strong>Baxter</strong></a>). Para más información general sobre el tema, consulta el panorama de la <a href="https://www.paho.org/es/temas/diabetes" target="_blank"><strong>OPS</strong></a>.
 
-Para más información general sobre el tema, consulta el panorama de la <a href="https://www.paho.org/es/temas/diabetes" target="_blank"><strong>OPS</strong></a>.
+</div>
+""", unsafe_allow_html=True)
+
+        st.subheader("Asociación entre Sarcopenia y Diabetes")
+
+        st.markdown("""
+<div style="text-align: justify;">
+
+Se ha propuesto que la sarcopenia y la diabetes se pueden relacionar mediante múltiples mecanismos fisiopatológicos, como la resistencia a la insulina. La resistencia a la insulina se asocia con una disminución de la capacidad del cuerpo para la síntesis de proteína, favoreciendo la pérdida progresiva de masa y fuerza muscular relacionada con la sarcopenia. La diabetes tipo 2 incrementa significativamente el riesgo de desarrollar sarcopenia, con un aumento de entre dos y tres veces respecto a las personas que no padecen diabetes. Asimismo, la sarcopenia puede dificultar el control metabólico de la diabetes, debido al desequilibrio hormonal asociado con la pérdida de tejido músculo esquelético. Factores como el sedentarismo, el control glucémico deficiente, la inflamación crónica y algunos tratamientos antidiabéticos (por ejemplo, sulfonilureas) también contribuyen a la aparición y progresión de la sarcopenia en pacientes diabéticos.
 
 </div>
 """, unsafe_allow_html=True)
