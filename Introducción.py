@@ -146,6 +146,21 @@ Se ha propuesto que la sarcopenia y la diabetes se pueden relacionar mediante m�
             https://www.paho.org/es/enlace/hipertension
             """,  unsafe_allow_html=True)
 
+            st.subheader("Hipertensión y su Asociación con la Sarcopenia")
+
+            st.markdown("""
+<div style="text-align: justify;">
+
+La hipertensión arterial se ha asociado con la sarcopenia en adultos mayores a través de diversos mecanismos fisiopatológicos y epidemiológicos. Estudios recientes indican que la hipertensión puede contribuir a la pérdida de masa y función muscular debido a factores como la inflamación crónica, el daño vascular y la reducción del flujo sanguíneo muscular, que afectan negativamente la nutrición y el metabolismo muscular.
+
+Además, ciertos tratamientos antihipertensivos, como los inhibidores de la enzima convertidora de angiotensina (IECA) y los bloqueadores de los receptores de angiotensina II (ARA II), han mostrado efectos beneficiosos en la prevención o reducción de la sarcopenia, posiblemente por mejorar la perfusión muscular y reducir la inflamación (<a href="https://iydt.wordpress.com/wp-content/uploads/2025/02/2_57_asociacion-de-terapia-antihipertensiva-y-sarcopenia-en-pacientes-adultos-mayores-de-la-umf-no.3.pdf" target="_blank"><strong>Asociación de terapia antihipertensiva y sarcopenia</strong></a>).
+
+Un estudio observacional en adultos mayores encontró que quienes usaban IECA o ARA II tenían menor prevalencia de sarcopenia comparados con otros antihipertensivos, sugiriendo un efecto protector de estos fármacos. Asimismo, la hipertensión está frecuentemente presente como comorbilidad en pacientes con sarcopenia (<a href="https://cienciauanl.uanl.mx/?p=13231" target="_blank"><strong>Comorbilidades y riesgo de sarcopenia</strong></a>) y el sedentarismo asociado a la hipertensión también contribuye a la pérdida muscular y al aumento del riesgo de mortalidad (<a href="https://revistafac.org.ar/ojs/index.php/revistafac/article/view/361" target="_blank"><strong>Relación entre hipertensión, sedentarismo y sarcopenia</strong></a>).
+
+</div>
+""", unsafe_allow_html=True)
+
+
 elif option == "Filtrar datos":
     st.header("Extracción de datos a partir de la ENASEM")
     st.markdown(""" En esta sección puede cargar algunos de los conjuntos de datos de la ENASEM (ya sea de las ediciones de 2018 o de 2021). En el menú desplegable puede seleccionar el archivo a cargar. </div> """,  unsafe_allow_html=True)
