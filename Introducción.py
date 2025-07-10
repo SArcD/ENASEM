@@ -100,7 +100,7 @@ La <a href="https://www.who.int/health-topics/ageing#tab=tab_1" target="_blank">
 
         st.markdown("""
 <div style="text-align: justify;">
-La <a href="https://www.mayoclinic.org/es/diseases-conditions/type-2-diabetes/symptoms-causes/syc-20351193" target="_blank">diabetes mellitus tipo 2</a> es una enfermedad crónica que ocurre cuando el páncreas no produce suficiente insulina o cuando el organismo no utiliza de forma eficaz la insulina disponible. La insulina es una hormona esencial que regula los niveles de glucosa en sangre. La hiperglucemia —es decir, el aumento sostenido de glucosa en sangre— es un efecto común de la diabetes no controlada y, con el tiempo, puede provocar daños graves en muchos sistemas del cuerpo, especialmente en los nervios y vasos sanguíneos (<a href="https://www.mayoclinic.org/es/diseases-conditions/type-2-diabetes/symptoms-causes/syc-20351193" target="_blank">Mayo Clinic, 2024</a>).
+La <a href="https://www.mayoclinic.org/es/diseases-conditions/type-2-diabetes/symptoms-causes/syc-20351193" target="_blank"><strong>diabetes mellitus tipo 2</strong></a> es una enfermedad crónica que ocurre cuando el páncreas no produce suficiente insulina o cuando el organismo no utiliza de forma eficaz la insulina disponible. La insulina es una hormona esencial que regula los niveles de glucosa en sangre. La hiperglucemia —es decir, el aumento sostenido de glucosa en sangre— es un efecto común de la diabetes no controlada y, con el tiempo, puede provocar daños graves en muchos sistemas del cuerpo, especialmente en los nervios y vasos sanguíneos.
 </div>
 """, unsafe_allow_html=True)
 
