@@ -110,8 +110,8 @@ En 2014, se estimaba que en la región de las Américas el <strong>8,3%</strong>
 </div>
 """, unsafe_allow_html=True)
 
-            st.subheader("Impacto en la salud")
-            st.markdown(""" <div style="text-align: justify;"> 
+        st.subheader("Impacto en la salud")
+        st.markdown(""" <div style="text-align: justify;"> 
             
 - Los adultos con diabetes tienen un riesgo dos o tres veces mayor de sufrir ataques cardíacos y accidentes cerebrovasculares.
 
