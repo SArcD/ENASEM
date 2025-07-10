@@ -52,10 +52,7 @@ Al igual que para otros países, la tendencia actual para la distribución por g
 
 
     
-    st.subheader("**La Encuesta Nacional Sobre Envejecimiento en México**") 
-    
-#    st.markdown(""" <div style="text-align: justify;"> Es uno de los estudios de mayor escala en la recolección de información sobre el estado de salud de las personas adultas mayores. Este estudio longitudinal, desarrollado por el Instituto Nacional de Estadística y Geografía (INEGI), en colaboración con el Centro Médico de la Universidad de Texas (UTMB), el Instituto Nacional de Geriatría (INGER) y el Instituto Nacional de Salud Pública (INSP), tiene como objetivo actualizar y dar seguimiento a la información estadística recabada en los levantamientos sobre la población de 50 años y más en México, con representación urbana y rural.""",  unsafe_allow_html=True)
-
+    st.subheader("**La Encuesta Nacional Sobre Envejecimiento en México**")     
     st.markdown("""
 <div style="text-align: justify;">
 <a href="https://enasem.org/DataProducts/ImputedData_Esp.aspx" target="_blank"><strong>La ENASEM (Encuesta Nacional Sobre Envejecimiento en México)</strong></a> es uno de los estudios de mayor escala en la recolección de información sobre el estado de salud de las personas adultas mayores. Este estudio longitudinal, desarrollado por el 
@@ -76,8 +73,7 @@ Al igual que para otros países, la tendencia actual para la distribución por g
 </div>
 """, unsafe_allow_html=True)
 
-    st.subheader("**Los síndromes geriátricos**") 
-    
+    st.subheader("**Los síndromes geriátricos**")     
     st.markdown("""
 <div style="text-align: justify;">
 Es un conjunto de cuadros clínicos, signos y síntomas frecuentes en personas adultas mayores, sobre todo después de los 65 años. Estos tienen que ver más con la interacción entre el desgaste causado por el envejecimiento y múltiples patologías que con enfermedades en sí mismas. La consecuencia principal de esto es la reducción progresiva de la capacidad funcional y el deterioro progresivo de la salud, así como el incremento de la polifarmacia. Típicamente los <a href="https://postgradomedicina.com/sindromes-geriatricos-causas-tratamiento/" target="_blank"><strong>síndromes geriátricos</strong></a> tienen una alta prevalencia en la población de personas adultas mayores, y suele acentuarse si coinciden con <a href="https://www.who.int/es/news-room/fact-sheets/detail/noncommunicable-diseases" target="_blank"><strong>enfermedades crónicas</strong></a> o lo padecen personas institucionalizadas. Generan un deterioro progresivo de la autonomía, capacidad funcional e incrementan la necesidad de cuidados específicos. Su aparición puede agravar los daños que ya causan otras comorbilidades y requieren un tratamiento integral (como cuidados <a href="https://medlineplus.gov/spanish/nutritionforolderadults.html" target="_blank"><strong>nutricionales</strong></a>, <a href="https://www.gob.mx/inapam/es/articulos/gerontologia-una-respuesta-al-envejecimiento?idiom=es" target="_blank"><strong>médicos</strong></a> y <a href="https://www.gob.mx/inapam/articulos/salud-mental-en-personas-mayores?idiom=es" target="_blank"><strong>psicológicos</strong></a>). Algunos de los síndromes geriátricos más comunes son el <a href="https://mimocare.net/blog/deterioro-cognitivo-en-el-adulto-mayor/" target="_blank"><strong>deterioro cognitivo</strong></a>, la <a href="https://www.imss.gob.mx/sites/all/statics/guiasclinicas/479GRR_0.pdf" target="_blank"><strong>fragilidad</strong></a> y la <a href="https://www.gob.mx/salud/articulos/que-es-la-sarcopenia" target="_blank"><strong>sarcopenia</strong></a>.
@@ -87,8 +83,18 @@ Es un conjunto de cuadros clínicos, signos y síntomas frecuentes en personas a
 
     
     st.subheader("Sarcopenia")
-    st.markdown(""" <div style="text-align: justify;"> La sarcopenia es uno de los síndromes geriátricos más comunes. Su definición tradicional implica una alteración progresiva y generalizada del músculo esquelético, con pérdida acelerada de masa y función muscular. La incidencia prolongada de sarcopenia en personas adultas mayores puede correlacionarse con la aparición de deterioro funcional, caídas, fragilidad y un aumento en la mortalidad (Montero-Errasquín & Cruz-Jentoft, 2022). Además, la sarcopenia incrementa la predisposición a comorbilidades, añadiendo una capa adicional de complejidad a la gestión de la salud en el contexto geriátrico (Cruz-Jentoft, 2019).""",  unsafe_allow_html=True)
+    st.markdown("""
+<div style="text-align: justify;">
+La <a href="https://www.who.int/news-room/fact-sheets/detail/ageing-and-health" target="_blank"><strong>sarcopenia</strong></a> es uno de los síndromes geriátricos más comunes. Su definición tradicional implica una alteración progresiva y generalizada del 
+<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7277772/" target="_blank"><strong>músculo esquelético</strong></a>, caracterizada por una pérdida acelerada de masa y función muscular. La incidencia prolongada de sarcopenia en personas adultas mayores puede correlacionarse con la aparición de 
+<a href="https://www.nia.nih.gov/health/aging-and-your-muscles" target="_blank"><strong>deterioro funcional</strong></a>, caídas, fragilidad y un aumento en la mortalidad 
+(<a href="https://pubmed.ncbi.nlm.nih.gov/35759928/" target="_blank"><strong>Montero-Errasquín & Cruz-Jentoft, 2022</strong></a>). Además, la sarcopenia incrementa la predisposición a 
+<a href="https://www.mdpi.com/2072-6643/11/12/2861" target="_blank"><strong>comorbilidades</strong></a>, añadiendo una capa adicional de complejidad a la gestión de la salud en el contexto geriátrico 
+(<a href="https://pubmed.ncbi.nlm.nih.gov/31168505/" target="_blank"><strong>Cruz-Jentoft, 2019</strong></a>).
+</div>
+""", unsafe_allow_html=True)
 
+    
     st.subheader("Comorbilidades asociadas a la sarcopenia")
 
     tab1, tab2, = st.tabs(["Diabetes Mellitus 2", "Hipertensión arterial"])
