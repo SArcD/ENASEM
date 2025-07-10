@@ -67,8 +67,15 @@ Al igual que para otros países, la tendencia actual para la distribución por g
 """, unsafe_allow_html=True)
 
     
-    st.markdown(""" <div style="text-align: justify;"> La ENASEM forma parte de una familia global de estudios longitudinales que tratan de entender el proceso de envejecimiento humano bajo distintas condiciones de vida. En Estados Unidos se lleva a cabo el “Health and Retirement Study” (18), en Brasil el “Estudo Longitudinal da Saúde dos Idosos Brasileiros” (3) y en la Unión Europea, “The Survey of Health, Ageing and Retirement in Europe” (17). La información recabada es fundamental para la creación de estrategias que permitan la mitigación de condiciones debilitantes para las personas adultas mayores, tales como los síndromes geriátricos.""",  unsafe_allow_html=True)
-   
+    st.markdown("""
+<div style="text-align: justify;">
+<strong>La ENASEM</strong> forma parte de una familia global de estudios longitudinales que tratan de entender el proceso de envejecimiento humano bajo distintas condiciones de vida. En Estados Unidos se lleva a cabo el 
+<a href="https://hrs.isr.umich.edu/" target="_blank"><strong>“Health and Retirement Study (HRS)”</strong></a>, en Brasil el 
+<a href="https://www.elsi.cpqrr.fiocruz.br/" target="_blank"><strong>“Estudo Longitudinal da Saúde dos Idosos Brasileiros (ELSI-Brasil)”</strong></a> y en la Unión Europea, 
+<a href="https://www.share-project.org/" target="_blank"><strong>“The Survey of Health, Ageing and Retirement in Europe (SHARE)”</strong></a>. La información recabada es fundamental para la creación de estrategias que permitan la mitigación de condiciones debilitantes para las personas adultas mayores, tales como los síndromes geriátricos.
+</div>
+""", unsafe_allow_html=True)
+
     st.subheader("**Los síndromes geriátricos**") 
     
     st.markdown(""" <div style="text-align: justify;"> Se definen como aquellas condiciones clínicas en personas adultas mayores que no logran encajar en las categorías de otras enfermedades, sin embargo, son altamente prevalentes e implican un empobrecimiento de su calidad de vida (Inouye et al., 2007). La fragilidad, la malnutrición, la inflamación crónica y el deterioro cognitivo son ejemplos de síndromes geriátricos y se estima que las personas adultas mayores de 65 años tiene un riesgo de muerte mucho más alto que el resto de los individuos en este rango de edad (Kane, Shamliyan y Pascala, 2012).""",  unsafe_allow_html=True)
