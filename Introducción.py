@@ -100,15 +100,16 @@ La <a href="https://www.who.int/health-topics/ageing#tab=tab_1" target="_blank">
 
         st.markdown("""
 <div style="text-align: justify;">
-La <strong>diabetes mellitus tipo 2</strong> es una <a href="https://www.who.int/es/news-room/fact-sheets/detail/diabetes" target="_blank"><strong>enfermedad crónica</strong></a> que ocurre cuando el páncreas no produce suficiente insulina o cuando el organismo no utiliza de forma eficaz la insulina disponible. La insulina es una hormona esencial que regula los niveles de glucosa en sangre. La hiperglucemia —es decir, el aumento sostenido de glucosa en sangre— es un efecto común de la diabetes no controlada y, con el tiempo, puede provocar daños graves en muchos sistemas del cuerpo, especialmente en los nervios y vasos sanguíneos (<a href="https://iris.paho.org/handle/10665.2/49894" target="_blank"><strong>OPS, 2022</strong></a>).
+La <a href="https://www.mayoclinic.org/es/diseases-conditions/type-2-diabetes/symptoms-causes/syc-20351193" target="_blank">diabetes mellitus tipo 2</a> es una enfermedad crónica que ocurre cuando el páncreas no produce suficiente insulina o cuando el organismo no utiliza de forma eficaz la insulina disponible. La insulina es una hormona esencial que regula los niveles de glucosa en sangre. La hiperglucemia —es decir, el aumento sostenido de glucosa en sangre— es un efecto común de la diabetes no controlada y, con el tiempo, puede provocar daños graves en muchos sistemas del cuerpo, especialmente en los nervios y vasos sanguíneos (<a href="https://www.mayoclinic.org/es/diseases-conditions/type-2-diabetes/symptoms-causes/syc-20351193" target="_blank">Mayo Clinic, 2024</a>).
 </div>
 """, unsafe_allow_html=True)
 
         st.markdown("""
 <div style="text-align: justify;">
-En 2014, se estimaba que en la región de las Américas el <strong>8,3%</strong> de los adultos mayores de 18 años tenía diabetes (<strong>8,5%</strong> a nivel mundial). Para 2019, la diabetes fue la causa directa de aproximadamente <strong>284,000 muertes</strong> en la región y se calcula que el <strong>44%</strong> de todas las muertes por diabetes ocurrieron antes de los 70 años. A nivel mundial, la cifra fue de <strong>1,5 millones de muertes</strong>, de las cuales casi la mitad ocurrieron antes de los 70 años (<a href="https://iris.who.int/handle/10665/329921" target="_blank"><strong>OMS, 2021</strong></a>). Con el tiempo, la diabetes puede dañar el corazón, los vasos sanguíneos, los ojos, los riñones y los nervios.
+En 2014, se estimaba que en la región de las Américas el <strong>8,3%</strong> de los adultos mayores de 18 años tenía diabetes (<strong>8,5%</strong> a nivel mundial). Para 2019, la diabetes fue la causa directa de aproximadamente <strong>284,000 muertes</strong> en la región y se calcula que el <strong>44%</strong> de todas las muertes por diabetes ocurrieron antes de los 70 años. A nivel mundial, la cifra fue de <strong>1,5 millones de muertes</strong>, de las cuales casi la mitad ocurrieron antes de los 70 años (<a href="https://www.paho.org/es/noticias/11-11-2022-numero-personas-con-diabetes-americas-se-ha-triplicado-tres-decadas-segun" target="_blank"><strong>OPS, 2021</strong></a>). Con el tiempo, la diabetes puede dañar el corazón, los vasos sanguíneos, los ojos, los riñones y los nervios.
 </div>
 """, unsafe_allow_html=True)
+
 
         st.subheader("Impacto en la salud")
         st.markdown(""" <div style="text-align: justify;"> 
