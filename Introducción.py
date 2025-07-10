@@ -59,10 +59,10 @@ Al igual que para otros países, la tendencia actual para la distribución por g
     st.markdown("""
 <div style="text-align: justify;">
 <a href="https://www.inegi.org.mx/programas/enase/" target="_blank"><strong>La ENASEM (Encuesta Nacional Sobre Envejecimiento en México)</strong></a> es uno de los estudios de mayor escala en la recolección de información sobre el estado de salud de las personas adultas mayores. Este estudio longitudinal, desarrollado por el 
-<a href="https://www.inegi.org.mx/" target="_blank">Instituto Nacional de Estadística y Geografía (INEGI)</a>, en colaboración con el 
-<a href="https://www.utmb.edu/" target="_blank">Centro Médico de la Universidad de Texas (UTMB)</a>, el 
-<a href="https://www.inger.gob.mx/" target="_blank">Instituto Nacional de Geriatría (INGER)</a> y el 
-<a href="https://www.insp.mx/" target="_blank">Instituto Nacional de Salud Pública (INSP)</a>, tiene como objetivo actualizar y dar seguimiento a la información estadística recabada en los levantamientos sobre la población de 50 años y más en México, con representación urbana y rural.
+<a href="https://www.inegi.org.mx/" target="_blank"><strong>Instituto Nacional de Estadística y Geografía (INEGI)</strong></a>, en colaboración con el 
+<a href="https://www.utmb.edu/" target="_blank"><strong>Centro Médico de la Universidad de Texas (UTMB)</strong></a>, el 
+<a href="https://www.inger.gob.mx/" target="_blank"><strong>Instituto Nacional de Geriatría (INGER)</strong></a> y el 
+<a href="https://www.insp.mx/" target="_blank"><strong>Instituto Nacional de Salud Pública (INSP)</strong></a>, tiene como objetivo actualizar y dar seguimiento a la información estadística recabada en los levantamientos sobre la población de 50 años y más en México, con representación urbana y rural.
 </div>
 """, unsafe_allow_html=True)
 
