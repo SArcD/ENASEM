@@ -59,13 +59,13 @@ Al igual que para otros países, la tendencia actual para la distribución por g
     st.markdown("""
 <div style="text-align: justify;">
 Es uno de los estudios de mayor escala en la recolección de información sobre el estado de salud de las personas adultas mayores. Este estudio longitudinal, desarrollado por el 
-<a href="https://www.inegi.org.mx/" target="_blank">Instituto Nacional de Estadística y Geografía (INEGI)</a>, en colaboración con el 
-<a href="https://www.utmb.edu/" target="_blank">Centro Médico de la Universidad de Texas (UTMB)</a>, el 
-<a href="https://www.gob.mx/inger" target="_blank">Instituto Nacional de Geriatría (INGER)</a> y el 
-<a href="https://www.insp.mx/" target="_blank">Instituto Nacional de Salud Pública (INSP)</a>, tiene como objetivo actualizar y dar seguimiento a la información estadística recabada en los levantamientos sobre la población de 50 años y más en México, con representación urbana y rural.
+<a href="https://www.inegi.org.mx/" target="_blank"><strong>Instituto Nacional de Estadística y Geografía (INEGI)</strong></a>, en colaboración con el 
+<a href="https://www.utmb.edu/" target="_blank"><strong>Centro Médico de la Universidad de Texas (UTMB)</strong></a>, el 
+<a href="https://www.gob.mx/inger" target="_blank"><strong>Instituto Nacional de Geriatría (INGER)</strong></a> y el 
+<a href="https://www.insp.mx/" target="_blank"><strong>Instituto Nacional de Salud Pública (INSP)</strong></a>, tiene como objetivo actualizar y dar seguimiento a la información estadística recabada en los levantamientos sobre la población de 50 años y más en México, con representación urbana y rural. Consulta la base de datos en la 
+<a href="https://enasem.org/DataProducts/ImputedData_Esp.aspx" target="_blank"><strong>ENASEM</strong></a>.
 </div>
 """, unsafe_allow_html=True)
-
 
     
     st.markdown(""" <div style="text-align: justify;"> La ENASEM forma parte de una familia global de estudios longitudinales que tratan de entender el proceso de envejecimiento humano bajo distintas condiciones de vida. En Estados Unidos se lleva a cabo el “Health and Retirement Study” (18), en Brasil el “Estudo Longitudinal da Saúde dos Idosos Brasileiros” (3) y en la Unión Europea, “The Survey of Health, Ageing and Retirement in Europe” (17). La información recabada es fundamental para la creación de estrategias que permitan la mitigación de condiciones debilitantes para las personas adultas mayores, tales como los síndromes geriátricos.""",  unsafe_allow_html=True)
