@@ -438,7 +438,6 @@ if st.session_state["df_comorb"] is not None:
 import numpy as np
 import matplotlib.pyplot as plt
 
-# --- Funciones (sin sufijos, seguras) ---
 def indiscernibility(attr, table: pd.DataFrame):
     """Clases de indiscernibilidad como lista de sets de índices, ordenadas por tamaño desc."""
     u_ind = {}
@@ -465,6 +464,9 @@ def upper_approximation(R, X):
             if r.intersection(x):
                 u_approx.update(r)
     return u_approx
+
+
+
 
 # --- DataFrame base: usa el más filtrado disponible ---
 df_base_ind = st.session_state.get("df_comorb")
