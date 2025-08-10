@@ -514,6 +514,15 @@ if generar:
             st.subheader("Resumen de clases (ordenadas por tamaño)")
             st.dataframe(resumen_df, use_container_width=True)
 
+            # 👉 PEGAR AQUÍ: Persistir artefactos para otras secciones
+            st.session_state["ind_cols"] = cols_attrs
+            st.session_state["ind_df"] = df_ind
+            st.session_state["ind_classes"] = clases
+            st.session_state["ind_lengths"] = longitudes_orden
+            st.session_state["ind_min_size"] = int(min_size_for_pie)
+
+
+            
             # 3) Pastel de clases con tamaño >= umbral
             candidatas = [(nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
             if candidatas:
