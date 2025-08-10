@@ -548,23 +548,26 @@ if not all(v in globals() for v in ("longitudes_orden","nombres","clases","df_in
 
 
 # =========================
-# Asignar num_conjunto y nivel de riesgo (sin modificar df_ind)
+# Asignar ID de clase (1..K), tamaño por fila y nivel de riesgo
 # =========================
 
-# Mapa: id de clase -> posición (1..N) según longitudes_orden
-rank_por_clase = {class_idx: rank+1 for rank, (class_idx, _) in enumerate(longitudes_orden)}
+# 1) ID de clase contiguo 1..K siguiendo el orden de 'clases' (ya viene ordenado por tamaño)
+class_id_by_row = {}
+for class_id, miembros in enumerate(clases, start=1):  # 1..K
+    for idx in miembros:
+        class_id_by_row[idx] = class_id
 
-# Mapa: índice de fila -> num_conjunto (1..N)
-indice_a_conjunto = {}
-for class_idx, miembros in enumerate(clases):
-    num = rank_por_clase.get(class_idx)
-    for i in miembros:
-        indice_a_conjunto[i] = num
+# 2) Tamaño de clase (para cada fila)
+class_size = {class_id: len(miembros) for class_id, miembros in enumerate(clases, start=1)}
+row_class_size = {idx: class_size[class_id_by_row[idx]] for idx in class_id_by_row}
 
-df_ind_riesgo = df_ind.copy()
-df_ind_riesgo["num_conjunto"] = df_ind_riesgo.index.map(indice_a_conjunto).astype("Int64")
+# 3) Construir DF con TODAS las columnas de df_ind + nuevas columnas
+df_ind_riesgo = df_ind.copy()  # conserva todas las columnas originales
+df_ind_riesgo["num_conjunto"] = df_ind_riesgo.index.map(class_id_by_row).astype("Int64")
+df_ind_riesgo["tam_conjunto"] = df_ind_riesgo.index.map(row_class_size).astype("Int64")
+df_ind_riesgo["label_conjunto"] = df_ind_riesgo["num_conjunto"].apply(lambda x: f"Conjunto {int(x)}" if pd.notna(x) else None)
 
-# Reglas de riesgo
+# 4) Reglas de riesgo (ajusta las listas a tu criterio)
 def asignar_riesgo(num_conjunto: int) -> str:
     if num_conjunto in (4, 13):
         return "Riesgo considerable"
@@ -573,7 +576,7 @@ def asignar_riesgo(num_conjunto: int) -> str:
     elif num_conjunto in (1, 2, 5, 7, 8, 10, 11, 12, 14):
         return "Riesgo leve"
     elif num_conjunto == 0:
-        return "Sin Riesgo"   # Nota: con numeración 1..N esta regla normalmente no se usa
+        return "Sin Riesgo"  # normalmente no ocurre con IDs 1..K
     else:
         return "No clasificado"
 
@@ -581,18 +584,21 @@ df_ind_riesgo["nivel_riesgo"] = df_ind_riesgo["num_conjunto"].apply(
     lambda x: asignar_riesgo(int(x)) if pd.notna(x) else "No clasificado"
 )
 
-# (Opcional) Vista/descarga rápida
-st.subheader("Asignación de riesgo por clase")
-st.dataframe(df_ind_riesgo[["num_conjunto", "nivel_riesgo"] + cols_attrs].head(50), use_container_width=True)
+# 5) Verificación rápida de filas (debe coincidir con df_ind)
+st.caption(f"Filas df_ind: {len(df_ind):,} | Filas df_ind_riesgo: {len(df_ind_riesgo):,}")
+
+# 6) Mostrar (todas las columnas) y descargar
+st.subheader("DataFrame con ID de clase y nivel de riesgo")
+st.dataframe(df_ind_riesgo, use_container_width=True)
 st.download_button(
-    "Descargar DataFrame con riesgo (CSV)",
+    "Descargar DF con riesgo (CSV)",
     data=df_ind_riesgo.to_csv(index=False).encode("utf-8"),
     file_name="df_ind_riesgo.csv",
     mime="text/csv",
-    key="dl_df_ind_riesgo"
+    key="dl_df_ind_riesgo_full"
 )
 
-# Guardar en session_state por si lo necesitas después
+# 7) Guardar para usos posteriores
 st.session_state["df_ind_riesgo"] = df_ind_riesgo
 
 
