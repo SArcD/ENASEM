@@ -2,6 +2,81 @@ import re
 import pandas as pd
 import streamlit as st
 
+# --- Utilidades comunes para particiones/metricas (definir si no existen) ---
+if "blocks_to_labels" not in globals():
+    import numpy as np
+    import pandas as pd
+
+    def blocks_to_labels(blocks, universo):
+        """Convierte una lista de sets (bloques) a un vector de etiquetas siguiendo el orden de 'universo'."""
+        lbl = {}
+        for k, S in enumerate(blocks):
+            for idx in S:
+                lbl[idx] = k
+        return np.array([lbl[i] for i in universo])
+
+    def contingency_from_labels(y_true, y_pred):
+        """Matriz de contingencia n_ij entre dos particiones dadas por etiquetas."""
+        s1 = pd.Series(y_true).astype("category")
+        s2 = pd.Series(y_pred).astype("category")
+        return pd.crosstab(s1, s2).values
+
+    def pairs_same(counts):
+        """Suma de C(n,2) por cada tamaño en 'counts'."""
+        counts = np.asarray(counts, dtype=np.int64)
+        return (counts * (counts - 1) // 2).sum()
+
+    def ari_from_contingency(C):
+        """ARI (Adjusted Rand Index) a partir de la matriz de contingencia."""
+        n = C.sum()
+        a = C.sum(axis=1)
+        b = C.sum(axis=0)
+        sum_comb = (C * (C - 1) // 2).sum()
+        sum_a = (a * (a - 1) // 2).sum()
+        sum_b = (b * (b - 1) // 2).sum()
+        T = n * (n - 1) // 2
+        expected = (sum_a * sum_b) / T if T else 0.0
+        max_index = 0.5 * (sum_a + sum_b)
+        denom = max_index - expected
+        return float((sum_comb - expected) / denom) if denom != 0 else 1.0
+
+    def nmi_from_contingency(C):
+        """NMI (Normalized Mutual Information) a partir de la matriz de contingencia."""
+        n = C.sum()
+        if n == 0:
+            return 1.0
+        a = C.sum(axis=1)
+        b = C.sum(axis=0)
+        I = 0.0
+        for i in range(C.shape[0]):
+            for j in range(C.shape[1]):
+                nij = C[i, j]
+                if nij > 0:
+                    I += (nij / n) * np.log((nij * n) / (a[i] * b[j]))
+        p = a / n
+        q = b / n
+        Hu = -np.sum([pi * np.log(pi) for pi in p if pi > 0])
+        Hv = -np.sum([qj * np.log(qj) for qj in q if qj > 0])
+        denom = np.sqrt(Hu * Hv)
+        return float(I / denom) if denom > 0 else 1.0
+
+    def preservation_metrics_from_contingency(C):
+        """% preservación de 'iguales' y 'distintos' entre partición original y reducida."""
+        n = C.sum()
+        T = n * (n - 1) // 2 if n else 0
+        a = C.sum(axis=1)
+        b = C.sum(axis=0)
+        same_orig = pairs_same(a)
+        same_red  = pairs_same(b)
+        same_both = (C * (C - 1) // 2).sum()
+        pres_same = same_both / same_orig if same_orig > 0 else 1.0
+        diff_orig = T - same_orig
+        diff_to_same = same_red - same_both
+        pres_diff = (diff_orig - diff_to_same) / diff_orig if diff_orig > 0 else 1.0
+        return pres_same, pres_diff
+
+
+
 st.set_page_config(page_title="ENASEM — Carga y preparación", layout="wide")
 st.title("ENASEM — Cargar y preparar columnas (2018/2021)")
 
