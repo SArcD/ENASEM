@@ -730,15 +730,26 @@ if all(v in globals() for v in ("clases", "longitudes_orden", "nombres", "df_ind
                 ax.set_yticklabels(corr.columns, fontsize=8)
                 ax.set_title("Mapa de correlaciones")
 
-                # Anotar valores si la matriz no es muy grande
-                if n <= 20:
-                    for i in range(n):
-                        for j in range(n):
-                            ax.text(
-                                j, i, f"{corr.values[i, j]:.2f}",
-                                ha="center", va="center", fontsize=7
-                            )
+#                # Anotar valores si la matriz no es muy grande
+#                if n <= 20:
+#                    for i in range(n):
+#                        for j in range(n):
+#                            ax.text(
+#                                j, i, f"{corr.values[i, j]:.2f}",
+#                                ha="center", va="center", fontsize=7
+#                            )
 
+                # Anotar valores (tamaño de fuente adaptativo)
+                base_fs = 9
+                fs = max(5, int(14 - 0.25 * n))  # ajusta con el tamaño de la matriz
+                for i in range(n):
+                    for j in range(n):
+                        ax.text(
+                            j, i, f"{corr.values[i, j]:.2f}",
+                            ha="center", va="center", fontsize=fs, color="black"
+                        )
+
+                
                 st.pyplot(fig)
 
 else:
