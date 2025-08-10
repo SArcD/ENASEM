@@ -490,7 +490,7 @@ if isinstance(df_base_ind, pd.DataFrame):
 ADL_BASE = [
     "H1","H4","H5","H6","H8","H9","H10","H11","H12",
     "H13","H15A","H15B","H15D","H16A","H16D",
-    "H17A","H17D","H18A","H18D","H19A","H19D"
+    "H17A","H17D","H18A","H18D","H19A","H19D", "C37"
 ]
 
 def match_col(base_name: str, cols) -> str | None:
@@ -539,7 +539,7 @@ st.session_state["ind_adl_cols"]   = cols_norm             # Nombres normalizado
 with st.sidebar:
     st.subheader("Indiscernibilidad")
     adl_opts = st.session_state.get("ind_adl_cols", [])
-    sugeridas = [c for c in ["H11","H15A","H5","H6","H13","H10"] if c in adl_opts]
+    sugeridas = [c for c in ["H11","H15A","H5","H6","C37"] if c in adl_opts]
     cols_attrs = st.multiselect(
         "Atributos (ADL) para agrupar",
         options=adl_opts,
