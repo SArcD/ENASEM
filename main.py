@@ -686,6 +686,26 @@ st.download_button(
 st.session_state["df_ind_riesgo"] = df_ind_riesgo
 
 
+# --- Post-proceso: marcar "Sin riesgo" según regla de negocio ---
+# 1) Por variables usadas en indiscernibilidad (todas en 0)
+cols_eval = [c for c in cols_attrs if c in df_ind_riesgo.columns]
+if cols_eval:
+    vals = df_ind_riesgo[cols_eval].apply(pd.to_numeric, errors="coerce").fillna(0)
+    mask_sin_riesgo = vals.eq(0).all(axis=1)
+    df_ind_riesgo.loc[mask_sin_riesgo, "nivel_riesgo"] = "Sin riesgo"
+
+# 2) (Opcional) Por comorbilidades: todas en 0 → "Sin riesgo"
+comorb_cols = [c for c in ["C4","C6","C12","C19","C22A","C26","C32"] if c in df_ind_riesgo.columns]
+if comorb_cols:
+    com_vals = df_ind_riesgo[comorb_cols].apply(pd.to_numeric, errors="coerce").fillna(0)
+    mask_sin_comorb = com_vals.eq(0).all(axis=1)
+    df_ind_riesgo.loc[mask_sin_comorb, "nivel_riesgo"] = "Sin riesgo"
+
+# Actualiza en sesión
+st.session_state["df_ind_riesgo"] = df_ind_riesgo
+
+
+
 # ============ NUEVO: Gráfico compuesto (Pastel + radares incrustados) ============
 from matplotlib.patches import ConnectionPatch
 from math import log1p
@@ -1068,13 +1088,15 @@ else:
 #hasta aqui todo bien y comienza el random forest
 
 # =========================
-# Random Forest + SMOTE con variables del reducto
+# Random Forest + SMOTE con variables del reducto (robusto a cambios del reducto)
 # =========================
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from imblearn.over_sampling import SMOTE
 from sklearn.metrics import classification_report, confusion_matrix
+from collections import Counter
+import numpy as np
 
 ss = st.session_state
 need = ("ind_cols", "ind_df", "ind_classes", "ind_lengths", "ind_min_size", "df_ind_riesgo")
@@ -1091,7 +1113,7 @@ else:
     if not universo_sel:
         st.warning("No hay filas en el subconjunto del pastel para entrenar.")
     else:
-        # DataFrame con target (viene de df_ind_riesgo) y features (ind_cols)
+        # DataFrame con target (viene de df_ind_riesgo) y features
         df_risk_full: pd.DataFrame = ss["df_ind_riesgo"].copy()
         df_train = df_risk_full.loc[df_risk_full.index.intersection(universo_sel)].copy()
 
@@ -1108,26 +1130,54 @@ else:
             X = df_train[feat_cols].apply(pd.to_numeric, errors="coerce").fillna(0)
             y_raw = df_train["nivel_riesgo"].astype(str)
 
-            # Opcional: excluir etiquetas no informativas
+            # Excluir etiquetas no informativas
             mask_valid = ~y_raw.isin(["No clasificado", "None", "nan"])
             X = X[mask_valid]
             y_raw = y_raw[mask_valid]
 
-            if X.shape[0] < 10 or X[feat_cols].nunique().sum() == 0:
+            # Debe haber al menos 2 clases
+            if y_raw.nunique() < 2:
+                st.warning("Se requiere al menos 2 clases en 'nivel_riesgo' para entrenar. Ajusta filtros/reducto.")
+            elif X.shape[0] < 10 or X[feat_cols].nunique().sum() == 0:
                 st.warning("Muy pocos datos/variación para entrenar el modelo.")
             else:
                 # Codificar etiquetas
                 le = LabelEncoder()
                 y = le.fit_transform(y_raw.values)
 
-                # Train / test
-                Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+                # Split (estratificado si es posible)
+                try:
+                    Xtr, Xte, ytr, yte = train_test_split(
+                        X, y, test_size=0.25, random_state=42, stratify=y
+                    )
+                except ValueError:
+                    # Si alguna clase no permite estratificar, hacer split simple
+                    Xtr, Xte, ytr, yte = train_test_split(
+                        X, y, test_size=0.25, random_state=42, stratify=None
+                    )
 
-                # SMOTE (solo sobre train)
-                sm = SMOTE(random_state=42)
-                Xtr_sm, ytr_sm = sm.fit_resample(Xtr, ytr)
+                # ---- SMOTE robusto según tamaño de clases en train ----
+                do_smote = True
+                Xtr_sm, ytr_sm = Xtr, ytr
+                cont = Counter(ytr)
+                min_count = min(cont.values()) if cont else 0
 
-                # Random Forest
+                if min_count < 2:
+                    # No se puede ni con k=1 → omitir SMOTE
+                    do_smote = False
+                else:
+                    # k debe ser < min_count
+                    k = min(5, max(1, min_count - 1))
+                    try:
+                        sm = SMOTE(random_state=42, k_neighbors=k)
+                        Xtr_sm, ytr_sm = sm.fit_resample(Xtr, ytr)
+                    except Exception:
+                        do_smote = False
+
+                if not do_smote:
+                    st.warning("SMOTE omitido por pocas muestras en alguna clase del train. Entrenando sin sobre-muestreo.")
+
+                # ---- Random Forest ----
                 rf = RandomForestClassifier(
                     n_estimators=300,
                     max_depth=None,
@@ -1138,8 +1188,15 @@ else:
 
                 # Evaluación rápida
                 ypred = rf.predict(Xte)
-                report = classification_report(yte, ypred, target_names=le.classes_, zero_division=0)
-                cm = confusion_matrix(yte, ypred)
+                # Reporte usando solo clases presentes en yte (evita errores cuando falta alguna clase en test)
+                present_labels = np.unique(yte)
+                report = classification_report(
+                    yte, ypred,
+                    labels=present_labels,
+                    target_names=le.classes_[present_labels],
+                    zero_division=0
+                )
+                cm = confusion_matrix(yte, ypred, labels=present_labels)
 
                 c1, c2 = st.columns(2)
                 with c1:
@@ -1152,15 +1209,16 @@ else:
                     ax_eval.set_title("Matriz de confusión (test)")
                     ax_eval.set_xlabel("Predicho")
                     ax_eval.set_ylabel("Real")
-                    ax_eval.set_xticks(range(len(le.classes_))); ax_eval.set_xticklabels(le.classes_, rotation=45, ha="right")
-                    ax_eval.set_yticks(range(len(le.classes_))); ax_eval.set_yticklabels(le.classes_)
-                    # anotar
+                    ax_eval.set_xticks(range(len(present_labels)))
+                    ax_eval.set_xticklabels(le.classes_[present_labels], rotation=45, ha="right")
+                    ax_eval.set_yticks(range(len(present_labels)))
+                    ax_eval.set_yticklabels(le.classes_[present_labels])
                     for i in range(cm.shape[0]):
                         for j in range(cm.shape[1]):
                             ax_eval.text(j, i, str(cm[i, j]), ha="center", va="center", fontsize=8)
                     st.pyplot(fig_eval)
 
-                # Guardar artefactos en session_state
+                # Guardar artefactos en session_state (para predicción posterior)
                 ss["rf_model"] = rf
                 ss["rf_label_encoder"] = le
                 ss["rf_feat_cols"] = feat_cols
@@ -1222,7 +1280,6 @@ else:
 
 
 
-
 # =========================
 # Tabs para visualizar/descargar clases de indiscernibilidad
 # =========================
@@ -1242,8 +1299,9 @@ if all(v in globals() for v in ("clases", "longitudes_orden", "nombres", "df_ind
     for tab, (idx_clase, tam) in zip(tabs, top_items):
         with tab:
             indices = sorted(list(clases[idx_clase]))
-            df_grupo = df_ind.loc[indices, :].copy()  # todas las columnas disponibles
-
+            #df_grupo = df_ind.loc[indices, :].copy()  # todas las columnas disponibles
+            df_base_tabs = st.session_state.get("df_ind_riesgo", df_ind)
+            df_grupo = df_base_tabs.loc[indices, :].copy()
             st.caption(f"Filas en esta clase: {tam:,}")
             st.dataframe(df_grupo.head(100), use_container_width=True)
 
