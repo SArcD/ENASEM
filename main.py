@@ -802,28 +802,41 @@ else:
 # ==================================================================== hasta aqui todo bien
 
 
-    # ---------- partición original (RESTRINGIDA A LOS BLOQUES DEL PASTEL) ----------
-    # 1) identifica los IDs de clase que entraron al pastel (≥ min_size_for_pie)
-    ids_pastel = [i for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
-    if not ids_pastel:
-        st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para evaluar reductos.")
-    else:
-        # 2) universo restringido: unión de los índices de esas clases
-        universo_sel = sorted(set().union(*[clases[i] for i in ids_pastel]))
+# ---------- partición original (RESTRINGIDA A LOS BLOQUES DEL PASTEL) ----------
+from itertools import combinations
 
-        # 3) DataFrame de evaluación = SOLO filas en el pastel
+# 1) IDs de clase que entraron al pastel (≥ min_size_for_pie)
+try:
+    umbral = int(min_size_for_pie)
+except Exception:
+    umbral = 0
+
+ids_pastel = [i for i, tam in longitudes_orden if tam >= umbral]
+
+if not ids_pastel:
+    st.info(f"No hay clases con tamaño ≥ {umbral} para evaluar reductos.")
+else:
+    # 2) Universo restringido = unión de índices de esas clases
+    universo_sel = sorted(set().union(*[clases[i] for i in ids_pastel]))
+
+    if len(universo_sel) == 0:
+        st.info("No hay filas en el subconjunto del pastel.")
+    else:
+        # 3) DataFrame de evaluación (solo filas del pastel)
         df_eval = df_ind.loc[universo_sel].copy()
 
-        # 4) partición original sobre el subconjunto (recalcular en df_eval)
+        # 4) Partición original sobre el subconjunto
         bloques_orig = indiscernibility(cols_attrs, df_eval)
         y_orig = blocks_to_labels(bloques_orig, universo_sel)
         m = len(cols_attrs)
 
         # ---------- generar reductos (quitar 1 y 2 columnas) ----------
         reductos = {}
-        for c in cols_attrs:  # quitar 1
+        # quitar 1
+        for c in cols_attrs:
             reductos[f"Sin {c}"] = [x for x in cols_attrs if x != c]
-        if len(cols_attrs) >= 3:  # quitar 2
+        # quitar 2 (si hay al menos 3 columnas en total)
+        if m >= 3:
             for c1, c2 in combinations(cols_attrs, 2):
                 reductos[f"Sin {c1} y {c2}"] = [x for x in cols_attrs if x not in (c1, c2)]
 
@@ -853,91 +866,93 @@ else:
             })
             block_sizes[nombre] = [len(S) for S in bloques_red]
 
-        df_closeness = pd.DataFrame(resultados).sort_values(
-            by=["ARI", "Preservación iguales (%)", "Preservación distintos (%)"],
-            ascending=False
-        ).reset_index(drop=True)
+        if not resultados:
+            st.info("No se pudieron evaluar reductos en el subconjunto.")
+        else:
+            df_closeness = pd.DataFrame(resultados).sort_values(
+                by=["ARI", "Preservación iguales (%)", "Preservación distintos (%)"],
+                ascending=False
+            ).reset_index(drop=True)
 
-        # ---------- UI: resultados ----------
-        with st.expander("🔎 Reductos vs. partición original (métricas y gráficos)", expanded=False):
-            st.subheader("Tabla de métricas (evaluadas solo en filas del pastel)")
-            st.caption(f"Filas en evaluación: {len(universo_sel):,}")
-            st.dataframe(df_closeness, use_container_width=True)
+            # ---------- UI: resultados ----------
+            with st.expander("🔎 Reductos vs. partición original (métricas y gráficos)", expanded=False):
+                st.subheader("Tabla de métricas (evaluadas solo en filas del pastel)")
+                st.caption(f"Filas en evaluación: {len(universo_sel):,}")
+                st.dataframe(df_closeness, use_container_width=True)
 
-            st.download_button(
-                "Descargar métricas de reductos (CSV)",
-                data=df_closeness.to_csv(index=False).encode("utf-8"),
-                file_name="reductos_metricas.csv",
-                mime="text/csv",
-                key="dl_reductos_metricas"
-            )
+                st.download_button(
+                    "Descargar métricas de reductos (CSV)",
+                    data=df_closeness.to_csv(index=False).encode("utf-8"),
+                    file_name="reductos_metricas.csv",
+                    mime="text/csv",
+                    key="dl_reductos_metricas"
+                )
 
-            # Boxplot de tamaños de bloques: Original vs. top-K reductos
-            K = min(10, len(df_closeness))
-            top_names = ["Original"] + df_closeness.loc[:K-1, "Reducto"].tolist()
-            max_len = max(len(block_sizes[n]) for n in top_names)
-            data_box = np.full((max_len, len(top_names)), np.nan)
-            for j, nm in enumerate(top_names):
-                arr = np.array(block_sizes[nm], dtype=float)
-                data_box[:len(arr), j] = arr
+                # Boxplot: Original vs. top-K reductos
+                K = min(10, len(df_closeness))
+                top_names = ["Original"] + df_closeness.loc[:K-1, "Reducto"].tolist()
+                max_len = max(len(block_sizes[n]) for n in top_names)
+                data_box = np.full((max_len, len(top_names)), np.nan)
+                for j, nm in enumerate(top_names):
+                    arr = np.array(block_sizes[nm], dtype=float)
+                    data_box[:len(arr), j] = arr
 
-            fig_box, ax_box = plt.subplots(figsize=(max(10, 1.2*len(top_names)), 6))
-            ax_box.boxplot([data_box[:, j][~np.isnan(data_box[:, j])] for j in range(len(top_names))],
-                           notch=True)
-            ax_box.set_xticks(range(1, len(top_names)+1))
-            ax_box.set_xticklabels(top_names, rotation=45, ha="right")
-            ax_box.set_ylabel("Tamaño de bloque")
-            ax_box.set_title("Distribución de tamaños de bloques — (subconjunto del pastel)")
-            ax_box.grid(axis='y', linestyle='--', alpha=0.4)
-            st.pyplot(fig_box)
+                fig_box, ax_box = plt.subplots(figsize=(max(10, 1.2*len(top_names)), 6))
+                ax_box.boxplot([data_box[:, j][~np.isnan(data_box[:, j])] for j in range(len(top_names))],
+                               notch=True)
+                ax_box.set_xticks(range(1, len(top_names)+1))
+                ax_box.set_xticklabels(top_names, rotation=45, ha="right")
+                ax_box.set_ylabel("Tamaño de bloque")
+                ax_box.set_title("Distribución de tamaños de bloques — (subconjunto del pastel)")
+                ax_box.grid(axis='y', linestyle='--', alpha=0.4)
+                st.pyplot(fig_box)
 
-            # Heatmap de correspondencia para el mejor reducto (por ARI)
-            best_name = df_closeness.iloc[0]["Reducto"]
-            best_cols = reductos[best_name]
-            bloques_best = indiscernibility(best_cols, df_eval)
+                # Heatmap de correspondencia para el mejor reducto (por ARI)
+                best_name = df_closeness.iloc[0]["Reducto"]
+                best_cols = reductos[best_name]
+                bloques_best = indiscernibility(best_cols, df_eval)
 
-            M = np.zeros((len(bloques_orig), len(bloques_best)), dtype=int)
-            for i, Bo in enumerate(bloques_orig):
-                for j, Br in enumerate(bloques_best):
-                    M[i, j] = len(Bo.intersection(Br))
+                M = np.zeros((len(bloques_orig), len(bloques_best)), dtype=int)
+                for i, Bo in enumerate(bloques_orig):
+                    for j, Br in enumerate(bloques_best):
+                        M[i, j] = len(Bo.intersection(Br))
 
-            fig_hm, ax_hm = plt.subplots(figsize=(10, 6))
-            im = ax_hm.imshow(M, cmap="Blues")
-            fig_hm.colorbar(im, ax=ax_hm, fraction=0.046, pad=0.04)
-            ax_hm.set_xlabel(f"Partición reducida ({best_name})")
-            ax_hm.set_ylabel("Partición original (subconjunto)")
-            ax_hm.set_title("Correspondencia entre bloques (conteos)")
-            ax_hm.set_xticks(range(M.shape[1])); ax_hm.set_xticklabels([f"Red_{j+1}" for j in range(M.shape[1])])
-            ax_hm.set_yticks(range(M.shape[0])); ax_hm.set_yticklabels([f"Orig_{i+1}" for i in range(M.shape[0])])
+                fig_hm, ax_hm = plt.subplots(figsize=(10, 6))
+                im = ax_hm.imshow(M, cmap="Blues")
+                fig_hm.colorbar(im, ax=ax_hm, fraction=0.046, pad=0.04)
+                ax_hm.set_xlabel(f"Partición reducida ({best_name})")
+                ax_hm.set_ylabel("Partición original (subconjunto)")
+                ax_hm.set_title("Correspondencia entre bloques (conteos)")
+                ax_hm.set_xticks(range(M.shape[1])); ax_hm.set_xticklabels([f"Red_{j+1}" for j in range(M.shape[1])])
+                ax_hm.set_yticks(range(M.shape[0])); ax_hm.set_yticklabels([f"Orig_{i+1}" for i in range(M.shape[0])])
 
-            if M.shape[0] * M.shape[1] <= 900:
-                for i in range(M.shape[0]):
-                    for j in range(M.shape[1]):
-                        ax_hm.text(j, i, str(M[i, j]), ha="center", va="center", fontsize=8)
-            st.pyplot(fig_hm)
+                if M.shape[0] * M.shape[1] <= 900:
+                    for i in range(M.shape[0]):
+                        for j in range(M.shape[1]):
+                            ax_hm.text(j, i, str(M[i, j]), ha="center", va="center", fontsize=8)
+                st.pyplot(fig_hm)
 
-        # ---------- mejores reductos de tamaño m-1 y m-2 (en el subconjunto) ----------
-        best_4 = df_closeness[df_closeness["#vars"] == m-1].sort_values(
-            by=["ARI", "Preservación iguales (%)", "Preservación distintos (%)"], ascending=False
-        ).head(1)
-        best_3 = df_closeness[df_closeness["#vars"] == m-2].sort_values(
-            by=["ARI", "Preservación iguales (%)", "Preservación distintos (%)"], ascending=False
-        ).head(1)
+            # ---------- mejores reductos de tamaño m-1 y m-2 (en el subconjunto) ----------
+            best_4 = df_closeness[df_closeness["#vars"] == m-1].sort_values(
+                by=["ARI", "Preservación iguales (%)", "Preservación distintos (%)"], ascending=False
+            ).head(1)
+            best_3 = df_closeness[df_closeness["#vars"] == m-2].sort_values(
+                by=["ARI", "Preservación iguales (%)", "Preservación distintos (%)"], ascending=False
+            ).head(1)
 
-        if not best_4.empty:
-            r = best_4.iloc[0]
-            st.success(f"🟩 Mejor reducto de {m-1} variables (subconjunto pastel): **{r['Reducto']}** — "
-                       f"ARI={r['ARI']}, NMI={r['NMI']}, "
-                       f"Pres. iguales={r['Preservación iguales (%)']}%, "
-                       f"Pres. distintos={r['Preservación distintos (%)']}%")
+            if not best_4.empty:
+                r = best_4.iloc[0]
+                st.success(f"🟩 Mejor reducto de {m-1} variables (subconjunto pastel): **{r['Reducto']}** — "
+                           f"ARI={r['ARI']}, NMI={r['NMI']}, "
+                           f"Pres. iguales={r['Preservación iguales (%)']}%, "
+                           f"Pres. distintos={r['Preservación distintos (%)']}%")
 
-        if not best_3.empty:
-            r = best_3.iloc[0]
-            st.success(f"🟨 Mejor reducto de {m-2} variables (subconjunto pastel): **{r['Reducto']}** — "
-                       f"ARI={r['ARI']}, NMI={r['NMI']}, "
-                       f"Pres. iguales={r['Preservación iguales (%)']}%, "
-                       f"Pres. distintos={r['Preservación distintos (%)']}%")
-
+            if not best_3.empty:
+                r = best_3.iloc[0]
+                st.success(f"🟨 Mejor reducto de {m-2} variables (subconjunto pastel): **{r['Reducto']}** — "
+                           f"ARI={r['ARI']}, NMI={r['NMI']}, "
+                           f"Pres. iguales={r['Preservación iguales (%)']}%, "
+                           f"Pres. distintos={r['Preservación distintos (%)']}%")
 
 
 # =========================
