@@ -534,3 +534,148 @@ if generar:
                         transform=ax.transAxes, ha="center", va="center", fontsize=10)
 
             st.pyplot(fig)
+
+
+# ============ NUEVO: Gráfico compuesto (Pastel + radares incrustados) ============
+from matplotlib.patches import ConnectionPatch
+from math import log1p
+
+# 1) Conjuntos candidatos (mismos que usaste para el pastel simple: tamaño >= umbral)
+candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
+if not candidatas_idx_nom_tam:
+    st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el gráfico compuesto.")
+else:
+    # 2) Preparar insumos: nombres, tamaños, porcentajes, valores para radares y colores
+    nombres_dataframes = [nom for _, nom, _ in candidatas_idx_nom_tam]
+    tamanios = [tam for _, _, tam in candidatas_idx_nom_tam]
+    total_incluido = sum(tamanios)
+
+    # porcentajes como lista de (nombre, porcentaje)
+    porcentajes = [(nom, (tam / total_incluido * 100.0) if total_incluido else 0.0)
+                   for (_, nom, tam) in candidatas_idx_nom_tam]
+
+    # valores para el radar (primera fila representativa de cada clase) y colores
+    valores_dataframes = []
+    colores_dataframes = []
+    for idx, _, _ in candidatas_idx_nom_tam:
+        indices = sorted(list(clases[idx]))
+        sub = df_ind.loc[indices, cols_attrs]
+        if sub.empty:
+            vals = [0] * len(cols_attrs)
+        else:
+            vals = sub.iloc[0].tolist()  # misma lógica que tu Colab
+        valores_dataframes.append(vals)
+        colores_dataframes.append(determinar_color(vals))
+
+    # 3) Parámetros del compuesto
+    min_radio = 1.0
+    max_radio = 2.40
+    radar_size_min = 0.10
+    radar_size_max = 0.19
+
+    # Etiquetas de radar sin sufijos _18/_21
+    etiquetas_radar = [et.replace('_21', '').replace('_18', '') for et in cols_attrs]
+
+    # 4) Figura y pastel
+    fig_comp = plt.figure(figsize=(16, 16))
+    main_ax = plt.subplot(111)
+    main_ax.set_position([0.1, 0.1, 0.8, 0.8])
+
+    if porcentajes:
+        nombres_legibles, valores_porcentajes = zip(*porcentajes)
+        valores_porcentajes = [float(p) for p in valores_porcentajes]
+    else:
+        nombres_legibles, valores_porcentajes = [], []
+
+    # Ajustar colores a número de sectores
+    colores_ajustados = colores_dataframes[:len(valores_porcentajes)]
+
+    wedges, texts, autotexts = main_ax.pie(
+        valores_porcentajes,
+        colors=colores_ajustados,
+        autopct='%1.1f%%',
+        startangle=90,
+        textprops={'fontsize': 17},
+        labeldistance=1.1
+    )
+
+    # 5) Posiciones para radares alrededor del pastel
+    if wedges:
+        angulos_pastel = [(w.theta1 + w.theta2) / 2 for w in wedges]
+        anchos = [abs(w.theta2 - w.theta1) for w in wedges]
+        max_ancho = max(anchos) if anchos else 1
+        angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
+
+        radios_personalizados = [
+            min_radio + (1 - (log1p(a) / log1p(max_ancho))) * (max_radio - min_radio)
+            for a in anchos
+        ]
+        tamaños_radar = [
+            radar_size_min + (a / max_ancho) * (radar_size_max - radar_size_min)
+            for a in anchos
+        ]
+
+        # separación angular suave
+        angulos_rad_separados = angulos_rad.copy()
+        min_sep = np.deg2rad(7)
+        for i in range(1, len(angulos_rad_separados)):
+            while abs(angulos_rad_separados[i] - angulos_rad_separados[i - 1]) < min_sep:
+                angulos_rad_separados[i] += min_sep / 2
+
+        # 6) Radares incrustados + conexiones
+        for i, (nombre, vals, color, ang_rad, r_inset, tam_radar) in enumerate(
+            zip(nombres_dataframes, valores_dataframes, colores_dataframes,
+                angulos_rad_separados, radios_personalizados, tamaños_radar)
+        ):
+            # posición del inset (más cerca del centro con factor_alejamiento)
+            factor_alejamiento = 2.3
+            x = 0.5 + r_inset * np.cos(ang_rad) / factor_alejamiento
+            y = 0.5 + r_inset * np.sin(ang_rad) / factor_alejamiento
+
+            radar_ax = fig_comp.add_axes([x - tam_radar / 2, y - tam_radar / 2, tam_radar, tam_radar], polar=True)
+
+            # asegurar longitudes y cerrar polígono
+            vals = list(vals)[:len(cols_attrs)]
+            if not vals:
+                vals = [0] * len(cols_attrs)
+            vals_c = vals + [vals[0]]
+
+            angs = np.linspace(0, 2 * np.pi, len(cols_attrs), endpoint=False).tolist()
+            angs_c = angs + [angs[0]]
+
+            radar_ax.set_theta_offset(np.pi / 2)
+            radar_ax.set_theta_direction(-1)
+            radar_ax.plot(angs_c, vals_c, color=color)
+            radar_ax.fill(angs_c, vals_c, color=color, alpha=0.3)
+
+            radar_ax.set_xticks(angs)
+            radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
+            radar_ax.set_yticks([0, 1, 2])
+            radar_ax.set_yticklabels(['0', '1', '2'], fontsize=11)
+            radar_ax.set_ylim(0, 2)
+            radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
+
+            # conexión punteada centro→inset
+            x0 = 0.5 + 0.3 * np.cos(ang_rad)
+            y0 = 0.5 + 0.3 * np.sin(ang_rad)
+            con = ConnectionPatch(
+                xyA=(x0, y0), coordsA=fig_comp.transFigure,
+                xyB=(x, y), coordsB=fig_comp.transFigure,
+                color='gray', lw=0.8, linestyle='--'
+            )
+            fig_comp.add_artist(con)
+
+    # 7) Mostrar y ofrecer descarga
+    st.pyplot(fig_comp)
+    try:
+        plt.savefig("radar_pastel_final.png", dpi=300, bbox_inches='tight', facecolor='white')
+        st.download_button(
+            "Descargar imagen (PNG)",
+            data=open("radar_pastel_final.png", "rb").read(),
+            file_name="radar_pastel_final.png",
+            mime="image/png"
+        )
+    except Exception:
+        pass
+# ================================================================================ 
+
