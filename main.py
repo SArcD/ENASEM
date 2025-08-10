@@ -962,41 +962,37 @@ else:
 # =========================
 st.subheader("Matriz de confusión por selección de variables")
 
-# Guard: requerimos que ya exista la partición base
-if not all(v in globals() for v in ("cols_attrs", "df_ind", "clases", "longitudes_orden", "min_size_for_pie")):
+ss = st.session_state
+required = ("ind_cols", "ind_df", "ind_classes", "ind_lengths", "ind_min_size")
+if not all(k in ss for k in required):
     st.info("👉 Primero presiona **Calcular indiscernibilidad**.")
 else:
-    # Init de estado: por defecto usar TODAS las variables (incluye H6 aunque sea la última)
-    if "vars_sel_cm" not in st.session_state:
-        st.session_state["vars_sel_cm"] = list(cols_attrs)
+    # Init selección (por defecto: TODAS)
+    if "vars_sel_cm" not in ss:
+        ss["vars_sel_cm"] = list(ss["ind_cols"])
 
-    # Subconjunto del pastel (mismo criterio)
-    try:
-        umbral = int(min_size_for_pie)
-    except Exception:
-        umbral = 0
-
-    ids_pastel = [i for i, tam in longitudes_orden if tam >= umbral]
+    # Subconjunto del pastel
+    ids_pastel = [i for i, tam in ss["ind_lengths"] if tam >= int(ss["ind_min_size"])]
     if not ids_pastel:
-        st.info(f"No hay clases con tamaño ≥ {umbral} para evaluar la matriz de confusión.")
+        st.info(f"No hay clases con tamaño ≥ {ss['ind_min_size']} para evaluar la matriz de confusión.")
     else:
-        universo_sel = sorted(set().union(*[clases[i] for i in ids_pastel]))
-        df_eval = df_ind.loc[universo_sel].copy()
+        universo_sel = sorted(set().union(*[ss["ind_classes"][i] for i in ids_pastel]))
+        df_eval = ss["ind_df"].loc[universo_sel].copy()
 
         # Form para evitar recálculo en cada cambio
         with st.form("cm_form"):
             vars_sel = st.multiselect(
                 "Seleccione variables para comparar contra la partición original",
-                options=list(cols_attrs),
-                default=st.session_state["vars_sel_cm"],
+                options=list(ss["ind_cols"]),
+                default=ss["vars_sel_cm"],
                 key="vars_sel_cm",
-                help="Se calcula la partición con estas variables y se compara con la original (todas las seleccionadas en Indiscernibilidad), usando solo las filas del pastel."
+                help="Compara la partición con estas variables vs. la original, usando solo filas del pastel."
             )
             submitted = st.form_submit_button("Calcular matriz")
 
         # Función de cálculo
         def _calc_confusion(_vars_sel):
-            bloques_orig_conf = indiscernibility(cols_attrs, df_eval)
+            bloques_orig_conf = indiscernibility(ss["ind_cols"], df_eval)
             y_orig_conf = blocks_to_labels(bloques_orig_conf, universo_sel)
             bloques_sel = indiscernibility(_vars_sel, df_eval)
             y_sel = blocks_to_labels(bloques_sel, universo_sel)
@@ -1011,19 +1007,19 @@ else:
             )
             return df_conf, ari, nmi, pres_same, pres_diff
 
-        # Ejecutar solo cuando el usuario presiona el botón
+        # Ejecutar solo al pulsar el botón
         if submitted:
-            if not st.session_state["vars_sel_cm"]:
+            if not ss["vars_sel_cm"]:
                 st.warning("Selecciona al menos una variable.")
             else:
-                df_conf, ari, nmi, pres_same, pres_diff = _calc_confusion(st.session_state["vars_sel_cm"])
-                st.session_state["df_conf_last"] = df_conf
-                st.session_state["cm_metrics_last"] = (ari, nmi, pres_same, pres_diff)
+                df_conf, ari, nmi, pres_same, pres_diff = _calc_confusion(ss["vars_sel_cm"])
+                ss["df_conf_last"] = df_conf
+                ss["cm_metrics_last"] = (ari, nmi, pres_same, pres_diff)
 
-        # Mostrar último resultado disponible (recién calculado o previo)
-        if "df_conf_last" in st.session_state and "cm_metrics_last" in st.session_state:
-            df_conf = st.session_state["df_conf_last"]
-            ari, nmi, pres_same, pres_diff = st.session_state["cm_metrics_last"]
+        # Mostrar último resultado disponible
+        if "df_conf_last" in ss and "cm_metrics_last" in ss:
+            df_conf = ss["df_conf_last"]
+            ari, nmi, pres_same, pres_diff = ss["cm_metrics_last"]
 
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("ARI", f"{ari:.3f}")
@@ -1031,7 +1027,6 @@ else:
             c3.metric("Pres. iguales", f"{pres_same*100:.1f}%")
             c4.metric("Pres. distintos", f"{pres_diff*100:.1f}%")
 
-            # Heatmap con anotaciones
             fig_cm, ax_cm = plt.subplots(
                 figsize=(max(8, 0.6*df_conf.shape[1]+6), max(6, 0.4*df_conf.shape[0]+4))
             )
@@ -1059,7 +1054,6 @@ else:
                 )
         else:
             st.info("Selecciona variables y pulsa **Calcular matriz** para ver resultados.")
-
 
 # =========================
 # Tabs para visualizar/descargar clases de indiscernibilidad
