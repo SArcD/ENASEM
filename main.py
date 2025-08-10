@@ -80,3 +80,37 @@ if df is not None:
     st.dataframe(df.head(50), use_container_width=True)
 else:
     st.info("Carga un archivo en la barra lateral para comenzar.")
+
+###################filtro de edad##################################################
+
+@feature("Filtro por edad", order=10)
+def ui_age_filter():
+    df = st.session_state.get("df")
+    if df is None:
+        return
+    posibles_cols_edad = ["AGE", "AGE_18", "AGE_21"]  # por si llega crudo
+    col_edad = next((c for c in posibles_cols_edad if c in df.columns), None)
+    if col_edad is None:
+        st.warning("No se encontró columna de edad (AGE).")
+        return
+
+    df[col_edad] = pd.to_numeric(df[col_edad], errors="coerce")
+    if df[col_edad].notna().sum() == 0:
+        st.warning("Columna de edad sin valores numéricos.")
+        return
+
+    e_min, e_max = int(df[col_edad].min(skipna=True)), int(df[col_edad].max(skipna=True))
+    st.subheader("🎚️ Filtro por rango de edad")
+    age_lo, age_hi = st.slider("Rango de edad", e_min, e_max, value=(e_min, e_max), step=1)
+    df_f = df[df[col_edad].between(age_lo, age_hi, inclusive="both")].copy()
+
+    c1, c2 = st.columns(2)
+    c1.metric("Filas totales", len(df))
+    c2.metric("Filtradas por edad", len(df_f))
+
+    st.dataframe(df_f.head(30), use_container_width=True)
+    # Guardar para que otras features usen el filtrado
+    st.session_state["df_filtered"] = df_f
+
+
+
