@@ -145,3 +145,83 @@ if st.session_state["df_sexo"] is not None:
     c1.metric("Filas totales", len(datos_seleccionados))
     c2.metric("Filas tras SEX", len(st.session_state["df_sexo"]))
     st.dataframe(st.session_state["df_sexo"].head(30), use_container_width=True)
+
+
+# =========================
+# Filtro por RANGO DE EDAD (en barra lateral)
+# =========================
+# session_state necesarios
+for key, default in [("age_min", None), ("age_max", None), ("df_filtrado", None)]:
+    if key not in st.session_state:
+        st.session_state[key] = default
+
+# Definir el DataFrame base para filtrar por edad:
+# - si ya existe df_sexo (filtrado por SEX), úsalo
+# - si no, usa datos_seleccionados
+base_df = st.session_state.get("df_sexo", None)
+if base_df is None:
+    base_df = datos_seleccionados.copy()
+
+with st.sidebar:
+    st.subheader("Seleccione rango de edad")
+    if "AGE" not in base_df.columns:
+        st.warning("No se encontró la columna 'AGE' en los datos.")
+    else:
+        # Asegurar tipo numérico
+        age_series = pd.to_numeric(base_df["AGE"], errors="coerce")
+        edades_validas = age_series.dropna()
+
+        if edades_validas.empty:
+            st.warning("La columna AGE no tiene valores numéricos válidos.")
+            st.session_state["df_filtrado"] = base_df.iloc[0:0].copy()
+        else:
+            data_min = int(edades_validas.min())
+            data_max = int(edades_validas.max())
+
+            # Defaults seguros
+            if st.session_state["age_min"] is None:
+                st.session_state["age_min"] = data_min
+            if st.session_state["age_max"] is None:
+                st.session_state["age_max"] = data_max
+
+            age_min = st.number_input(
+                "Edad mínima",
+                min_value=data_min,
+                max_value=data_max,
+                value=int(max(min(st.session_state["age_min"], data_max), data_min)),
+                step=1,
+                key="age_min",
+            )
+            age_max = st.number_input(
+                "Edad máxima",
+                min_value=data_min,
+                max_value=data_max,
+                value=int(max(min(st.session_state["age_max"], data_max), data_min)),
+                step=1,
+                key="age_max",
+            )
+
+            # Corregir si el usuario invierte los valores
+            if st.session_state["age_min"] > st.session_state["age_max"]:
+                st.warning("La edad mínima es mayor que la máxima. Se intercambian automáticamente.")
+                st.session_state["age_min"], st.session_state["age_max"] = (
+                    st.session_state["age_max"],
+                    st.session_state["age_min"],
+                )
+
+            # Aplicar filtro
+            mask = age_series.between(st.session_state["age_min"], st.session_state["age_max"], inclusive="both")
+            st.session_state["df_filtrado"] = base_df[mask].copy()
+
+# =========================
+# Vista previa del filtrado por SEX + EDAD
+# =========================
+if st.session_state["df_filtrado"] is not None:
+    st.subheader("Vista previa — Filtrado por SEX + EDAD")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Filas base", len(base_df))
+    c2.metric("Edad mínima", st.session_state["age_min"] if st.session_state["age_min"] is not None else "-")
+    c3.metric("Edad máxima", st.session_state["age_max"] if st.session_state["age_max"] is not None else "-")
+    st.dataframe(st.session_state["df_filtrado"].head(30), use_container_width=True)
+    st.success(f"Filtrado final: {len(st.session_state['df_filtrado']):,} filas")
+
