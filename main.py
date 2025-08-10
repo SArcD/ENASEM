@@ -611,7 +611,7 @@ if generar:
 
             # ====== NUEVO (pegar aquí, después del pastel; dentro de if generar:) ======
             # df_ind existe en este bloque; usamos solo filas SIN NaN en las columnas seleccionadas
-            df_eval = df_ind.loc[df_ind[cols_attrs].dropna().index].copy()
+            #df_eval = df_ind.loc[df_ind[cols_attrs].dropna().index].copy()
 
             # Guardarlo en sesión por si lo necesitas en otras secciones
             st.session_state["df_eval"] = df_eval.copy()
