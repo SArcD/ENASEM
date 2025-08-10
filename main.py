@@ -235,7 +235,15 @@ for key, default in [("comorb_selection", []), ("df_comorb", None)]:
 
 # Base para el filtro de comorbilidades:
 # - si ya existe el filtrado por SEX+EDAD úsalo, si no el por SEX, y si no, los datos seleccionados
-df_base_comorb = st.session_state.get("df_filtrado") or st.session_state.get("df_sexo") or datos_seleccionados
+#df_base_comorb = st.session_state.get("df_filtrado") or st.session_state.get("df_sexo") or datos_seleccionados
+# Usa:
+df_base_comorb = st.session_state.get("df_filtrado")
+if not isinstance(df_base_comorb, pd.DataFrame) or df_base_comorb.empty:
+    df_base_comorb = st.session_state.get("df_sexo")
+if not isinstance(df_base_comorb, pd.DataFrame) or df_base_comorb.empty:
+    df_base_comorb = datos_seleccionados.copy()
+
+
 
 # Mapeo: etiqueta legible -> nombre de columna (ya sin _18/_21)
 comorb_map = {
