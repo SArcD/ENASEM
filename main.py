@@ -663,5 +663,43 @@ else:
         )
     except Exception:
         pass
-# ====================================================================
+# ==================================================================== hasta aqui todo bien
+
+# =========================
+# Tabs para visualizar/descargar clases de indiscernibilidad
+# =========================
+import io
+
+# Solo mostramos si ya existen las variables calculadas arriba
+if all(v in globals() for v in ("clases", "longitudes_orden", "nombres", "df_ind")) and len(clases) > 0:
+    st.subheader("Clases de indiscernibilidad — Visualización por pestañas")
+
+    # ¿Cuántas pestañas mostrar? (top-N por tamaño)
+    num_tabs = min(12, len(longitudes_orden))  # ajusta 12 si quieres más/menos
+    top_items = longitudes_orden[:num_tabs]    # (índice_de_clase, tamaño)
+
+    tab_labels = [f"{nombres[i]} (n={tam})" for i, tam in top_items]
+    tabs = st.tabs(tab_labels)
+
+    for tab, (idx_clase, tam) in zip(tabs, top_items):
+        with tab:
+            indices = sorted(list(clases[idx_clase]))
+            df_grupo = df_ind.loc[indices, :].copy()  # todas las columnas disponibles
+
+            st.caption(f"Filas en esta clase: {tam:,}")
+            st.dataframe(df_grupo.head(100), use_container_width=True)
+
+            # Descargar CSV (todas las columnas)
+            csv_bytes = df_grupo.to_csv(index=False).encode("utf-8")
+            nombre_archivo = f"{nombres[idx_clase].replace(' ', '_').lower()}.csv"
+            st.download_button(
+                "Descargar CSV de esta clase",
+                data=csv_bytes,
+                file_name=nombre_archivo,
+                mime="text/csv",
+                key=f"dl_{idx_clase}"
+            )
+else:
+    st.info("👉 Primero calcula las clases en **Indiscernibilidad** para habilitar las pestañas.")
+
 
