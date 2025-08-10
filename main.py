@@ -140,7 +140,7 @@ with st.sidebar:
 # Vista previa del filtrado por SEX
 # =========================
 if st.session_state["df_sexo"] is not None:
-    st.subheader("Vista previa — Filtrado por SEX")
+    st.subheader("Vista previa — Filtrado por sexo")
     c1, c2 = st.columns(2)
     c1.metric("Filas totales", len(datos_seleccionados))
     c2.metric("Filas tras SEX", len(st.session_state["df_sexo"]))
