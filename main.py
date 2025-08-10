@@ -837,4 +837,91 @@ if generar:
 
 # ==================================================================== hasta aqui todo bien
 
+# ====== Inspección de un subconjunto (del pastel) + correlaciones ======
+ss = st.session_state
+need = ("ind_classes", "ind_lengths", "ind_min_size", "ind_df_reducido", "ind_adl_cols", "ind_cols")
+if not all(k in ss for k in need) or not ss["ind_classes"]:
+    st.info("Calcula indiscernibilidad para habilitar la inspección por subconjunto.")
+else:
+    # Candidatos: solo clases que entraron al pastel (≥ umbral)
+    umbral = int(ss["ind_min_size"])
+    candidatos = [(i, tam) for i, tam in ss["ind_lengths"] if tam >= umbral]
+
+    if not candidatos:
+        st.info("No hay subconjuntos en el pastel para inspeccionar (ajusta el umbral).")
+    else:
+        # Nombres legibles coherentes con el resumen
+        nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(ss["ind_lengths"])}
+        labels_map = {f"{nombres[i]} — {tam} filas": i for i, tam in candidatos}
+
+        sel_label = st.selectbox(
+            "Elige un subconjunto del pastel para visualizar y correlacionar",
+            options=list(labels_map.keys()),
+            index=0,
+            key="sel_subconjunto_pastel"
+        )
+        sel_i = labels_map[sel_label]
+
+        # Índices de filas del subconjunto (en df_eval/df_ind)
+        idxs = sorted(list(ss["ind_classes"][sel_i]))
+
+        # DF con TODAS las ADL normalizadas (no solo las usadas en ind)
+        dfr = ss["ind_df_reducido"]
+        dfr2 = dfr.set_index("Indice") if "Indice" in dfr.columns else dfr
+        adl_cols_all = ss["ind_adl_cols"]
+        df_sub = dfr2.loc[idxs, adl_cols_all].copy()
+
+        # ---- nivel_riesgo (según columnas usadas en indiscernibilidad) ----
+        cols_attrs = ss["ind_cols"]
+        cols_usables = [c for c in cols_attrs if c in df_sub.columns]
+        if cols_usables:
+            vals = df_sub[cols_usables].apply(pd.to_numeric, errors="coerce")
+            count_ones = (vals == 1).sum(axis=1)
+            all_twos   = (vals == 2).all(axis=1)
+            nivel = np.where(
+                all_twos, "Riesgo nulo",
+                np.where(
+                    count_ones <= 2,
+                    np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
+                    np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
+                )
+            )
+        else:
+            nivel = np.array(["Riesgo nulo"] * len(df_sub))  # fallback
+
+        df_sub_disp = df_sub.copy()
+        df_sub_disp.insert(0, "nivel_riesgo", nivel)
+
+        st.subheader(f"Vista del {nombres[sel_i]} — {len(df_sub_disp):,} filas")
+        st.dataframe(df_sub_disp.reset_index(), use_container_width=True)
+        st.download_button(
+            "Descargar subconjunto ADL (CSV)",
+            data=df_sub_disp.reset_index().to_csv(index=False).encode("utf-8"),
+            file_name=f"{nombres[sel_i]}_ADL.csv",
+            mime="text/csv",
+            key=f"dl_{sel_i}_adl"
+        )
+
+        # ---- Matriz de correlación (todas las ADL del subconjunto) ----
+        st.subheader("Matriz de correlación (todas las ADL del subconjunto)")
+        num = df_sub.apply(pd.to_numeric, errors="coerce")
+        corr = num.corr()  # Pearson; ignora NaN por pares
+
+        # tamaño dinámico según # columnas
+        fig_w = max(8, 0.45 * len(corr.columns))
+        fig_h = max(6, 0.45 * len(corr.columns))
+        figc, axc = plt.subplots(figsize=(fig_w, fig_h))
+        im = axc.imshow(corr.values, cmap="coolwarm", vmin=-1, vmax=1)
+        figc.colorbar(im, ax=axc, fraction=0.046, pad=0.04)
+        axc.set_xticks(range(len(corr.columns))); axc.set_xticklabels(corr.columns, rotation=90)
+        axc.set_yticks(range(len(corr.index)));  axc.set_yticklabels(corr.index)
+        axc.set_title(f"Correlaciones — {nombres[sel_i]}")
+
+        # anotar coeficientes
+        for i in range(corr.shape[0]):
+            for j in range(corr.shape[1]):
+                axc.text(j, i, f"{corr.values[i, j]:.2f}", ha="center", va="center", fontsize=8)
+
+        figc.tight_layout()
+        st.pyplot(figc)
 
