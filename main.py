@@ -790,3 +790,46 @@ if generar:
                     pass
 
 # ==================================================================== hasta aqui todo bien
+
+# ====== NUEVO: DataFrame usado en el pastel + columna 'nivel_riesgo' ======
+# (usa SOLO df_eval, que ya está sin NaN en las columnas seleccionadas)
+vals = df_eval[cols_attrs].apply(pd.to_numeric, errors="coerce")
+
+# Conteo de ítems con valor 1 en cada fila y chequeo de "todos son 2"
+count_ones = (vals == 1).sum(axis=1)
+all_twos   = (vals == 2).all(axis=1)
+
+# Reglas de riesgo:
+# - Riesgo nulo: todas las columnas seleccionadas valen 2
+# - Riesgo leve: 1 o 2 columnas valen 1
+# - Riesgo moderado: exactamente 3 columnas valen 1
+# - Riesgo severo: 4 o 5 columnas valen 1
+# (si hay 0 columnas con 1 y no todos son 2, lo dejamos como "Riesgo leve" por ahora; ajustable)
+nivel = np.where(
+    all_twos, "Riesgo nulo",
+    np.where(
+        count_ones <= 2,
+        np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
+        np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
+    )
+)
+
+df_eval_riesgo = df_eval.copy()
+df_eval_riesgo["nivel_riesgo"] = nivel
+
+# Mostrar justo debajo del pastel
+st.subheader("Filas usadas en el pastel (sin NaN) + nivel_riesgo")
+st.dataframe(df_eval_riesgo.reset_index(), use_container_width=True)
+
+# Descargar
+st.download_button(
+    "Descargar filas del pastel con nivel_riesgo (CSV)",
+    data=df_eval_riesgo.reset_index().to_csv(index=False).encode("utf-8"),
+    file_name="filas_pastel_con_nivel_riesgo.csv",
+    mime="text/csv",
+    key="dl_df_eval_riesgo"
+)
+
+# Guardar en sesión para pasos posteriores
+st.session_state["df_eval_riesgo"] = df_eval_riesgo.copy()
+
