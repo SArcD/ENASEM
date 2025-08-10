@@ -535,6 +535,11 @@ if generar:
 
             st.pyplot(fig)
 
+# Aviso si aún no se han calculado las clases
+if not all(v in globals() for v in ("longitudes_orden","nombres","clases","df_ind","cols_attrs","min_size_for_pie")):
+    st.info("👉 Presiona **Calcular indiscernibilidad** para continuar.")
+    st.stop()
+
 
 # ============ NUEVO: Gráfico compuesto (Pastel + radares incrustados) ============
 from matplotlib.patches import ConnectionPatch
