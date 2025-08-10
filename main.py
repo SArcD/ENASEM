@@ -342,3 +342,195 @@ if st.session_state["df_comorb"] is not None:
                 if col in df_show.columns:
                     cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
                     st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
+
+
+
+# HAsta aqui el filtrado
+
+# =========================
+# Indiscernibilidad + resumen + pastel + radar
+# =========================
+import numpy as np
+import matplotlib.pyplot as plt
+
+# --- Funciones (sin sufijos, seguras) ---
+def indiscernibility(attr, table: pd.DataFrame):
+    """Clases de indiscernibilidad como lista de sets de índices, ordenadas por tamaño desc."""
+    u_ind = {}
+    for i in table.index:
+        # clave como tupla para evitar colisiones ("1","23") vs ("12","3")
+        key = tuple(table.loc[i, a] for a in attr)
+        u_ind.setdefault(key, set()).add(i)
+    return sorted(u_ind.values(), key=len, reverse=True)
+
+def lower_approximation(R, X):
+    """Aproximación inferior: une los bloques de R contenidos en algún conjunto de X."""
+    l_approx = set()
+    for x in X:
+        for r in R:
+            if r.issubset(x):
+                l_approx.update(r)
+    return l_approx
+
+def upper_approximation(R, X):
+    """Aproximación superior: une los bloques de R que intersectan algún conjunto de X."""
+    u_approx = set()
+    for x in X:
+        for r in R:
+            if r.intersection(x):
+                u_approx.update(r)
+    return u_approx
+
+# --- DataFrame base: usa el más filtrado disponible ---
+df_base_ind = st.session_state.get("df_comorb")
+if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
+    df_base_ind = st.session_state.get("df_filtrado")
+if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
+    df_base_ind = st.session_state.get("df_sexo")
+if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
+    df_base_ind = datos_seleccionados.copy()
+
+# --- Controles en barra lateral ---
+with st.sidebar:
+    st.subheader("Indiscernibilidad")
+    # Sugerencia por defecto (solo las que existan)
+    sugeridas = [c for c in ["C37", "H11", "H15A", "H5", "H6"] if c in df_base_ind.columns]
+    cols_attrs = st.multiselect(
+        "Atributos (columnas) para agrupar",
+        options=list(df_base_ind.columns),
+        default=sugeridas,
+        help="Se generarán clases de indiscernibilidad con la combinación exacta de estos atributos."
+    )
+    min_size_for_pie = st.number_input(
+        "Tamaño mínimo de clase para incluir en el pastel",
+        min_value=2, max_value=100000, value=30, step=1
+    )
+    top_n_radar = st.number_input(
+        "N conjuntos más numerosos para radar",
+        min_value=1, max_value=100, value=15, step=1
+    )
+    generar = st.button("Calcular indiscernibilidad")
+
+if generar:
+    if not cols_attrs:
+        st.warning("Selecciona al menos una columna para indiscernibilidad.")
+    else:
+        # Asegurar que las columnas sean numéricas si procede (no obligatorio)
+        df_ind = df_base_ind.copy()
+        for c in cols_attrs:
+            df_ind[c] = pd.to_numeric(df_ind[c], errors="ignore")
+
+        # 1) Calcular clases
+        clases = indiscernibility(cols_attrs, df_ind)
+        if not clases:
+            st.warning("No se formaron clases (verifica columnas seleccionadas).")
+        else:
+            st.success(f"Se formaron {len(clases)} clases de indiscernibilidad.")
+
+            # 2) Resumen de tamaños
+            longitudes = [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1]
+            longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
+            nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
+
+            resumen_df = pd.DataFrame({
+                "Conjunto": [nombres[i] for i, _ in longitudes_orden],
+                "Tamaño":   [tam for _, tam in longitudes_orden]
+            })
+            st.subheader("Resumen de clases (ordenadas por tamaño)")
+            st.dataframe(resumen_df, use_container_width=True)
+
+            # 3) Pastel de clases con tamaño >= umbral
+            candidatas = [(nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
+            if candidatas:
+                labels = [n for n, _ in candidatas]
+                valores = [v for _, v in candidatas]
+                total = sum(valores)
+                fig_pie, ax_pie = plt.subplots(figsize=(7, 7))
+                ax_pie.pie(valores, labels=labels, autopct=lambda p: f"{p:.1f}%\n({int(p*total/100):,})", startangle=140)
+                ax_pie.axis('equal')
+                ax_pie.set_title(f"Participación de clases (≥ {min_size_for_pie} filas)")
+                st.pyplot(fig_pie)
+            else:
+                st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el pastel.")
+
+            # 4) Radar plots para los N conjuntos más numerosos
+            #    - usaremos las columnas seleccionadas como ejes del radar
+            st.subheader("Radar de los conjuntos más numerosos")
+            # Preparar top-N
+            top_idxs = [i for i, _ in longitudes_orden[:int(top_n_radar)]]
+            top_sets = [(nombres[i], clases[i]) for i in top_idxs]
+
+            # Utilidad para color según cantidad de "1" en la primera fila del conjunto
+            def determinar_color(valores):
+                count_ones = sum(1 for v in valores if pd.to_numeric(v, errors="coerce") == 1)
+                if count_ones == 0:
+                    return 'blue'
+                elif 1 <= count_ones < 3:
+                    return 'green'
+                elif count_ones == 3:
+                    return 'yellow'
+                elif 4 <= count_ones < 5:
+                    return 'orange'
+                else:
+                    return 'red'
+
+            total_pacientes = len(df_ind)
+
+            # Calcular rejilla para mostrar top_n_radar
+            n = int(top_n_radar)
+            cols_grid = 5
+            rows_grid = int(np.ceil(n / cols_grid))
+            fig, axs = plt.subplots(rows_grid, cols_grid, figsize=(cols_grid*6, rows_grid*5), subplot_kw=dict(polar=True))
+            axs = np.atleast_2d(axs)
+            fig.subplots_adjust(hspace=0.8, wspace=0.6)
+
+            # Ángulos del radar
+            k = len(cols_attrs)
+            angulos = np.linspace(0, 2 * np.pi, k, endpoint=False).tolist()
+            angulos_cerrado = angulos + angulos[:1]
+
+            # Dibujar cada conjunto
+            for idx_plot in range(rows_grid * cols_grid):
+                r = idx_plot // cols_grid
+                c = idx_plot % cols_grid
+                ax = axs[r, c]
+
+                if idx_plot >= n:
+                    ax.axis('off')
+                    continue
+
+                nombre, conjunto_idx = top_sets[idx_plot]
+                indices = sorted(list(conjunto_idx))
+                df_conj = df_ind.loc[indices, cols_attrs]
+
+                # Tomar solo la primera fila como representación (como en tu código original)
+                if df_conj.empty:
+                    valores = [0]*k
+                    num_filas_df = 0
+                else:
+                    valores = df_conj.iloc[0].tolist()
+                    num_filas_df = len(df_conj)
+
+                # Cierre del polígono
+                valores_cerrados = list(valores) + [valores[0]]
+
+                # Color
+                color = determinar_color(valores)
+
+                ax.plot(angulos_cerrado, valores_cerrados, color=color)
+                ax.fill(angulos_cerrado, valores_cerrados, color=color, alpha=0.25)
+                ax.set_theta_offset(np.pi / 2)
+                ax.set_theta_direction(-1)
+                ax.set_xticks(angulos)
+                ax.set_xticklabels(cols_attrs, fontsize=10)
+                ax.yaxis.grid(True)
+                ax.set_ylim(0, 2)           # escala 0..2 como en tu versión
+                ax.set_yticks([0, 1, 2])
+                ax.set_yticklabels([0, 1, 2], fontsize=9)
+
+                porcentaje = (num_filas_df / total_pacientes * 100) if total_pacientes else 0.0
+                ax.set_title(nombre, fontsize=12)
+                ax.text(0.5, -0.2, f"Filas: {num_filas_df} ({porcentaje:.2f}%)",
+                        transform=ax.transAxes, ha="center", va="center", fontsize=10)
+
+            st.pyplot(fig)
