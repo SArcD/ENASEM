@@ -439,13 +439,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def indiscernibility(attr, table: pd.DataFrame):
-    """Clases de indiscernibilidad como lista de sets de índices, ordenadas por tamaño desc."""
+    """
+    Clases de indiscernibilidad: usa tuplas de STRINGS como clave y
+    mapea NaN -> 'nan' para que filas con NaN coincidan entre sí.
+    """
     u_ind = {}
     for i in table.index:
-        # clave como tupla para evitar colisiones ("1","23") vs ("12","3")
-        key = tuple(table.loc[i, a] for a in attr)
+        vals = []
+        for a in attr:
+            v = table.at[i, a]
+            # Igualar todos los faltantes:
+            if pd.isna(v):
+                vals.append("nan")
+            else:
+                vals.append(str(v))  # mimetiza lo viejo (strings), sin colisiones
+        key = tuple(vals)
         u_ind.setdefault(key, set()).add(i)
     return sorted(u_ind.values(), key=len, reverse=True)
+
+
 
 def lower_approximation(R, X):
     """Aproximación inferior: une los bloques de R contenidos en algún conjunto de X."""
@@ -518,15 +530,23 @@ df_ind_min = df_base_ind[["Indice"] + cols_real].copy()
 df_ind_min.rename(columns={r:n for r, n in zip(cols_real, cols_norm)}, inplace=True)
 
 # Compactar tipos
+#for c in cols_norm:
+#    s = pd.to_numeric(df_ind_min[c], errors="coerce")
+#    if s.notna().any():
+#        if (s.dropna() % 1 == 0).all() and s.min() >= 0 and s.max() <= 255:
+#            df_ind_min[c] = s.fillna(0).astype("UInt8")
+#        else:
+#            df_ind_min[c] = s.astype("float32")
+#    else:
+#        df_ind_min[c] = df_ind_min[c].astype("category")
+
+# Tipos sin imputar (mantener NaN)
 for c in cols_norm:
-    s = pd.to_numeric(df_ind_min[c], errors="coerce")
-    if s.notna().any():
-        if (s.dropna() % 1 == 0).all() and s.min() >= 0 and s.max() <= 255:
-            df_ind_min[c] = s.fillna(0).astype("UInt8")
-        else:
-            df_ind_min[c] = s.astype("float32")
-    else:
-        df_ind_min[c] = df_ind_min[c].astype("category")
+    s = pd.to_numeric(df_ind_min[c], errors="coerce")  # NaN se conserva
+    # Mantener float32 (permite NaN). Si quieres ahorrar más, usa dtype 'Int8' con NA, pero es más delicado.
+    df_ind_min[c] = s.astype("float32")
+
+
 
 # Referencias en sesión
 st.session_state["ind_df_full_ref"] = df_base_ind          # DF completo (con Indice)
@@ -571,16 +591,32 @@ if generar:
             st.error("No hay DF reducido en sesión. Revisa la sección de 'Indice + ADL'.")
             st.stop()
 
+        #df_ind = src.copy()
+        #if "Indice" in df_ind.columns:
+        #    df_ind.set_index("Indice", inplace=True)
+        #if df_ind.index.name != "Indice":
+        #    df_ind.index.name = "Indice"
+
+        ## Calcular clases
+        #clases = indiscernibility(cols_attrs, df_ind)
+
+        #src = st.session_state.get("ind_df_reducido")
+        #if not isinstance(src, pd.DataFrame) or src.empty:
+        #    st.error("No hay DF reducido en sesión. Revisa la sección de 'Indice + ADL'.")
+        #    st.stop()
+
         df_ind = src.copy()
         if "Indice" in df_ind.columns:
             df_ind.set_index("Indice", inplace=True)
-        if df_ind.index.name != "Indice":
-            df_ind.index.name = "Indice"
+        df_ind.index.name = "Indice"
 
-        # Calcular clases
+        # ahora sí
         clases = indiscernibility(cols_attrs, df_ind)
 
 
+
+
+        
         longitudes = [(i, len(s)) for i, s in enumerate(clases)]
         longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
         nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
@@ -614,14 +650,24 @@ if generar:
 
 
             # Persistir artefactos mínimos (NO vuelvas a hacer set_index aquí)
+            #st.session_state["ind_cols"] = cols_attrs
+            #st.session_state["ind_df"] = df_ind.copy()          # ya indexado por Indice
+            #st.session_state["ind_classes"] = clases
+            #st.session_state["ind_lengths"] = sorted(
+            #    [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1],
+            #    key=lambda x: x[1], reverse=True
+            #)
+            st.session_state["ind_min_size"] = int(min_size_for_pie)
+
             st.session_state["ind_cols"] = cols_attrs
-            st.session_state["ind_df"] = df_ind.copy()          # ya indexado por Indice
+            st.session_state["ind_df"] = df_ind.copy()  # ya indexado
             st.session_state["ind_classes"] = clases
             st.session_state["ind_lengths"] = sorted(
-                [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1],
-                key=lambda x: x[1], reverse=True
-            )
+                [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1], key=lambda x: x[1], reverse=True
+            )    
             st.session_state["ind_min_size"] = int(min_size_for_pie)
+
+
 
             
             # 3) Pastel de clases con tamaño >= umbral
