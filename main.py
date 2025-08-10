@@ -235,15 +235,11 @@ for key, default in [("comorb_selection", []), ("df_comorb", None)]:
 
 # Base para el filtro de comorbilidades:
 # - si ya existe el filtrado por SEX+EDAD úsalo, si no el por SEX, y si no, los datos seleccionados
-#df_base_comorb = st.session_state.get("df_filtrado") or st.session_state.get("df_sexo") or datos_seleccionados
-# Usa:
 df_base_comorb = st.session_state.get("df_filtrado")
 if not isinstance(df_base_comorb, pd.DataFrame) or df_base_comorb.empty:
     df_base_comorb = st.session_state.get("df_sexo")
 if not isinstance(df_base_comorb, pd.DataFrame) or df_base_comorb.empty:
     df_base_comorb = datos_seleccionados.copy()
-
-
 
 # Mapeo: etiqueta legible -> nombre de columna (ya sin _18/_21)
 comorb_map = {
@@ -258,47 +254,72 @@ comorb_map = {
 
 with st.sidebar:
     st.subheader("Seleccione comorbilidades")
-    # Filtrar opciones a solo las columnas que existen en los datos
+    # Opciones disponibles según las columnas que existan
     opciones_visibles = [lbl for lbl, col in comorb_map.items() if col in df_base_comorb.columns]
 
     if not opciones_visibles:
         st.warning("No se encontraron columnas de comorbilidades esperadas (C4, C6, C12, C19, C22A, C26, C32).")
         st.session_state["df_comorb"] = df_base_comorb.copy()
     else:
+        # Agregamos la opción especial
+        opciones_visibles_con_none = ["Sin comorbilidades"] + opciones_visibles
+
         seleccion = st.multiselect(
-            "Comorbilidades (0 = No, 1 = Sí). Si no selecciona ninguna, no se filtra.",
-            options=opciones_visibles,
+            "Comorbilidades (1 = Sí, 2/0 = No).",
+            options=opciones_visibles_con_none,
             default=[],
-            help="El filtrado mantiene filas donde AL MENOS UNA de las comorbilidades seleccionadas es 1."
+            help=(
+                "• ‘Sin comorbilidades’: conserva filas con TODAS las comorbilidades en 2/0.\n"
+                "• Si seleccionas una o más comorbilidades: conserva filas con 1 en las seleccionadas y 2/0 en las demás."
+            )
         )
         st.session_state["comorb_selection"] = seleccion
 
+        # Preparar dataframe de trabajo y asegurar numérico 0/1/2
+        df_work = df_base_comorb.copy()
+        comorb_cols_presentes = [comorb_map[lbl] for lbl in opciones_visibles]  # columnas reales presentes
+        for c in comorb_cols_presentes:
+            df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0)
+
+        # Conjunto de valores que consideramos "No": soporta 0 o 2
+        NO_SET = {0, 2}
+        YES_VAL = 1
+
         if not seleccion:
-            # Sin selección → no aplicar filtro por comorbilidades
-            st.session_state["df_comorb"] = df_base_comorb.copy()
+            # Sin selección → no filtrar por comorbilidades
+            df_out = df_work.copy()
+
+        elif "Sin comorbilidades" in seleccion:
+            # Si el usuario mezcla "Sin comorbilidades" con otras, damos prioridad a "Sin comorbilidades"
+            if len(seleccion) > 1:
+                st.info("Se seleccionó 'Sin comorbilidades'. Se ignorarán otras selecciones para este filtro.")
+            # Todas las comorbilidades deben estar en 2/0
+            mask_all_none = df_work[comorb_cols_presentes].isin(NO_SET).all(axis=1)
+            df_out = df_work[mask_all_none].copy()
+
         else:
-            cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_base_comorb.columns]
+            # Selección específica: las seleccionadas en 1, las NO seleccionadas en 2/0
+            cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_work.columns]
+            cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
 
-            # Asegurar 0/1 numéricos
-            df_work = df_base_comorb.copy()
-            for c in cols_sel:
-                df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0).astype(int)
+            if not cols_sel:
+                # Nada mapeable → no filtrar
+                df_out = df_work.copy()
+            else:
+                mask_selected_yes = (df_work[cols_sel] == YES_VAL).all(axis=1)
+                mask_rest_no = True
+                if cols_rest:
+                    mask_rest_no = df_work[cols_rest].isin(NO_SET).all(axis=1)
+                df_out = df_work[mask_selected_yes & mask_rest_no].copy()
 
-            # Mantener filas donde al menos una comorbilidad seleccionada == 1
-            mask_any = False
-            for c in cols_sel:
-                mask_any = (mask_any | (df_work[c] == 1)) if isinstance(mask_any, pd.Series) else (df_work[c] == 1)
-
-            df_out = df_work[mask_any].copy()
-            st.session_state["df_comorb"] = df_out
+        st.session_state["df_comorb"] = df_out
 
 # =========================
 # Vista previa — Filtrado por SEX + EDAD + COMORBILIDADES
 # =========================
 if st.session_state["df_comorb"] is not None:
     st.subheader("Vista previa — Tras filtros (SEX + EDAD + COMORB)")
-    #base_len = len(st.session_state.get("df_filtrado") or st.session_state.get("df_sexo") or datos_seleccionados)
-    # Usa:
+    # Seleccionar base segura para longitud
     base_df_for_len = st.session_state.get("df_filtrado")
     if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
         base_df_for_len = st.session_state.get("df_sexo")
@@ -306,14 +327,14 @@ if st.session_state["df_comorb"] is not None:
         base_df_for_len = datos_seleccionados
 
     base_len = len(base_df_for_len)
-    
-    
-    st.metric("Filas base para comorb.", base_len)
-    st.metric("Filas tras comorb.", len(st.session_state["df_comorb"]))
+
+    c1, c2 = st.columns(2)
+    c1.metric("Filas base para comorb.", base_len)
+    c2.metric("Filas tras comorb.", len(st.session_state["df_comorb"]))
     st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
 
-    # Resumen rápido de las comorbilidades seleccionadas
-    if st.session_state["comorb_selection"]:
+    # Resumen rápido (cuenta de 1 en cada comorbilidad seleccionada)
+    if st.session_state["comorb_selection"] and "Sin comorbilidades" not in st.session_state["comorb_selection"]:
         with st.expander("Resumen de comorbilidades seleccionadas (conteos de 1)"):
             df_show = st.session_state["df_comorb"]
             for lbl in st.session_state["comorb_selection"]:
