@@ -955,6 +955,102 @@ else:
                            f"Pres. distintos={r['Preservación distintos (%)']}%")
 
 
+#hasta aqui todo bien
+
+# =========================
+# Matriz de confusión (partición original vs. variables seleccionadas)
+# =========================
+st.subheader("Matriz de confusión por selección de variables")
+
+# Verificar que ya existan los insumos
+if not all(v in globals() for v in ("cols_attrs", "df_ind", "clases", "longitudes_orden", "min_size_for_pie")):
+    st.info("👉 Primero presiona **Calcular indiscernibilidad**.")
+else:
+    # Subconjunto del pastel (mismo criterio que en reductos)
+    try:
+        umbral = int(min_size_for_pie)
+    except Exception:
+        umbral = 0
+
+    ids_pastel = [i for i, tam in longitudes_orden if tam >= umbral]
+    if not ids_pastel:
+        st.info(f"No hay clases con tamaño ≥ {umbral} para evaluar la matriz de confusión.")
+    else:
+        universo_sel = sorted(set().union(*[clases[i] for i in ids_pastel]))
+        df_eval = df_ind.loc[universo_sel].copy()
+
+        # Multiselect de variables (por defecto: todas menos la última, solo para invitar a comparar)
+        vars_sel = st.multiselect(
+            "Seleccione variables para comparar contra la partición original",
+            options=list(cols_attrs),
+            default=list(cols_attrs[:-1]) if len(cols_attrs) > 1 else list(cols_attrs),
+            help="Se calcula la partición con estas variables y se compara con la original (todas las seleccionadas en Indiscernibilidad), usando solo las filas del pastel."
+        )
+
+        if not vars_sel:
+            st.warning("Selecciona al menos una variable.")
+        else:
+            # Partición original (sobre df_eval)
+            bloques_orig_conf = indiscernibility(cols_attrs, df_eval)
+            y_orig_conf = blocks_to_labels(bloques_orig_conf, universo_sel)
+
+            # Partición con variables seleccionadas
+            bloques_sel = indiscernibility(vars_sel, df_eval)
+            y_sel = blocks_to_labels(bloques_sel, universo_sel)
+
+            # Matriz de contingencia (n_ij)
+            C = contingency_from_labels(y_orig_conf, y_sel)
+
+            # Métricas
+            ari = ari_from_contingency(C)
+            nmi = nmi_from_contingency(C)
+            pres_same, pres_diff = preservation_metrics_from_contingency(C)
+
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("ARI", f"{ari:.3f}")
+            c2.metric("NMI", f"{nmi:.3f}")
+            c3.metric("Pres. iguales", f"{pres_same*100:.1f}%")
+            c4.metric("Pres. distintos", f"{pres_diff*100:.1f}%")
+
+            # DataFrame etiquetado de la matriz
+            df_conf = pd.DataFrame(
+                C,
+                index=[f"Orig_{i+1}" for i in range(C.shape[0])],
+                columns=[f"Sel_{j+1}" for j in range(C.shape[1])]
+            )
+
+            # Heatmap simple con matplotlib
+            fig_cm, ax_cm = plt.subplots(figsize=(max(8, 0.6*df_conf.shape[1]+6), max(6, 0.4*df_conf.shape[0]+4)))
+            im = ax_cm.imshow(df_conf.values, cmap="Blues")
+            fig_cm.colorbar(im, ax=ax_cm, fraction=0.046, pad=0.04)
+            ax_cm.set_title("Matriz de confusión (conteos)")
+            ax_cm.set_xlabel("Partición con variables seleccionadas")
+            ax_cm.set_ylabel("Partición original")
+
+            ax_cm.set_xticks(range(df_conf.shape[1])); ax_cm.set_xticklabels(df_conf.columns, rotation=90)
+            ax_cm.set_yticks(range(df_conf.shape[0])); ax_cm.set_yticklabels(df_conf.index)
+
+            # Anotar valores (con límite para no saturar)
+            if df_conf.shape[0] * df_conf.shape[1] <= 900:
+                for i in range(df_conf.shape[0]):
+                    for j in range(df_conf.shape[1]):
+                        ax_cm.text(j, i, str(df_conf.iat[i, j]), ha="center", va="center", fontsize=8)
+
+            st.pyplot(fig_cm)
+
+            # Mostrar y descargar CSV
+            with st.expander("Ver matriz de confusión (tabla)"):
+                st.dataframe(df_conf, use_container_width=True)
+                st.download_button(
+                    "Descargar matriz de confusión (CSV)",
+                    data=df_conf.to_csv(index=True).encode("utf-8"),
+                    file_name="matriz_confusion.csv",
+                    mime="text/csv",
+                    key="dl_confusion_csv"
+                )
+
+
+
 # =========================
 # Tabs para visualizar/descargar clases de indiscernibilidad
 # =========================
