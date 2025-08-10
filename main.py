@@ -297,7 +297,17 @@ with st.sidebar:
 # =========================
 if st.session_state["df_comorb"] is not None:
     st.subheader("Vista previa — Tras filtros (SEX + EDAD + COMORB)")
-    base_len = len(st.session_state.get("df_filtrado") or st.session_state.get("df_sexo") or datos_seleccionados)
+    #base_len = len(st.session_state.get("df_filtrado") or st.session_state.get("df_sexo") or datos_seleccionados)
+    # Usa:
+    base_df_for_len = st.session_state.get("df_filtrado")
+    if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
+        base_df_for_len = st.session_state.get("df_sexo")
+    if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
+        base_df_for_len = datos_seleccionados
+
+    base_len = len(base_df_for_len)
+    
+    
     st.metric("Filas base para comorb.", base_len)
     st.metric("Filas tras comorb.", len(st.session_state["df_comorb"]))
     st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
