@@ -1,6 +1,16 @@
 import re
 import pandas as pd
 import streamlit as st
+def determinar_color(valores):
+    count_ones = sum(1 for v in valores if pd.to_numeric(v, errors="coerce") == 1)
+    if count_ones == 0:   return 'blue'
+    if 1 <= count_ones < 3: return 'green'
+    if count_ones == 3:   return 'yellow'
+    if 4 <= count_ones < 5: return 'orange'
+    return 'red'
+
+
+
 
 # --- Utilidades comunes para particiones/metricas (definir si no existen) ---
 if "blocks_to_labels" not in globals():
@@ -465,16 +475,76 @@ if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
 if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
     df_base_ind = datos_seleccionados.copy()
 
-# --- Controles en barra lateral ---
+# =========================
+# ⬇️ Pegar AQUÍ el bloque de "Indice + ADL"
+# =========================
+import re
+
+# --- Asegurar columna de índice visible ---
+if isinstance(df_base_ind, pd.DataFrame):
+    if "Indice" not in df_base_ind.columns:
+        df_base_ind = df_base_ind.copy()
+        df_base_ind["Indice"] = df_base_ind.index
+
+# --- Resolver columnas ADL sin depender de _18/_21 ---
+ADL_BASE = [
+    "H1","H4","H5","H6","H8","H9","H10","H11","H12",
+    "H13","H15A","H15B","H15D","H16A","H16D",
+    "H17A","H17D","H18A","H18D","H19A","H19D"
+]
+
+def match_col(base_name: str, cols) -> str | None:
+    candidates = [base_name, f"{base_name}_18", f"{base_name}_21"]
+    for cand in candidates:
+        if cand in cols:
+            return cand
+    return None
+
+cols_real, cols_norm = [], []
+for base in ADL_BASE:
+    c = match_col(base, df_base_ind.columns)
+    if c is not None:
+        cols_real.append(c)
+        cols_norm.append(base)
+
+if not cols_real:
+    st.warning("No se encontraron columnas de ADL esperadas (H*). Revisa el archivo o la normalización de nombres.")
+    st.stop()
+
+# --- DF reducido: solo Indice + ADL ---
+df_ind_min = df_base_ind[["Indice"] + cols_real].copy()
+df_ind_min.rename(columns={r:n for r, n in zip(cols_real, cols_norm)}, inplace=True)
+
+# Compactar tipos
+for c in cols_norm:
+    s = pd.to_numeric(df_ind_min[c], errors="coerce")
+    if s.notna().any():
+        if (s.dropna() % 1 == 0).all() and s.min() >= 0 and s.max() <= 255:
+            df_ind_min[c] = s.fillna(0).astype("UInt8")
+        else:
+            df_ind_min[c] = s.astype("float32")
+    else:
+        df_ind_min[c] = df_ind_min[c].astype("category")
+
+# Referencias en sesión
+st.session_state["ind_df_full_ref"] = df_base_ind          # DF completo (con Indice)
+st.session_state["ind_df_reducido"] = df_ind_min           # Solo Indice + ADL
+st.session_state["ind_adl_cols"]   = cols_norm             # Nombres normalizados ADL
+
+# =========================
+# ⬆️ Hasta aquí el bloque
+# =========================
+
+
 with st.sidebar:
     st.subheader("Indiscernibilidad")
-    # Sugerencia por defecto (solo las que existan)
-    sugeridas = [c for c in ["C37", "H11", "H15A", "H5", "H6"] if c in df_base_ind.columns]
+    adl_opts = st.session_state.get("ind_adl_cols", [])
+    sugeridas = [c for c in ["H11","H15A","H5","H6","H13","H10"] if c in adl_opts]
     cols_attrs = st.multiselect(
-        "Atributos (columnas) para agrupar",
-        options=list(df_base_ind.columns),
-        default=sugeridas,
-        help="Se generarán clases de indiscernibilidad con la combinación exacta de estos atributos."
+        "Atributos (ADL) para agrupar",
+        options=adl_opts,
+        default=sugeridas or adl_opts[:5],
+        help="Se forman clases con la combinación exacta de estas ADL."
     )
     min_size_for_pie = st.number_input(
         "Tamaño mínimo de clase para incluir en el pastel",
@@ -488,37 +558,35 @@ with st.sidebar:
 
 if generar:
     if not cols_attrs:
-        st.warning("Selecciona al menos una columna para indiscernibilidad.")
+        st.warning("Selecciona al menos una ADL para indiscernibilidad.")
     else:
-        # Asegurar que las columnas sean numéricas si procede (no obligatorio)
-        df_ind = df_base_ind.copy()
-        for c in cols_attrs:
-            df_ind[c] = pd.to_numeric(df_ind[c], errors="ignore")
+        # Usar SOLO el DF reducido (Indice + ADL)
+        #df_ind = st.session_state["ind_df_reducido"].copy()
+        df_ind = st.session_state["ind_df_reducido"].set_index("Indice").copy()
 
-        # 1) Calcular clases
-        clases = indiscernibility(cols_attrs, df_ind)
+        # 1) Calcular clases (sobre cols_attrs)
+        clases = indiscernibility(cols_attrs, df_ind.set_index("Indice"))        
+        # Resumen/etiquetas de clases
+        longitudes = [(i, len(s)) for i, s in enumerate(clases)]
+        longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
+        nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
+        # Nota: usamos "Indice" como índice para que los sets contengan esos IDs
+        st.session_state["ind_lengths"] = longitudes_orden
+
         if not clases:
-            st.warning("No se formaron clases (verifica columnas seleccionadas).")
+            st.warning("No se formaron clases (verifica ADL seleccionadas).")
         else:
             st.success(f"Se formaron {len(clases)} clases de indiscernibilidad.")
+            # ... (tu resumen, pastel, radar se mantienen igual) ...
 
-            # 2) Resumen de tamaños
-            longitudes = [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1]
-            longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
-            nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
-
-            resumen_df = pd.DataFrame({
-                "Conjunto": [nombres[i] for i, _ in longitudes_orden],
-                "Tamaño":   [tam for _, tam in longitudes_orden]
-            })
-            st.subheader("Resumen de clases (ordenadas por tamaño)")
-            st.dataframe(resumen_df, use_container_width=True)
-
-            # 👉 PEGAR AQUÍ: Persistir artefactos para otras secciones
+            # Persistir artefactos mínimos
             st.session_state["ind_cols"] = cols_attrs
-            st.session_state["ind_df"] = df_ind
+            st.session_state["ind_df"] = df_ind.set_index("Indice")  # compacto y con índice 'Indice'
             st.session_state["ind_classes"] = clases
-            st.session_state["ind_lengths"] = longitudes_orden
+            st.session_state["ind_lengths"] = sorted(
+                [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1],
+                key=lambda x: x[1], reverse=True
+            )
             st.session_state["ind_min_size"] = int(min_size_for_pie)
 
 
