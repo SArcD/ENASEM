@@ -609,6 +609,52 @@ if generar:
             else:
                 st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el pastel.")
 
+            # ====== NUEVO (pegar aquí, después del pastel; dentro de if generar:) ======
+            # df_ind existe en este bloque; usamos solo filas SIN NaN en las columnas seleccionadas
+            df_eval = df_ind.loc[df_ind[cols_attrs].dropna().index].copy()
+
+            # Guardarlo en sesión por si lo necesitas en otras secciones
+            st.session_state["df_eval"] = df_eval.copy()
+
+            # Calcular nivel de riesgo según la regla:
+            # - Riesgo nulo: TODAS las columnas seleccionadas valen 2
+            # - Riesgo leve: 1 o 2 columnas valen 1  (o 0 si no son todas 2)
+            # - Riesgo moderado: exactamente 3 columnas valen 1
+            # - Riesgo severo: 4 o 5 columnas valen 1
+            vals = df_eval[cols_attrs].apply(pd.to_numeric, errors="coerce")
+            count_ones = (vals == 1).sum(axis=1)
+            all_twos   = (vals == 2).all(axis=1)
+
+            nivel = np.where(
+                all_twos, "Riesgo nulo",
+                np.where(
+                    count_ones <= 2,
+                    np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
+                    np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
+                )
+            )
+
+            df_eval_riesgo = df_eval.copy()
+            df_eval_riesgo["nivel_riesgo"] = nivel
+
+            st.subheader("Filas usadas en el pastel (sin NaN) + nivel_riesgo")
+            st.dataframe(df_eval_riesgo.reset_index(), use_container_width=True)
+
+            st.download_button(
+                "Descargar filas del pastel con nivel_riesgo (CSV)",
+                data=df_eval_riesgo.reset_index().to_csv(index=False).encode("utf-8"),
+                file_name="filas_pastel_con_nivel_riesgo.csv",
+                mime="text/csv",
+                key="dl_df_eval_riesgo"
+            )
+
+            # Por si más adelante quieres reutilizarlo
+            st.session_state["df_eval_riesgo"] = df_eval_riesgo.copy()
+            # ====== FIN NUEVO ======
+
+
+
+            
             # 4) Radar de los N conjuntos más grandes (sobre df_eval)
             st.subheader("Radar de los conjuntos más numerosos")
             top_idxs = [i for i, _ in longitudes_orden[:int(top_n_radar)]]
