@@ -36,86 +36,103 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Error al leer el archivo: {e}")
 
-    # Mostrar filtros solo si hay DataFrame
+    # ====== Selector de SEX (robusto) ======
     if st.session_state.df is not None:
         df = st.session_state.df.copy()
 
-        # ====== Selector de SEX ======
         if "SEX" not in df.columns:
             st.error("No se encontró la columna 'SEX' tras normalizar.")
+            st.session_state.df_sex = None
+            st.session_state.df_filtered = None
         else:
-            df["SEX"] = pd.to_numeric(df["SEX"], errors="coerce")
+            # Convertir a numérico estricto y quedarnos solo con 1/2
+            df["SEX"] = pd.to_numeric(df["SEX"], errors="coerce").astype("Int64")
+            df = df[df["SEX"].isin([1, 2])].copy()
 
-            st.session_state.sex_option = st.selectbox(
-                "Sexo",
-                options=["Ambos", "Hombre (1)", "Mujer (2)"],
-                index=["Ambos", "Hombre (1)", "Mujer (2)"].index(st.session_state.sex_option)
-                if st.session_state.sex_option in ["Ambos", "Hombre (1)", "Mujer (2)"] else 0
-            )
-
-            if st.session_state.sex_option == "Hombre (1)":
-                df_sex = df[df["SEX"] == 1].copy()
-            elif st.session_state.sex_option == "Mujer (2)":
-                df_sex = df[df["SEX"] == 2].copy()
+            if df.empty:
+                st.error("No hay filas con SEX igual a 1 (hombre) o 2 (mujer).")
+                st.session_state.df_sex = None
+                st.session_state.df_filtered = None
             else:
-                df_sex = df.copy()
+                # Conteos rápidos por sexo
+                hombres = int((df["SEX"] == 1).sum())
+                mujeres = int((df["SEX"] == 2).sum())
+                st.caption(f"Distribución SEX — Hombres: {hombres:,} | Mujeres: {mujeres:,} | Total: {len(df):,}")
 
-            st.session_state.df_sex = df_sex
+                sex_choice = st.selectbox(
+                    "Sexo",
+                    options=["Ambos", "Hombre (1)", "Mujer (2)"],
+                    index=["Ambos", "Hombre (1)", "Mujer (2)"].index(
+                        st.session_state.get("sex_option", "Ambos")
+                    ),
+                    key="sex_option",
+                )
 
-        # ====== Rango de EDAD por inputs ======
-        if st.session_state.df_sex is not None:
-            df_sex = st.session_state.df_sex
-
-            if "AGE" not in df_sex.columns:
-                st.error("No se encontró la columna 'AGE' tras normalizar.")
-            else:
-                df_sex = df_sex.copy()
-                df_sex["AGE"] = pd.to_numeric(df_sex["AGE"], errors="coerce")
-                if df_sex["AGE"].notna().sum() == 0:
-                    st.error("La columna AGE no contiene valores numéricos válidos.")
+                if sex_choice == "Hombre (1)":
+                    df_sex = df[df["SEX"] == 1].copy()
+                elif sex_choice == "Mujer (2)":
+                    df_sex = df[df["SEX"] == 2].copy()
                 else:
-                    data_min = int(df_sex["AGE"].min(skipna=True))
-                    data_max = int(df_sex["AGE"].max(skipna=True))
+                    df_sex = df.copy()
 
-                    # Establecer defaults si aún no existen
-                    if st.session_state.age_min_input is None:
-                        st.session_state.age_min_input = data_min
-                    if st.session_state.age_max_input is None:
-                        st.session_state.age_max_input = data_max
+                st.session_state.df_sex = df_sex
 
-                    st.markdown("**Rango de edad (años)**")
-                    age_min_input = st.number_input(
-                        "Edad mínima",
-                        min_value=data_min,
-                        max_value=data_max,
-                        value=int(st.session_state.age_min_input),
-                        step=1,
-                        key="age_min_input",
-                    )
-                    age_max_input = st.number_input(
-                        "Edad máxima",
-                        min_value=data_min,
-                        max_value=data_max,
-                        value=int(st.session_state.age_max_input),
-                        step=1,
-                        key="age_max_input",
-                    )
+                # ====== Rango de EDAD por inputs (solo si hay filas) ======
+                if df_sex.empty:
+                    st.warning("No hay filas tras filtrar por SEX.")
+                    st.session_state.df_filtered = df_sex
+                else:
+                    if "AGE" not in df_sex.columns:
+                        st.error("No se encontró la columna 'AGE' tras normalizar.")
+                        st.session_state.df_filtered = df_sex.iloc[0:0].copy()
+                    else:
+                        df_sex = df_sex.copy()
+                        df_sex["AGE"] = pd.to_numeric(df_sex["AGE"], errors="coerce")
 
-                    # Validación simple: si min > max, intercambiamos
-                    if st.session_state.age_min_input > st.session_state.age_max_input:
-                        st.warning("La edad mínima es mayor que la máxima. Se intercambian automáticamente.")
-                        min_tmp = st.session_state.age_max_input
-                        max_tmp = st.session_state.age_min_input
-                        st.session_state.age_min_input = min_tmp
-                        st.session_state.age_max_input = max_tmp
+                        # Tomamos solo edades válidas
+                        edades_validas = df_sex["AGE"].dropna()
+                        if edades_validas.empty:
+                            st.warning("La columna AGE no tiene valores numéricos válidos tras el filtro de SEX.")
+                            st.session_state.df_filtered = df_sex.iloc[0:0].copy()
+                        else:
+                            data_min = int(edades_validas.min())
+                            data_max = int(edades_validas.max())
 
-                    # Aplicar filtro final
-                    df_filtered = df_sex[
-                        df_sex["AGE"].between(st.session_state.age_min_input,
-                                              st.session_state.age_max_input,
-                                              inclusive="both")
-                    ].copy()
-                    st.session_state.df_filtered = df_filtered
+                            # Defaults seguros
+                            if st.session_state.get("age_min_input") is None:
+                                st.session_state["age_min_input"] = data_min
+                            if st.session_state.get("age_max_input") is None:
+                                st.session_state["age_max_input"] = data_max
+
+                            st.markdown("**Rango de edad (años)**")
+                            age_min = st.number_input(
+                                "Edad mínima",
+                                min_value=data_min,
+                                max_value=data_max,
+                                value=min(int(st.session_state["age_min_input"]), data_max),
+                                step=1,
+                                key="age_min_input",
+                            )
+                            age_max = st.number_input(
+                                "Edad máxima",
+                                min_value=data_min,
+                                max_value=data_max,
+                                value=max(int(st.session_state["age_max_input"]), data_min),
+                                step=1,
+                                key="age_max_input",
+                            )
+
+                            # Corregir si el usuario invierte los valores
+                            if age_min > age_max:
+                                st.warning("La edad mínima es mayor que la máxima. Se intercambian automáticamente.")
+                                age_min, age_max = age_max, age_min
+                                st.session_state["age_min_input"] = age_min
+                                st.session_state["age_max_input"] = age_max
+
+                            df_filtered = df_sex[
+                                df_sex["AGE"].between(age_min, age_max, inclusive="both")
+                            ].copy()
+                            st.session_state.df_filtered = df_filtered
 
 # =========================
 # Contenido principal
