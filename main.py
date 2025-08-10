@@ -93,3 +93,55 @@ with st.expander("Información del conjunto de datos"):
     st.write(f"**Columnas:** {columnas:,}")
     st.write("**Primeras columnas detectadas:**")
     st.code(", ".join(map(str, datos_seleccionados.columns[:20])) + ("..." if columnas > 20 else ""))
+
+
+# =========================
+# Filtro por SEX (en barra lateral)
+# =========================
+if "df_sexo" not in st.session_state:
+    st.session_state["df_sexo"] = None
+
+with st.sidebar:
+    st.subheader("Seleccione el sexo")
+    if "SEX" not in datos_seleccionados.columns:
+        st.warning("No se encontró la columna 'SEX' en los datos seleccionados.")
+        st.session_state["df_sexo"] = datos_seleccionados.copy()
+    else:
+        # Asegurar tipo numérico 1/2
+        sex_series = pd.to_numeric(datos_seleccionados["SEX"], errors="coerce").astype("Int64")
+
+        # Opciones visibles y mapeo a códigos
+        opciones_visibles = ["Ambos", "Hombre", "Mujer"]
+        seleccion = st.multiselect(
+            "Seleccione el sexo",
+            options=opciones_visibles,
+            default=["Ambos"],
+            help="‘Hombre’ = 1, ‘Mujer’ = 2. ‘Ambos’ selecciona 1 y 2."
+        )
+
+        # Traducir selección visible -> códigos 1/2
+        if (not seleccion) or ("Ambos" in seleccion):
+            codigos = [1, 2]
+        else:
+            codigos = []
+            if "Hombre" in seleccion:
+                codigos.append(1)
+            if "Mujer" in seleccion:
+                codigos.append(2)
+            # Si por alguna razón quedó vacío, usar ambos
+            if not codigos:
+                codigos = [1, 2]
+
+        # Filtrar
+        df_sexo = datos_seleccionados[sex_series.isin(codigos)].copy()
+        st.session_state["df_sexo"] = df_sexo
+
+# =========================
+# Vista previa del filtrado por SEX
+# =========================
+if st.session_state["df_sexo"] is not None:
+    st.subheader("Vista previa — Filtrado por SEX")
+    c1, c2 = st.columns(2)
+    c1.metric("Filas totales", len(datos_seleccionados))
+    c2.metric("Filas tras SEX", len(st.session_state["df_sexo"]))
+    st.dataframe(st.session_state["df_sexo"].head(30), use_container_width=True)
