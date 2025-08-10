@@ -435,32 +435,27 @@ if st.session_state["df_comorb"] is not None:
 # =========================
 # Indiscernibilidad + resumen + pastel + radar
 # =========================
+# Indiscernibilidad + resumen + pastel + radar (con exclusión de NaN)
+# =========================
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import ConnectionPatch
+from math import log1p
+import re
 
+# --- Funciones ---
 def indiscernibility(attr, table: pd.DataFrame):
     """
-    Clases de indiscernibilidad: usa tuplas de STRINGS como clave y
-    mapea NaN -> 'nan' para que filas con NaN coincidan entre sí.
+    Forma clases de indiscernibilidad usando tuplas (sin colisiones).
+    (Aquí ya NO habrá NaN porque filtramos antes con dropna).
     """
     u_ind = {}
     for i in table.index:
-        vals = []
-        for a in attr:
-            v = table.at[i, a]
-            # Igualar todos los faltantes:
-            if pd.isna(v):
-                vals.append("nan")
-            else:
-                vals.append(str(v))  # mimetiza lo viejo (strings), sin colisiones
-        key = tuple(vals)
+        key = tuple(table.loc[i, a] for a in attr)
         u_ind.setdefault(key, set()).add(i)
     return sorted(u_ind.values(), key=len, reverse=True)
 
-
-
 def lower_approximation(R, X):
-    """Aproximación inferior: une los bloques de R contenidos en algún conjunto de X."""
     l_approx = set()
     for x in X:
         for r in R:
@@ -469,16 +464,12 @@ def lower_approximation(R, X):
     return l_approx
 
 def upper_approximation(R, X):
-    """Aproximación superior: une los bloques de R que intersectan algún conjunto de X."""
     u_approx = set()
     for x in X:
         for r in R:
             if r.intersection(x):
                 u_approx.update(r)
     return u_approx
-
-
-
 
 # --- DataFrame base: usa el más filtrado disponible ---
 df_base_ind = st.session_state.get("df_comorb")
@@ -489,22 +480,17 @@ if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
 if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
     df_base_ind = datos_seleccionados.copy()
 
-# =========================
-# ⬇️ Pegar AQUÍ el bloque de "Indice + ADL"
-# =========================
-import re
-
 # --- Asegurar columna de índice visible ---
 if isinstance(df_base_ind, pd.DataFrame):
     if "Indice" not in df_base_ind.columns:
         df_base_ind = df_base_ind.copy()
         df_base_ind["Indice"] = df_base_ind.index
 
-# --- Resolver columnas ADL sin depender de _18/_21 ---
+# --- Resolver columnas ADL sin depender de _18/_21 (incluye C37) ---
 ADL_BASE = [
     "H1","H4","H5","H6","H8","H9","H10","H11","H12",
     "H13","H15A","H15B","H15D","H16A","H16D",
-    "H17A","H17D","H18A","H18D","H19A","H19D", "C37"
+    "H17A","H17D","H18A","H18D","H19A","H19D","C37"
 ]
 
 def match_col(base_name: str, cols) -> str | None:
@@ -522,46 +508,25 @@ for base in ADL_BASE:
         cols_norm.append(base)
 
 if not cols_real:
-    st.warning("No se encontraron columnas de ADL esperadas (H*). Revisa el archivo o la normalización de nombres.")
+    st.warning("No se encontraron columnas de ADL esperadas (H*).")
     st.stop()
 
-# --- DF reducido: solo Indice + ADL ---
+# --- DF reducido: solo Indice + ADL (mantener NaN) ---
 df_ind_min = df_base_ind[["Indice"] + cols_real].copy()
-df_ind_min.rename(columns={r:n for r, n in zip(cols_real, cols_norm)}, inplace=True)
-
-# Compactar tipos
-#for c in cols_norm:
-#    s = pd.to_numeric(df_ind_min[c], errors="coerce")
-#    if s.notna().any():
-#        if (s.dropna() % 1 == 0).all() and s.min() >= 0 and s.max() <= 255:
-#            df_ind_min[c] = s.fillna(0).astype("UInt8")
-#        else:
-#            df_ind_min[c] = s.astype("float32")
-#    else:
-#        df_ind_min[c] = df_ind_min[c].astype("category")
-
-# Tipos sin imputar (mantener NaN)
+df_ind_min.rename(columns={r: n for r, n in zip(cols_real, cols_norm)}, inplace=True)
 for c in cols_norm:
-    s = pd.to_numeric(df_ind_min[c], errors="coerce")  # NaN se conserva
-    # Mantener float32 (permite NaN). Si quieres ahorrar más, usa dtype 'Int8' con NA, pero es más delicado.
-    df_ind_min[c] = s.astype("float32")
+    df_ind_min[c] = pd.to_numeric(df_ind_min[c], errors="coerce").astype("float32")
 
-
-
-# Referencias en sesión
+# --- Referencias en sesión ---
 st.session_state["ind_df_full_ref"] = df_base_ind          # DF completo (con Indice)
 st.session_state["ind_df_reducido"] = df_ind_min           # Solo Indice + ADL
 st.session_state["ind_adl_cols"]   = cols_norm             # Nombres normalizados ADL
 
-# =========================
-# ⬆️ Hasta aquí el bloque
-# =========================
-
-
+# --- Controles en barra lateral ---
 with st.sidebar:
     st.subheader("Indiscernibilidad")
     adl_opts = st.session_state.get("ind_adl_cols", [])
-    sugeridas = [c for c in ["H11","H15A","H5","H6","C37"] if c in adl_opts]
+    sugeridas = [c for c in ["C37","H11","H15A","H5","H6"] if c in adl_opts]
     cols_attrs = st.multiselect(
         "Atributos (ADL) para agrupar",
         options=adl_opts,
@@ -578,120 +543,77 @@ with st.sidebar:
     )
     generar = st.button("Calcular indiscernibilidad")
 
+# --- Cálculo ---
 if generar:
     if not cols_attrs:
         st.warning("Selecciona al menos una ADL para indiscernibilidad.")
     else:
-        # Usar SOLO el DF reducido (Indice + ADL)
-        #df_ind = st.session_state["ind_df_reducido"].copy()
-
-        # Usar SOLO el DF reducido (Indice + ADL) y asegurar índice correcto
         src = st.session_state.get("ind_df_reducido")
         if not isinstance(src, pd.DataFrame) or src.empty:
             st.error("No hay DF reducido en sesión. Revisa la sección de 'Indice + ADL'.")
             st.stop()
 
-        #df_ind = src.copy()
-        #if "Indice" in df_ind.columns:
-        #    df_ind.set_index("Indice", inplace=True)
-        #if df_ind.index.name != "Indice":
-        #    df_ind.index.name = "Indice"
-
-        ## Calcular clases
-        #clases = indiscernibility(cols_attrs, df_ind)
-
-        #src = st.session_state.get("ind_df_reducido")
-        #if not isinstance(src, pd.DataFrame) or src.empty:
-        #    st.error("No hay DF reducido en sesión. Revisa la sección de 'Indice + ADL'.")
-        #    st.stop()
-
+        # Índice por 'Indice'
         df_ind = src.copy()
         if "Indice" in df_ind.columns:
             df_ind.set_index("Indice", inplace=True)
         df_ind.index.name = "Indice"
 
-        # ahora sí
-        clases = indiscernibility(cols_attrs, df_ind)
+        # 0) EXCLUIR filas con NaN en las columnas seleccionadas
+        df_eval = df_ind.dropna(subset=cols_attrs).copy()
+        quitadas = len(df_ind) - len(df_eval)
+        if quitadas > 0:
+            st.caption(f"Se excluyeron {quitadas:,} filas por faltantes en {cols_attrs}")
 
+        # 1) Clases sobre df_eval (sin NaN)
+        clases = indiscernibility(cols_attrs, df_eval)
 
-
-
-        
+        # 2) Resumen
         longitudes = [(i, len(s)) for i, s in enumerate(clases)]
         longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
         nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
-        
-
-        
-        # 1) Calcular clases (sobre cols_attrs)
-        #clases = indiscernibility(cols_attrs, df_ind.set_index("Indice"))        
-        # Resumen/etiquetas de clases
-        #longitudes = [(i, len(s)) for i, s in enumerate(clases)]
-        #longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
-        #nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
-        # Nota: usamos "Indice" como índice para que los sets contengan esos IDs
-        st.session_state["ind_lengths"] = longitudes_orden
 
         if not clases:
             st.warning("No se formaron clases (verifica ADL seleccionadas).")
         else:
             st.success(f"Se formaron {len(clases)} clases de indiscernibilidad.")
-            # ... (tu resumen, pastel, radar se mantienen igual) ...
 
-            # Persistir artefactos mínimos
-            #st.session_state["ind_cols"] = cols_attrs
-            #st.session_state["ind_df"] = df_ind.set_index("Indice")  # compacto y con índice 'Indice'
-            #st.session_state["ind_classes"] = clases
-            #st.session_state["ind_lengths"] = sorted(
-            #    [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1],
-            #    key=lambda x: x[1], reverse=True
-            #)
-            #st.session_state["ind_min_size"] = int(min_size_for_pie)
+            resumen_df = pd.DataFrame({
+                "Conjunto": [nombres[i] for i, _ in longitudes_orden],
+                "Tamaño":   [tam for _, tam in longitudes_orden]
+            })
+            st.subheader("Resumen de clases (ordenadas por tamaño)")
+            st.dataframe(resumen_df, use_container_width=True)
 
-
-            # Persistir artefactos mínimos (NO vuelvas a hacer set_index aquí)
-            #st.session_state["ind_cols"] = cols_attrs
-            #st.session_state["ind_df"] = df_ind.copy()          # ya indexado por Indice
-            #st.session_state["ind_classes"] = clases
-            #st.session_state["ind_lengths"] = sorted(
-            #    [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1],
-            #    key=lambda x: x[1], reverse=True
-            #)
-            st.session_state["ind_min_size"] = int(min_size_for_pie)
-
+            # Persistir artefactos para pasos siguientes
             st.session_state["ind_cols"] = cols_attrs
-            st.session_state["ind_df"] = df_ind.copy()  # ya indexado
+            st.session_state["ind_df"] = df_ind.copy()      # completo (con NaN)
+            st.session_state["ind_df_eval"] = df_eval.copy()  # SIN NaN (usado para clases)
             st.session_state["ind_classes"] = clases
-            st.session_state["ind_lengths"] = sorted(
-                [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1], key=lambda x: x[1], reverse=True
-            )    
+            st.session_state["ind_lengths"] = longitudes_orden
             st.session_state["ind_min_size"] = int(min_size_for_pie)
 
-
-
-            
-            # 3) Pastel de clases con tamaño >= umbral
-            candidatas = [(nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
+            # 3) Pastel (usando tamaños de df_eval)
+            candidatas = [(nombres[i], tam) for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
             if candidatas:
                 labels = [n for n, _ in candidatas]
                 valores = [v for _, v in candidatas]
                 total = sum(valores)
                 fig_pie, ax_pie = plt.subplots(figsize=(7, 7))
-                ax_pie.pie(valores, labels=labels, autopct=lambda p: f"{p:.1f}%\n({int(p*total/100):,})", startangle=140)
+                ax_pie.pie(valores, labels=labels,
+                           autopct=lambda p: f"{p:.1f}%\n({int(p*total/100):,})",
+                           startangle=140)
                 ax_pie.axis('equal')
                 ax_pie.set_title(f"Participación de clases (≥ {min_size_for_pie} filas)")
                 st.pyplot(fig_pie)
             else:
                 st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el pastel.")
 
-            # 4) Radar plots para los N conjuntos más numerosos
-            #    - usaremos las columnas seleccionadas como ejes del radar
+            # 4) Radar de los N conjuntos más grandes (sobre df_eval)
             st.subheader("Radar de los conjuntos más numerosos")
-            # Preparar top-N
             top_idxs = [i for i, _ in longitudes_orden[:int(top_n_radar)]]
             top_sets = [(nombres[i], clases[i]) for i in top_idxs]
 
-            # Utilidad para color según cantidad de "1" en la primera fila del conjunto
             def determinar_color(valores):
                 count_ones = sum(1 for v in valores if pd.to_numeric(v, errors="coerce") == 1)
                 if count_ones == 0:
@@ -705,9 +627,7 @@ if generar:
                 else:
                     return 'red'
 
-            total_pacientes = len(df_ind)
-
-            # Calcular rejilla para mostrar top_n_radar
+            total_pacientes = len(df_eval)
             n = int(top_n_radar)
             cols_grid = 5
             rows_grid = int(np.ceil(n / cols_grid))
@@ -715,26 +635,22 @@ if generar:
             axs = np.atleast_2d(axs)
             fig.subplots_adjust(hspace=0.8, wspace=0.6)
 
-            # Ángulos del radar
             k = len(cols_attrs)
             angulos = np.linspace(0, 2 * np.pi, k, endpoint=False).tolist()
             angulos_cerrado = angulos + angulos[:1]
 
-            # Dibujar cada conjunto
             for idx_plot in range(rows_grid * cols_grid):
                 r = idx_plot // cols_grid
                 c = idx_plot % cols_grid
                 ax = axs[r, c]
-
                 if idx_plot >= n:
                     ax.axis('off')
                     continue
 
                 nombre, conjunto_idx = top_sets[idx_plot]
                 indices = sorted(list(conjunto_idx))
-                df_conj = df_ind.loc[indices, cols_attrs]
+                df_conj = df_eval.loc[indices, cols_attrs]
 
-                # Tomar solo la primera fila como representación (como en tu código original)
                 if df_conj.empty:
                     valores = [0]*k
                     num_filas_df = 0
@@ -742,10 +658,7 @@ if generar:
                     valores = df_conj.iloc[0].tolist()
                     num_filas_df = len(df_conj)
 
-                # Cierre del polígono
                 valores_cerrados = list(valores) + [valores[0]]
-
-                # Color
                 color = determinar_color(valores)
 
                 ax.plot(angulos_cerrado, valores_cerrados, color=color)
@@ -755,7 +668,7 @@ if generar:
                 ax.set_xticks(angulos)
                 ax.set_xticklabels(cols_attrs, fontsize=10)
                 ax.yaxis.grid(True)
-                ax.set_ylim(0, 2)           # escala 0..2 como en tu versión
+                ax.set_ylim(0, 2)
                 ax.set_yticks([0, 1, 2])
                 ax.set_yticklabels([0, 1, 2], fontsize=9)
 
@@ -766,227 +679,116 @@ if generar:
 
             st.pyplot(fig)
 
+            # ============ Gráfico compuesto (pastel + radares incrustados) ============
+            candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
+            if candidatas_idx_nom_tam:
+                nombres_dataframes = [nom for _, nom, _ in candidatas_idx_nom_tam]
+                tamanios = [tam for _, _, tam in candidatas_idx_nom_tam]
+                total_incluido = sum(tamanios)
+                porcentajes = [(nom, (tam/total_incluido*100.0) if total_incluido else 0.0)
+                               for _, nom, tam in candidatas_idx_nom_tam]
 
+                valores_dataframes, colores_dataframes = [], []
+                for idx, _, _ in candidatas_idx_nom_tam:
+                    indices = sorted(list(clases[idx]))
+                    sub = df_eval.loc[indices, cols_attrs]
+                    vals = sub.iloc[0].tolist() if not sub.empty else [0]*len(cols_attrs)
+                    valores_dataframes.append(vals)
+                    colores_dataframes.append(determinar_color(vals))
 
+                min_radio = 1.0
+                max_radio = 2.40
+                radar_size_min = 0.10
+                radar_size_max = 0.19
+                etiquetas_radar = [et.replace('_21','').replace('_18','') for et in cols_attrs]
 
-# Aviso si aún no se han calculado las clases
-#if not all(v in globals() for v in ("longitudes_orden","nombres","clases","df_ind","cols_attrs","min_size_for_pie")):
-#    st.info("👉 Presiona **Calcular indiscernibilidad** para continuar.")
-#    st.stop()
+                fig_comp = plt.figure(figsize=(16, 16))
+                main_ax = plt.subplot(111)
+                main_ax.set_position([0.1, 0.1, 0.8, 0.8])
 
-need = ("ind_classes","ind_df","ind_cols","ind_min_size","ind_lengths")
-if not all(k in st.session_state for k in need):
-    st.info("👉 Presiona **Calcular indiscernibilidad** para continuar.")
-    st.stop()
+                if porcentajes:
+                    _, valores_porcentajes = zip(*porcentajes)
+                    valores_porcentajes = [float(p) for p in valores_porcentajes]
+                else:
+                    valores_porcentajes = []
 
-# si vas a seguir usando variables sueltas, recupéralas desde sesión:
-clases = st.session_state["ind_classes"]
-df_ind = st.session_state["ind_df"]
-cols_attrs = st.session_state["ind_cols"]
-min_size_for_pie = st.session_state["ind_min_size"]
-longitudes_orden = st.session_state["ind_lengths"]
-nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
+                colores_ajustados = colores_dataframes[:len(valores_porcentajes)]
+                wedges, texts, autotexts = main_ax.pie(
+                    valores_porcentajes,
+                    colors=colores_ajustados,
+                    autopct='%1.1f%%',
+                    startangle=90,
+                    textprops={'fontsize': 17},
+                    labeldistance=1.1
+                )
 
+                if wedges:
+                    angulos_pastel = [(w.theta1 + w.theta2)/2 for w in wedges]
+                    anchos = [abs(w.theta2 - w.theta1) for w in wedges]
+                    max_ancho = max(anchos) if anchos else 1
+                    angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
 
+                    radios_personalizados = [
+                        min_radio + (1 - (log1p(a)/log1p(max_ancho))) * (max_radio - min_radio)
+                        for a in anchos
+                    ]
+                    tamaños_radar = [
+                        radar_size_min + (a/max_ancho) * (radar_size_max - radar_size_min)
+                        for a in anchos
+                    ]
 
+                    angulos_rad_separados = angulos_rad.copy()
+                    min_sep = np.deg2rad(7)
+                    for i in range(1, len(angulos_rad_separados)):
+                        while abs(angulos_rad_separados[i] - angulos_rad_separados[i-1]) < min_sep:
+                            angulos_rad_separados[i] += min_sep/2
 
-# =========================
-# Asignar ID de clase (1..K), tamaño por fila y nivel de riesgo
-# =========================
+                    for i, (nombre, vals, color, ang_rad, r_inset, tam_radar) in enumerate(
+                        zip(nombres_dataframes, valores_dataframes, colores_dataframes,
+                            angulos_rad_separados, radios_personalizados, tamaños_radar)
+                    ):
+                        factor_alejamiento = 2.3
+                        x = 0.5 + r_inset*np.cos(ang_rad)/factor_alejamiento
+                        y = 0.5 + r_inset*np.sin(ang_rad)/factor_alejamiento
+                        radar_ax = fig_comp.add_axes([x - tam_radar/2, y - tam_radar/2, tam_radar, tam_radar], polar=True)
 
-# 1) ID de clase contiguo 1..K siguiendo el orden de 'clases' (ya viene ordenado por tamaño)
-class_id_by_row = {}
-for class_id, miembros in enumerate(clases, start=1):  # 1..K
-    for idx in miembros:
-        class_id_by_row[idx] = class_id
+                        vals = list(vals)[:len(cols_attrs)] or [0]*len(cols_attrs)
+                        vals_c = vals + [vals[0]]
+                        angs = np.linspace(0, 2*np.pi, len(cols_attrs), endpoint=False).tolist()
+                        angs_c = angs + [angs[0]]
 
-# 2) Tamaño de clase (para cada fila)
-class_size = {class_id: len(miembros) for class_id, miembros in enumerate(clases, start=1)}
-row_class_size = {idx: class_size[class_id_by_row[idx]] for idx in class_id_by_row}
+                        radar_ax.set_theta_offset(np.pi/2)
+                        radar_ax.set_theta_direction(-1)
+                        radar_ax.plot(angs_c, vals_c, color=color)
+                        radar_ax.fill(angs_c, vals_c, color=color, alpha=0.3)
+                        radar_ax.set_xticks(angs)
+                        radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
+                        radar_ax.set_yticks([0,1,2])
+                        radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
+                        radar_ax.set_ylim(0,2)
+                        radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
 
-# 3) Construir DF con TODAS las columnas de df_ind + nuevas columnas
-df_ind_riesgo = df_ind.copy()  # conserva todas las columnas originales
-df_ind_riesgo["num_conjunto"] = df_ind_riesgo.index.map(class_id_by_row).astype("Int64")
-df_ind_riesgo["tam_conjunto"] = df_ind_riesgo.index.map(row_class_size).astype("Int64")
-df_ind_riesgo["label_conjunto"] = df_ind_riesgo["num_conjunto"].apply(lambda x: f"Conjunto {int(x)}" if pd.notna(x) else None)
+                        x0 = 0.5 + 0.3*np.cos(ang_rad)
+                        y0 = 0.5 + 0.3*np.sin(ang_rad)
+                        con = ConnectionPatch(
+                            xyA=(x0, y0), coordsA=fig_comp.transFigure,
+                            xyB=(x, y), coordsB=fig_comp.transFigure,
+                            color='gray', lw=0.8, linestyle='--'
+                        )
+                        fig_comp.add_artist(con)
 
-# 4) Reglas de riesgo (ajusta las listas a tu criterio)
-def asignar_riesgo(num_conjunto: int) -> str:
-    if num_conjunto in (4, 13):
-        return "Riesgo considerable"
-    elif num_conjunto in (3, 6, 9):
-        return "Riesgo moderado"
-    elif num_conjunto in (1, 2, 5, 7, 8, 10, 11, 12, 14):
-        return "Riesgo leve"
-    elif num_conjunto == 0:
-        return "Sin Riesgo"  # normalmente no ocurre con IDs 1..K
-    else:
-        return "No clasificado"
+                st.pyplot(fig_comp)
+                try:
+                    plt.savefig("radar_pastel_final.png", dpi=300, bbox_inches='tight', facecolor='white')
+                    st.download_button(
+                        "Descargar imagen (PNG)",
+                        data=open("radar_pastel_final.png", "rb").read(),
+                        file_name="radar_pastel_final.png",
+                        mime="image/png"
+                    )
+                except Exception:
+                    pass
 
-df_ind_riesgo["nivel_riesgo"] = df_ind_riesgo["num_conjunto"].apply(
-    lambda x: asignar_riesgo(int(x)) if pd.notna(x) else "No clasificado"
-)
-
-# 5) Verificación rápida de filas (debe coincidir con df_ind)
-st.caption(f"Filas df_ind: {len(df_ind):,} | Filas df_ind_riesgo: {len(df_ind_riesgo):,}")
-
-# 6) Mostrar (todas las columnas) y descargar
-st.subheader("DataFrame con ID de clase y nivel de riesgo")
-st.dataframe(df_ind_riesgo, use_container_width=True)
-st.download_button(
-    "Descargar DF con riesgo (CSV)",
-    data=df_ind_riesgo.to_csv(index=False).encode("utf-8"),
-    file_name="df_ind_riesgo.csv",
-    mime="text/csv",
-    key="dl_df_ind_riesgo_full"
-)
-
-# 7) Guardar para usos posteriores
-st.session_state["df_ind_riesgo"] = df_ind_riesgo
-
-
-# --- Post-proceso: marcar "Sin riesgo" según regla de negocio ---
-# 1) Por variables usadas en indiscernibilidad (todas en 0)
-cols_eval = [c for c in cols_attrs if c in df_ind_riesgo.columns]
-if cols_eval:
-    vals = df_ind_riesgo[cols_eval].apply(pd.to_numeric, errors="coerce").fillna(0)
-    mask_sin_riesgo = vals.eq(0).all(axis=1)
-    df_ind_riesgo.loc[mask_sin_riesgo, "nivel_riesgo"] = "Sin riesgo"
-
-# 2) (Opcional) Por comorbilidades: todas en 0 → "Sin riesgo"
-comorb_cols = [c for c in ["C4","C6","C12","C19","C22A","C26","C32"] if c in df_ind_riesgo.columns]
-if comorb_cols:
-    com_vals = df_ind_riesgo[comorb_cols].apply(pd.to_numeric, errors="coerce").fillna(0)
-    mask_sin_comorb = com_vals.eq(0).all(axis=1)
-    df_ind_riesgo.loc[mask_sin_comorb, "nivel_riesgo"] = "Sin riesgo"
-
-# Actualiza en sesión
-st.session_state["df_ind_riesgo"] = df_ind_riesgo
-
-
-
-# ============ NUEVO: Gráfico compuesto (Pastel + radares incrustados) ============
-from matplotlib.patches import ConnectionPatch
-from math import log1p
-
-# Conjuntos para el pastel compuesto (mismo umbral que arriba)
-candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
-if not candidatas_idx_nom_tam:
-    st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el gráfico compuesto.")
-else:
-    # Datos base para pastel y radares
-    nombres_dataframes = [nom for _, nom, _ in candidatas_idx_nom_tam]
-    tamanios = [tam for _, _, tam in candidatas_idx_nom_tam]
-    total_incluido = sum(tamanios)
-    porcentajes = [(nom, (tam/total_incluido*100.0) if total_incluido else 0.0)
-                   for _, nom, tam in candidatas_idx_nom_tam]
-
-    valores_dataframes, colores_dataframes = [], []
-    for idx, _, _ in candidatas_idx_nom_tam:
-        indices = sorted(list(clases[idx]))
-        sub = df_ind.loc[indices, cols_attrs]
-        vals = sub.iloc[0].tolist() if not sub.empty else [0]*len(cols_attrs)
-        valores_dataframes.append(vals)
-        colores_dataframes.append(determinar_color(vals))
-
-    # Parámetros del compuesto
-    min_radio = 1.0
-    max_radio = 2.40
-    radar_size_min = 0.10
-    radar_size_max = 0.19
-    etiquetas_radar = [et.replace('_21','').replace('_18','') for et in cols_attrs]
-
-    # Figura y pastel
-    fig_comp = plt.figure(figsize=(16, 16))
-    main_ax = plt.subplot(111)
-    main_ax.set_position([0.1, 0.1, 0.8, 0.8])
-
-    if porcentajes:
-        nombres_legibles, valores_porcentajes = zip(*porcentajes)
-        valores_porcentajes = [float(p) for p in valores_porcentajes]
-    else:
-        nombres_legibles, valores_porcentajes = [], []
-
-    colores_ajustados = colores_dataframes[:len(valores_porcentajes)]
-    wedges, texts, autotexts = main_ax.pie(
-        valores_porcentajes,
-        colors=colores_ajustados,
-        autopct='%1.1f%%',
-        startangle=90,
-        textprops={'fontsize': 17},
-        labeldistance=1.1
-    )
-
-    # Posiciones para radares
-    if wedges:
-        angulos_pastel = [(w.theta1 + w.theta2)/2 for w in wedges]
-        anchos = [abs(w.theta2 - w.theta1) for w in wedges]
-        max_ancho = max(anchos) if anchos else 1
-        angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
-
-        radios_personalizados = [
-            min_radio + (1 - (log1p(a)/log1p(max_ancho))) * (max_radio - min_radio)
-            for a in anchos
-        ]
-        tamaños_radar = [
-            radar_size_min + (a/max_ancho) * (radar_size_max - radar_size_min)
-            for a in anchos
-        ]
-
-        # Separación angular suave
-        angulos_rad_separados = angulos_rad.copy()
-        min_sep = np.deg2rad(7)
-        for i in range(1, len(angulos_rad_separados)):
-            while abs(angulos_rad_separados[i] - angulos_rad_separados[i-1]) < min_sep:
-                angulos_rad_separados[i] += min_sep/2
-
-        # Radares incrustados + conexiones
-        for i, (nombre, vals, color, ang_rad, r_inset, tam_radar) in enumerate(
-            zip(nombres_dataframes, valores_dataframes, colores_dataframes,
-                angulos_rad_separados, radios_personalizados, tamaños_radar)
-        ):
-            factor_alejamiento = 2.3
-            x = 0.5 + r_inset*np.cos(ang_rad)/factor_alejamiento
-            y = 0.5 + r_inset*np.sin(ang_rad)/factor_alejamiento
-            radar_ax = fig_comp.add_axes([x - tam_radar/2, y - tam_radar/2, tam_radar, tam_radar], polar=True)
-
-            vals = list(vals)[:len(cols_attrs)] or [0]*len(cols_attrs)
-            vals_c = vals + [vals[0]]
-
-            angs = np.linspace(0, 2*np.pi, len(cols_attrs), endpoint=False).tolist()
-            angs_c = angs + [angs[0]]
-
-            radar_ax.set_theta_offset(np.pi/2)
-            radar_ax.set_theta_direction(-1)
-            radar_ax.plot(angs_c, vals_c, color=color)
-            radar_ax.fill(angs_c, vals_c, color=color, alpha=0.3)
-            radar_ax.set_xticks(angs)
-            radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
-            radar_ax.set_yticks([0,1,2])
-            radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
-            radar_ax.set_ylim(0,2)
-            radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
-
-            x0 = 0.5 + 0.3*np.cos(ang_rad)
-            y0 = 0.5 + 0.3*np.sin(ang_rad)
-            con = ConnectionPatch(
-                xyA=(x0, y0), coordsA=fig_comp.transFigure,
-                xyB=(x, y), coordsB=fig_comp.transFigure,
-                color='gray', lw=0.8, linestyle='--'
-            )
-            fig_comp.add_artist(con)
-
-    st.pyplot(fig_comp)
-    try:
-        plt.savefig("radar_pastel_final.png", dpi=300, bbox_inches='tight', facecolor='white')
-        st.download_button(
-            "Descargar imagen (PNG)",
-            data=open("radar_pastel_final.png", "rb").read(),
-            file_name="radar_pastel_final.png",
-            mime="image/png"
-        )
-    except Exception:
-        pass
 # ==================================================================== hasta aqui todo bien
 
 
