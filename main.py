@@ -699,6 +699,48 @@ if all(v in globals() for v in ("clases", "longitudes_orden", "nombres", "df_ind
                 mime="text/csv",
                 key=f"dl_{idx_clase}"
             )
+
+            # ===== Matriz de correlación (solo numéricas) =====
+            st.markdown("#### Matriz de correlación (columnas numéricas)")
+            num_df = df_grupo.select_dtypes(include=["number"]).copy()
+
+            # Quitar columnas sin variación o completamente vacías
+            if not num_df.empty:
+                num_df = num_df.dropna(axis=1, how="all")
+                const_cols = [c for c in num_df.columns if num_df[c].nunique(dropna=True) <= 1]
+                if const_cols:
+                    num_df = num_df.drop(columns=const_cols)
+
+            if num_df.shape[1] < 2:
+                st.info("No hay suficientes columnas numéricas con variación para calcular correlaciones en esta clase.")
+            else:
+                corr = num_df.corr()
+
+                n = corr.shape[1]
+                fig, ax = plt.subplots(
+                    figsize=(min(1.2 * n + 6, 30), min(1.0 * n + 6, 30))
+                )
+                im = ax.imshow(corr.values, vmin=-1, vmax=1)
+                cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+                cbar.ax.set_ylabel("r", rotation=0, labelpad=10)
+
+                ax.set_xticks(range(n))
+                ax.set_xticklabels(corr.columns, rotation=90, fontsize=8)
+                ax.set_yticks(range(n))
+                ax.set_yticklabels(corr.columns, fontsize=8)
+                ax.set_title("Mapa de correlaciones")
+
+                # Anotar valores si la matriz no es muy grande
+                if n <= 20:
+                    for i in range(n):
+                        for j in range(n):
+                            ax.text(
+                                j, i, f"{corr.values[i, j]:.2f}",
+                                ha="center", va="center", fontsize=7
+                            )
+
+                st.pyplot(fig)
+
 else:
     st.info("👉 Primero calcula las clases en **Indiscernibilidad** para habilitar las pestañas.")
 
