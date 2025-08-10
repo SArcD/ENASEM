@@ -225,3 +225,81 @@ if st.session_state["df_filtrado"] is not None:
     st.dataframe(st.session_state["df_filtrado"].head(30), use_container_width=True)
     st.success(f"Filtrado final: {len(st.session_state['df_filtrado']):,} filas")
 
+# =========================
+# Filtro por COMORBILIDADES (en barra lateral)
+# =========================
+# Inicializar session_state
+for key, default in [("comorb_selection", []), ("df_comorb", None)]:
+    if key not in st.session_state:
+        st.session_state[key] = default
+
+# Base para el filtro de comorbilidades:
+# - si ya existe el filtrado por SEX+EDAD úsalo, si no el por SEX, y si no, los datos seleccionados
+df_base_comorb = st.session_state.get("df_filtrado") or st.session_state.get("df_sexo") or datos_seleccionados
+
+# Mapeo: etiqueta legible -> nombre de columna (ya sin _18/_21)
+comorb_map = {
+    "Diabetes (C4)": "C4",
+    "Hipertensión (C6)": "C6",
+    "Cáncer (C12)": "C12",
+    "Asma/Efisema (C19)": "C19",
+    "Infarto / Ataque al corazón (C22A)": "C22A",
+    "Embolia/Derrame/ICT (C26)": "C26",
+    "Artritis/Reumatismo (C32)": "C32",
+}
+
+with st.sidebar:
+    st.subheader("Seleccione comorbilidades")
+    # Filtrar opciones a solo las columnas que existen en los datos
+    opciones_visibles = [lbl for lbl, col in comorb_map.items() if col in df_base_comorb.columns]
+
+    if not opciones_visibles:
+        st.warning("No se encontraron columnas de comorbilidades esperadas (C4, C6, C12, C19, C22A, C26, C32).")
+        st.session_state["df_comorb"] = df_base_comorb.copy()
+    else:
+        seleccion = st.multiselect(
+            "Comorbilidades (0 = No, 1 = Sí). Si no selecciona ninguna, no se filtra.",
+            options=opciones_visibles,
+            default=[],
+            help="El filtrado mantiene filas donde AL MENOS UNA de las comorbilidades seleccionadas es 1."
+        )
+        st.session_state["comorb_selection"] = seleccion
+
+        if not seleccion:
+            # Sin selección → no aplicar filtro por comorbilidades
+            st.session_state["df_comorb"] = df_base_comorb.copy()
+        else:
+            cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_base_comorb.columns]
+
+            # Asegurar 0/1 numéricos
+            df_work = df_base_comorb.copy()
+            for c in cols_sel:
+                df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0).astype(int)
+
+            # Mantener filas donde al menos una comorbilidad seleccionada == 1
+            mask_any = False
+            for c in cols_sel:
+                mask_any = (mask_any | (df_work[c] == 1)) if isinstance(mask_any, pd.Series) else (df_work[c] == 1)
+
+            df_out = df_work[mask_any].copy()
+            st.session_state["df_comorb"] = df_out
+
+# =========================
+# Vista previa — Filtrado por SEX + EDAD + COMORBILIDADES
+# =========================
+if st.session_state["df_comorb"] is not None:
+    st.subheader("Vista previa — Tras filtros (SEX + EDAD + COMORB)")
+    base_len = len(st.session_state.get("df_filtrado") or st.session_state.get("df_sexo") or datos_seleccionados)
+    st.metric("Filas base para comorb.", base_len)
+    st.metric("Filas tras comorb.", len(st.session_state["df_comorb"]))
+    st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
+
+    # Resumen rápido de las comorbilidades seleccionadas
+    if st.session_state["comorb_selection"]:
+        with st.expander("Resumen de comorbilidades seleccionadas (conteos de 1)"):
+            df_show = st.session_state["df_comorb"]
+            for lbl in st.session_state["comorb_selection"]:
+                col = comorb_map[lbl]
+                if col in df_show.columns:
+                    cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
+                    st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
