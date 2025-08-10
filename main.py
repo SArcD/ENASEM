@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import re
 
 # --- Función indiscernibilidad ---
 def indiscernibility(attr, table: pd.DataFrame):
@@ -12,44 +13,49 @@ def indiscernibility(attr, table: pd.DataFrame):
             u_ind[key] = {i}
     return sorted(u_ind.values(), key=len, reverse=True)
 
-# --- Interfaz Streamlit ---
-st.title("Cargar y procesar ENASEM 2018")
+st.title("Cargar y procesar ENASEM (2018 o 2021)")
 
-# Columnas específicas
-columnas_deseadas = [
-    "AGE_18",'SEX_18','C4_18','C6_18', 'C12_18', 'C19_18', 'C22A_18', 'C26_18', "C32_18", 'C37_18',
-    "C49_1_18",'C49_2_18','C49_8_18','C64_18','C66_18', 'C67_1_18','C67_2_18','C68E_18', 'C68G_18', 'C68H_18', 'C69A_18', 'C69B_18',
-    'C71A_18', 'C76_18', 'H1_18','H4_18', 'H5_18',
-    'H6_18', 'H8_18', 'H9_18', 'H10_18', 'H11_18', 'H12_18',
-    'H13_18', 'H15A_18', 'H15B_18', 'H15D_18', 'H16A_18',
-    'H16D_18', 'H17A_18', 'H17D_18', 'H18A_18', 'H18D_18', 'H19A_18',
-    'H19D_18'
+# Columnas base (sin sufijo de año)
+columnas_deseadas_base = [
+    "AGE",'SEX','C4','C6', 'C12', 'C19', 'C22A', 'C26', "C32", 'C37',
+    "C49_1",'C49_2','C49_8','C64','C66', 'C67_1','C67_2','C68E', 'C68G', 'C68H', 'C69A', 'C69B',
+    'C71A', 'C76', 'H1','H4', 'H5',
+    'H6', 'H8', 'H9', 'H10', 'H11', 'H12',
+    'H13', 'H15A', 'H15B', 'H15D', 'H16A',
+    'H16D', 'H17A', 'H17D', 'H18A', 'H18D', 'H19A',
+    'H19D'
 ]
 
 # Subir archivo
-archivo = st.file_uploader("Sube el archivo CSV de ENASEM 2018", type=["csv"])
+archivo = st.file_uploader("Sube el archivo CSV de ENASEM 2018 o 2021", type=["csv"])
 
 df = None
 if archivo is not None:
     try:
-        # Leer solo columnas deseadas
-        datos_seleccionados = pd.read_csv(archivo, usecols=columnas_deseadas)
+        # Leer todo el archivo primero
+        df_raw = pd.read_csv(archivo)
+
+        # Quitar sufijo _18 o _21 de las columnas
+        df_raw.columns = [re.sub(r'_(18|21)$', '', col) for col in df_raw.columns]
+
+        # Filtrar columnas deseadas
+        datos_seleccionados = df_raw[columnas_deseadas_base]
 
         # Combinar columnas de estatura
-        datos_seleccionados['C67_18'] = datos_seleccionados['C67_1_18'] + datos_seleccionados['C67_2_18'] / 100
-        datos_seleccionados = datos_seleccionados.drop(columns=['C67_1_18', 'C67_2_18'])
+        datos_seleccionados['C67'] = datos_seleccionados['C67_1'] + datos_seleccionados['C67_2'] / 100
+        datos_seleccionados = datos_seleccionados.drop(columns=['C67_1', 'C67_2'])
 
         # Agregar índice
         datos_seleccionados['Indice'] = datos_seleccionados.index
 
-        # Reordenar columnas
-        columnas_finales = ['Indice',"AGE_18",'SEX_18','C4_18','C6_18', 'C12_18', 'C19_18', 'C22A_18', 'C26_18', "C32_18", 'C37_18',
-            "C49_1_18",'C49_2_18','C49_8_18','C64_18','C66_18', 'C67_18','C68E_18', 'C68G_18', 'C68H_18', 'C69A_18', 'C69B_18',
-            'C71A_18', 'C76_18', 'H1_18', 'H4_18', 'H5_18',
-            'H6_18', 'H8_18', 'H9_18', 'H10_18', 'H11_18', 'H12_18',
-            'H13_18', 'H15A_18', 'H15B_18', 'H15D_18', 'H16A_18',
-            'H16D_18', 'H17A_18', 'H17D_18', 'H18A_18', 'H18D_18', 'H19A_18',
-            'H19D_18'
+        # Reordenar columnas (ya sin sufijo de año)
+        columnas_finales = ['Indice',"AGE",'SEX','C4','C6', 'C12', 'C19', 'C22A', 'C26', "C32", 'C37',
+            "C49_1",'C49_2','C49_8','C64','C66', 'C67','C68E', 'C68G', 'C68H', 'C69A', 'C69B',
+            'C71A', 'C76', 'H1', 'H4', 'H5',
+            'H6', 'H8', 'H9', 'H10', 'H11', 'H12',
+            'H13', 'H15A', 'H15B', 'H15D', 'H16A',
+            'H16D', 'H17A', 'H17D', 'H18A', 'H18D', 'H19A',
+            'H19D'
         ]
         datos_seleccionados = datos_seleccionados[columnas_finales]
 
