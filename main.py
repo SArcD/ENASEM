@@ -967,7 +967,7 @@ else:
 #hasta aqui todo bien
 
 # =========================
-# Matriz de confusión (partición original vs. variables seleccionadas) con estado
+# Matriz de confusión (reactiva, sin botón) — usa session_state
 # =========================
 st.subheader("Matriz de confusión por selección de variables")
 
@@ -976,66 +976,68 @@ required = ("ind_cols", "ind_df", "ind_classes", "ind_lengths", "ind_min_size")
 if not all(k in ss for k in required):
     st.info("👉 Primero presiona **Calcular indiscernibilidad**.")
 else:
-    # Init selección (por defecto: TODAS)
-    if "vars_sel_cm" not in ss:
-        ss["vars_sel_cm"] = list(ss["ind_cols"])
-
-    # Subconjunto del pastel
-    ids_pastel = [i for i, tam in ss["ind_lengths"] if tam >= int(ss["ind_min_size"])]
+    # Subconjunto del pastel (mismo criterio que en reductos)
+    umbral = int(ss["ind_min_size"])
+    ids_pastel = [i for i, tam in ss["ind_lengths"] if tam >= umbral]
     if not ids_pastel:
-        st.info(f"No hay clases con tamaño ≥ {ss['ind_min_size']} para evaluar la matriz de confusión.")
+        st.info(f"No hay clases con tamaño ≥ {umbral} para evaluar la matriz de confusión.")
     else:
         universo_sel = sorted(set().union(*[ss["ind_classes"][i] for i in ids_pastel]))
         df_eval = ss["ind_df"].loc[universo_sel].copy()
 
-        # Form para evitar recálculo en cada cambio
-        with st.form("cm_form"):
-            vars_sel = st.multiselect(
-                "Seleccione variables para comparar contra la partición original",
-                options=list(ss["ind_cols"]),
-                default=ss["vars_sel_cm"],
-                key="vars_sel_cm",
-                help="Compara la partición con estas variables vs. la original, usando solo filas del pastel."
-            )
-            submitted = st.form_submit_button("Calcular matriz")
+        # Opciones actuales (en caso de que hayan cambiado columnas)
+        opts = list(ss["ind_cols"])
 
-        # Función de cálculo
-        def _calc_confusion(_vars_sel):
+        # Inicializar / sanear selección persistente
+        if "vars_sel_cm" not in ss:
+            ss["vars_sel_cm"] = opts.copy()   # por defecto TODAS (incluye H6)
+        else:
+            # Mantener solo columnas que aún existen; si queda vacío, volver a TODAS
+            ss["vars_sel_cm"] = [c for c in ss["vars_sel_cm"] if c in opts] or opts.copy()
+
+        # Multiselect reactivo (sin form)
+        st.caption("Seleccione variables para comparar vs. la partición original (filas del pastel).")
+        st.multiselect(
+            "Variables",
+            options=opts,
+            default=ss["vars_sel_cm"],
+            key="vars_sel_cm",
+            help="La partición original usa TODAS las variables de Indiscernibilidad; la seleccionada usa solo estas."
+        )
+
+        # Calcular siempre que haya selección
+        if not ss["vars_sel_cm"]:
+            st.warning("Selecciona al menos una variable.")
+        else:
+            # Partición original (sobre df_eval)
             bloques_orig_conf = indiscernibility(ss["ind_cols"], df_eval)
             y_orig_conf = blocks_to_labels(bloques_orig_conf, universo_sel)
-            bloques_sel = indiscernibility(_vars_sel, df_eval)
+
+            # Partición con variables seleccionadas
+            bloques_sel = indiscernibility(ss["vars_sel_cm"], df_eval)
             y_sel = blocks_to_labels(bloques_sel, universo_sel)
+
+            # Matriz de contingencia y métricas
             C = contingency_from_labels(y_orig_conf, y_sel)
             ari = ari_from_contingency(C)
             nmi = nmi_from_contingency(C)
             pres_same, pres_diff = preservation_metrics_from_contingency(C)
-            df_conf = pd.DataFrame(
-                C,
-                index=[f"Orig_{i+1}" for i in range(C.shape[0])],
-                columns=[f"Sel_{j+1}" for j in range(C.shape[1])]
-            )
-            return df_conf, ari, nmi, pres_same, pres_diff
 
-        # Ejecutar solo al pulsar el botón
-        if submitted:
-            if not ss["vars_sel_cm"]:
-                st.warning("Selecciona al menos una variable.")
-            else:
-                df_conf, ari, nmi, pres_same, pres_diff = _calc_confusion(ss["vars_sel_cm"])
-                ss["df_conf_last"] = df_conf
-                ss["cm_metrics_last"] = (ari, nmi, pres_same, pres_diff)
-
-        # Mostrar último resultado disponible
-        if "df_conf_last" in ss and "cm_metrics_last" in ss:
-            df_conf = ss["df_conf_last"]
-            ari, nmi, pres_same, pres_diff = ss["cm_metrics_last"]
-
+            # Widgets de resumen
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("ARI", f"{ari:.3f}")
             c2.metric("NMI", f"{nmi:.3f}")
             c3.metric("Pres. iguales", f"{pres_same*100:.1f}%")
             c4.metric("Pres. distintos", f"{pres_diff*100:.1f}%")
 
+            # Matriz como DataFrame con etiquetas
+            df_conf = pd.DataFrame(
+                C,
+                index=[f"Orig_{i+1}" for i in range(C.shape[0])],
+                columns=[f"Sel_{j+1}" for j in range(C.shape[1])]
+            )
+
+            # Heatmap con anotaciones
             fig_cm, ax_cm = plt.subplots(
                 figsize=(max(8, 0.6*df_conf.shape[1]+6), max(6, 0.4*df_conf.shape[0]+4))
             )
@@ -1052,6 +1054,7 @@ else:
                         ax_cm.text(j, i, str(df_conf.iat[i, j]), ha="center", va="center", fontsize=8)
             st.pyplot(fig_cm)
 
+            # Tabla y descarga
             with st.expander("Ver/descargar matriz de confusión"):
                 st.dataframe(df_conf, use_container_width=True)
                 st.download_button(
@@ -1061,8 +1064,6 @@ else:
                     mime="text/csv",
                     key="dl_confusion_csv"
                 )
-        else:
-            st.info("Selecciona variables y pulsa **Calcular matriz** para ver resultados.")
 
 # =========================
 # Tabs para visualizar/descargar clases de indiscernibilidad
