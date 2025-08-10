@@ -562,36 +562,35 @@ if generar:
     else:
         # Usar SOLO el DF reducido (Indice + ADL)
         #df_ind = st.session_state["ind_df_reducido"].copy()
-        df_ind = st.session_state["ind_df_reducido"].set_index("Indice").copy()
 
         # Usar SOLO el DF reducido (Indice + ADL) y asegurar índice correcto
         src = st.session_state.get("ind_df_reducido")
-
         if not isinstance(src, pd.DataFrame) or src.empty:
             st.error("No hay DF reducido en sesión. Revisa la sección de 'Indice + ADL'.")
             st.stop()
 
         df_ind = src.copy()
-        # Si todavía tiene la columna 'Indice', úsala como índice; si no, asumimos que ya es el índice
         if "Indice" in df_ind.columns:
             df_ind.set_index("Indice", inplace=True)
-        # (opcional) nombra el índice para claridad
         if df_ind.index.name != "Indice":
             df_ind.index.name = "Indice"
 
-        # Ahora sí calcula clases SIN volver a hacer set_index
+        # Calcular clases
         clases = indiscernibility(cols_attrs, df_ind)
 
 
+        longitudes = [(i, len(s)) for i, s in enumerate(clases)]
+        longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
+        nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
         
 
         
         # 1) Calcular clases (sobre cols_attrs)
         #clases = indiscernibility(cols_attrs, df_ind.set_index("Indice"))        
         # Resumen/etiquetas de clases
-        longitudes = [(i, len(s)) for i, s in enumerate(clases)]
-        longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
-        nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
+        #longitudes = [(i, len(s)) for i, s in enumerate(clases)]
+        #longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
+        #nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
         # Nota: usamos "Indice" como índice para que los sets contengan esos IDs
         st.session_state["ind_lengths"] = longitudes_orden
 
@@ -602,15 +601,25 @@ if generar:
             # ... (tu resumen, pastel, radar se mantienen igual) ...
 
             # Persistir artefactos mínimos
+            #st.session_state["ind_cols"] = cols_attrs
+            #st.session_state["ind_df"] = df_ind.set_index("Indice")  # compacto y con índice 'Indice'
+            #st.session_state["ind_classes"] = clases
+            #st.session_state["ind_lengths"] = sorted(
+            #    [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1],
+            #    key=lambda x: x[1], reverse=True
+            #)
+            #st.session_state["ind_min_size"] = int(min_size_for_pie)
+
+
+            # Persistir artefactos mínimos (NO vuelvas a hacer set_index aquí)
             st.session_state["ind_cols"] = cols_attrs
-            st.session_state["ind_df"] = df_ind.set_index("Indice")  # compacto y con índice 'Indice'
+            st.session_state["ind_df"] = df_ind.copy()          # ya indexado por Indice
             st.session_state["ind_classes"] = clases
             st.session_state["ind_lengths"] = sorted(
                 [(i, len(s)) for i, s in enumerate(clases) if len(s) >= 1],
                 key=lambda x: x[1], reverse=True
             )
             st.session_state["ind_min_size"] = int(min_size_for_pie)
-
 
             
             # 3) Pastel de clases con tamaño >= umbral
@@ -713,10 +722,22 @@ if generar:
 
 
 # Aviso si aún no se han calculado las clases
-if not all(v in globals() for v in ("longitudes_orden","nombres","clases","df_ind","cols_attrs","min_size_for_pie")):
+#if not all(v in globals() for v in ("longitudes_orden","nombres","clases","df_ind","cols_attrs","min_size_for_pie")):
+#    st.info("👉 Presiona **Calcular indiscernibilidad** para continuar.")
+#    st.stop()
+
+need = ("ind_classes","ind_df","ind_cols","ind_min_size","ind_lengths")
+if not all(k in st.session_state for k in need):
     st.info("👉 Presiona **Calcular indiscernibilidad** para continuar.")
     st.stop()
 
+# si vas a seguir usando variables sueltas, recupéralas desde sesión:
+clases = st.session_state["ind_classes"]
+df_ind = st.session_state["ind_df"]
+cols_attrs = st.session_state["ind_cols"]
+min_size_for_pie = st.session_state["ind_min_size"]
+longitudes_orden = st.session_state["ind_lengths"]
+nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
 
 
 
