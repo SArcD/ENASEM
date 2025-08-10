@@ -752,6 +752,56 @@ if all(v in globals() for v in ("clases", "longitudes_orden", "nombres", "df_ind
                 
                 st.pyplot(fig)
 
+
+# =========================
+# Asignar num_conjunto y nivel de riesgo (sin modificar df_ind)
+# =========================
+
+# Mapa: id de clase -> posición (1..N) según longitudes_orden
+rank_por_clase = {class_idx: rank+1 for rank, (class_idx, _) in enumerate(longitudes_orden)}
+
+# Mapa: índice de fila -> num_conjunto (1..N)
+indice_a_conjunto = {}
+for class_idx, miembros in enumerate(clases):
+    num = rank_por_clase.get(class_idx)
+    for i in miembros:
+        indice_a_conjunto[i] = num
+
+df_ind_riesgo = df_ind.copy()
+df_ind_riesgo["num_conjunto"] = df_ind_riesgo.index.map(indice_a_conjunto).astype("Int64")
+
+# Reglas de riesgo
+def asignar_riesgo(num_conjunto: int) -> str:
+    if num_conjunto in (4, 13):
+        return "Riesgo considerable"
+    elif num_conjunto in (3, 6, 9):
+        return "Riesgo moderado"
+    elif num_conjunto in (1, 2, 5, 7, 8, 10, 11, 12, 14):
+        return "Riesgo leve"
+    elif num_conjunto == 0:
+        return "Sin Riesgo"   # Nota: con numeración 1..N esta regla normalmente no se usa
+    else:
+        return "No clasificado"
+
+df_ind_riesgo["nivel_riesgo"] = df_ind_riesgo["num_conjunto"].apply(
+    lambda x: asignar_riesgo(int(x)) if pd.notna(x) else "No clasificado"
+)
+
+# (Opcional) Vista/descarga rápida
+st.subheader("Asignación de riesgo por clase")
+st.dataframe(df_ind_riesgo[["num_conjunto", "nivel_riesgo"] + cols_attrs].head(50), use_container_width=True)
+st.download_button(
+    "Descargar DataFrame con riesgo (CSV)",
+    data=df_ind_riesgo.to_csv(index=False).encode("utf-8"),
+    file_name="df_ind_riesgo.csv",
+    mime="text/csv",
+    key="dl_df_ind_riesgo"
+)
+
+# Guardar en session_state por si lo necesitas después
+st.session_state["df_ind_riesgo"] = df_ind_riesgo
+
+
 else:
     st.info("👉 Primero calcula las clases en **Indiscernibilidad** para habilitar las pestañas.")
 
