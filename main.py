@@ -1065,6 +1065,164 @@ else:
                     key="dl_confusion_csv"
                 )
 
+#hasta aqui todo bien y comienza el random forest
+
+# =========================
+# Random Forest + SMOTE con variables del reducto
+# =========================
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from imblearn.over_sampling import SMOTE
+from sklearn.metrics import classification_report, confusion_matrix
+
+ss = st.session_state
+need = ("ind_cols", "ind_df", "ind_classes", "ind_lengths", "ind_min_size", "df_ind_riesgo")
+if not all(k in ss for k in need):
+    st.info("👉 Calcula indiscernibilidad y asigna riesgo antes de entrenar el modelo.")
+else:
+    st.subheader("Modelo: Random Forest + SMOTE (target = nivel_riesgo)")
+
+    # Subconjunto de filas (mismo criterio del pastel)
+    umbral = int(ss["ind_min_size"])
+    ids_pastel = [i for i, tam in ss["ind_lengths"] if tam >= umbral]
+    universo_sel = sorted(set().union(*[ss["ind_classes"][i] for i in ids_pastel])) if ids_pastel else []
+
+    if not universo_sel:
+        st.warning("No hay filas en el subconjunto del pastel para entrenar.")
+    else:
+        # DataFrame con target (viene de df_ind_riesgo) y features (ind_cols)
+        df_risk_full: pd.DataFrame = ss["df_ind_riesgo"].copy()
+        df_train = df_risk_full.loc[df_risk_full.index.intersection(universo_sel)].copy()
+
+        # Variables del reducto a usar (por defecto: selección actual de la matriz de confusión si existe)
+        feat_cols = (ss.get("vars_sel_cm") or ss["ind_cols"]).copy()
+        feat_cols = [c for c in feat_cols if c in df_train.columns]  # asegurar que existen
+
+        if not feat_cols:
+            st.warning("No hay columnas de entrada disponibles para entrenar.")
+        elif "nivel_riesgo" not in df_train.columns:
+            st.error("No encuentro la columna 'nivel_riesgo'. Asegúrate de haber corrido la asignación de riesgo.")
+        else:
+            # Preparar X, y
+            X = df_train[feat_cols].apply(pd.to_numeric, errors="coerce").fillna(0)
+            y_raw = df_train["nivel_riesgo"].astype(str)
+
+            # Opcional: excluir etiquetas no informativas
+            mask_valid = ~y_raw.isin(["No clasificado", "None", "nan"])
+            X = X[mask_valid]
+            y_raw = y_raw[mask_valid]
+
+            if X.shape[0] < 10 or X[feat_cols].nunique().sum() == 0:
+                st.warning("Muy pocos datos/variación para entrenar el modelo.")
+            else:
+                # Codificar etiquetas
+                le = LabelEncoder()
+                y = le.fit_transform(y_raw.values)
+
+                # Train / test
+                Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+
+                # SMOTE (solo sobre train)
+                sm = SMOTE(random_state=42)
+                Xtr_sm, ytr_sm = sm.fit_resample(Xtr, ytr)
+
+                # Random Forest
+                rf = RandomForestClassifier(
+                    n_estimators=300,
+                    max_depth=None,
+                    random_state=42,
+                    n_jobs=-1
+                )
+                rf.fit(Xtr_sm, ytr_sm)
+
+                # Evaluación rápida
+                ypred = rf.predict(Xte)
+                report = classification_report(yte, ypred, target_names=le.classes_, zero_division=0)
+                cm = confusion_matrix(yte, ypred)
+
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown("**Reporte de clasificación (test)**")
+                    st.text(report)
+                with c2:
+                    fig_eval, ax_eval = plt.subplots(figsize=(5, 4))
+                    im = ax_eval.imshow(cm, cmap="Blues")
+                    fig_eval.colorbar(im, ax=ax_eval, fraction=0.046, pad=0.04)
+                    ax_eval.set_title("Matriz de confusión (test)")
+                    ax_eval.set_xlabel("Predicho")
+                    ax_eval.set_ylabel("Real")
+                    ax_eval.set_xticks(range(len(le.classes_))); ax_eval.set_xticklabels(le.classes_, rotation=45, ha="right")
+                    ax_eval.set_yticks(range(len(le.classes_))); ax_eval.set_yticklabels(le.classes_)
+                    # anotar
+                    for i in range(cm.shape[0]):
+                        for j in range(cm.shape[1]):
+                            ax_eval.text(j, i, str(cm[i, j]), ha="center", va="center", fontsize=8)
+                    st.pyplot(fig_eval)
+
+                # Guardar artefactos en session_state
+                ss["rf_model"] = rf
+                ss["rf_label_encoder"] = le
+                ss["rf_feat_cols"] = feat_cols
+
+                st.success(f"Modelo entrenado con {len(feat_cols)} variables: {', '.join(feat_cols)}")
+
+                # -------- Función de aplicación al DF filtrado --------
+                def aplicar_modelo_random_forest(df_in: pd.DataFrame) -> pd.DataFrame:
+                    """Devuelve df con columna 'diagnostico_predicho' usando el modelo entrenado."""
+                    if "rf_model" not in st.session_state or "rf_label_encoder" not in st.session_state or "rf_feat_cols" not in st.session_state:
+                        st.warning("Modelo no encontrado en memoria. Entrena el modelo primero.")
+                        return df_in
+
+                    model = st.session_state["rf_model"]
+                    le_ = st.session_state["rf_label_encoder"]
+                    feats = st.session_state["rf_feat_cols"]
+
+                    # Asegurar todas las columnas de entrada; las faltantes se llenan con 0
+                    Xp = df_in.copy()
+                    for c in feats:
+                        if c not in Xp.columns:
+                            Xp[c] = 0
+                    Xp = Xp[feats].apply(pd.to_numeric, errors="coerce").fillna(0)
+
+                    ypred = model.predict(Xp)
+                    labels = le_.inverse_transform(ypred)
+                    out = df_in.copy()
+                    out["diagnostico_predicho"] = labels
+                    return out
+
+                # Hacerla accesible desde session_state
+                ss["aplicar_modelo_random_forest"] = aplicar_modelo_random_forest
+
+                # -------- Aplicar al DF filtrado actual y mostrar --------
+                base_pred = ss.get("df_comorb")
+                if not isinstance(base_pred, pd.DataFrame) or base_pred.empty:
+                    base_pred = ss.get("df_filtrado")
+                if not isinstance(base_pred, pd.DataFrame) or base_pred.empty:
+                    base_pred = ss.get("df_sexo")
+                if not isinstance(base_pred, pd.DataFrame) or base_pred.empty:
+                    base_pred = ss.get("ind_df")  # último recurso
+
+                if isinstance(base_pred, pd.DataFrame) and not base_pred.empty:
+                    df_predicho = aplicar_modelo_random_forest(base_pred)
+                    st.subheader("Aplicación del modelo al DataFrame filtrado")
+                    st.dataframe(df_predicho.head(50), use_container_width=True)
+
+                    # Guardar y ofrecer descarga
+                    ss["df_predicho"] = df_predicho
+                    st.download_button(
+                        "Descargar con diagnóstico predicho (CSV)",
+                        data=df_predicho.to_csv(index=False).encode("utf-8"),
+                        file_name="df_con_diagnostico_predicho.csv",
+                        mime="text/csv",
+                        key="dl_df_predicho"
+                    )
+                else:
+                    st.info("No hay un DataFrame filtrado disponible para aplicar el modelo.")
+
+
+
+
 # =========================
 # Tabs para visualizar/descargar clases de indiscernibilidad
 # =========================
