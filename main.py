@@ -902,26 +902,50 @@ else:
             key=f"dl_{sel_i}_adl"
         )
 
-        # ---- Matriz de correlación (todas las ADL del subconjunto) ----
-        st.subheader("Matriz de correlación (todas las ADL del subconjunto)")
-        num = df_sub.apply(pd.to_numeric, errors="coerce")
-        corr = num.corr()  # Pearson; ignora NaN por pares
 
-        # tamaño dinámico según # columnas
+        # ---- Matriz de correlación (todas las ADL del subconjunto), sin NaN en el gráfico ----
+        st.subheader("Matriz de correlación (todas las ADL del subconjunto)")
+
+        # 1) Limpieza: quedarnos solo con columnas con suficientes datos y variación
+        num_all = df_sub.apply(pd.to_numeric, errors="coerce")
+
+        min_valid = max(2, int(0.5 * len(num_all)))   # al menos 50% de filas no nulas
+        keep_cols = [
+            c for c in num_all.columns
+            if num_all[c].notna().sum() >= min_valid and num_all[c].nunique(dropna=True) > 1
+        ]
+
+        dropped = [c for c in num_all.columns if c not in keep_cols]
+        if dropped:
+            st.caption(f"Columnas excluidas por falta de datos/variación: {', '.join(dropped)}")
+
+        num = num_all[keep_cols]
+        corr = num.corr()  # Pearson por pares válidos
+
+        # 2) Plot: enmascarar NaN para que no aparezcan bloques 'nan'
+        cmap = plt.cm.coolwarm
+        cmap.set_bad(color='lightgray')  # celdas sin valor quedarán gris claro
+        mat = np.ma.masked_invalid(corr.values)
+
         fig_w = max(8, 0.45 * len(corr.columns))
         fig_h = max(6, 0.45 * len(corr.columns))
         figc, axc = plt.subplots(figsize=(fig_w, fig_h))
-        im = axc.imshow(corr.values, cmap="coolwarm", vmin=-1, vmax=1)
+        im = axc.imshow(mat, cmap=cmap, vmin=-1, vmax=1)
         figc.colorbar(im, ax=axc, fraction=0.046, pad=0.04)
+
         axc.set_xticks(range(len(corr.columns))); axc.set_xticklabels(corr.columns, rotation=90)
         axc.set_yticks(range(len(corr.index)));  axc.set_yticklabels(corr.index)
         axc.set_title(f"Correlaciones — {nombres[sel_i]}")
 
-        # anotar coeficientes
+        # 3) Anotar coeficientes solo donde hay valor
         for i in range(corr.shape[0]):
             for j in range(corr.shape[1]):
-                axc.text(j, i, f"{corr.values[i, j]:.2f}", ha="center", va="center", fontsize=8)
+                val = corr.values[i, j]
+                if not np.isnan(val):
+                    axc.text(j, i, f"{val:.2f}", ha="center", va="center", fontsize=8)
 
         figc.tight_layout()
         st.pyplot(figc)
+
+
 
