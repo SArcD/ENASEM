@@ -564,8 +564,30 @@ if generar:
         #df_ind = st.session_state["ind_df_reducido"].copy()
         df_ind = st.session_state["ind_df_reducido"].set_index("Indice").copy()
 
+        # Usar SOLO el DF reducido (Indice + ADL) y asegurar índice correcto
+        src = st.session_state.get("ind_df_reducido")
+
+        if not isinstance(src, pd.DataFrame) or src.empty:
+            st.error("No hay DF reducido en sesión. Revisa la sección de 'Indice + ADL'.")
+            st.stop()
+
+        df_ind = src.copy()
+        # Si todavía tiene la columna 'Indice', úsala como índice; si no, asumimos que ya es el índice
+        if "Indice" in df_ind.columns:
+            df_ind.set_index("Indice", inplace=True)
+        # (opcional) nombra el índice para claridad
+        if df_ind.index.name != "Indice":
+            df_ind.index.name = "Indice"
+
+        # Ahora sí calcula clases SIN volver a hacer set_index
+        clases = indiscernibility(cols_attrs, df_ind)
+
+
+        
+
+        
         # 1) Calcular clases (sobre cols_attrs)
-        clases = indiscernibility(cols_attrs, df_ind.set_index("Indice"))        
+        #clases = indiscernibility(cols_attrs, df_ind.set_index("Indice"))        
         # Resumen/etiquetas de clases
         longitudes = [(i, len(s)) for i, s in enumerate(clases)]
         longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
