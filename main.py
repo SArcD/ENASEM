@@ -1,116 +1,110 @@
-# app.py
 import re
 import pandas as pd
 import streamlit as st
 
-# =========================
-# Infraestructura modular
-# =========================
-FEATURES = []  # lista de (orden, nombre, función)
-
-def feature(name: str, order: int = 100):
-    """Decorator para registrar secciones de UI sin reescribir lo previo."""
-    def deco(fn):
-        FEATURES.append((order, name, fn))
-        return fn
-    return deco
+st.set_page_config(page_title="ENASEM — Carga y filtros básicos", layout="wide")
+st.title("ENASEM — Cargar y filtrar por sexo y edad")
 
 # =========================
-# Utilidades reutilizables
+# 1) Cargar archivo y normalizar nombres de columnas
+#    (quita solo el sufijo _18 o _21)
 # =========================
-def normalize_year_suffix(columns):
-    """Quita _18/_21 al final."""
-    return [re.sub(r'_(18|21)$', '', c) for c in columns]
+archivo = st.file_uploader("Sube un CSV de ENASEM 2018 o 2021", type=["csv"])
 
-def load_csv_streamlit(file, usecols=None):
-    df = pd.read_csv(file)
-    df.columns = normalize_year_suffix(df.columns)
-    if usecols:
-        missing = set(usecols) - set(df.columns)
-        if missing:
-            st.warning(f"Columnas faltantes ignoradas: {sorted(missing)}")
-        df = df[[c for c in usecols if c in df.columns]]
-    return df
+if "df" not in st.session_state:
+    st.session_state["df"] = None
+if "df_sex" not in st.session_state:
+    st.session_state["df_sex"] = None
+if "df_filtered" not in st.session_state:
+    st.session_state["df_filtered"] = None
 
-def combine_height(df, col1="C67_1", col2="C67_2", out="C67"):
-    if col1 in df.columns and col2 in df.columns:
-        df[out] = pd.to_numeric(df[col1], errors="coerce") + pd.to_numeric(df[col2], errors="coerce")/100
-        return df.drop(columns=[col1, col2])
-    return df
+if archivo is not None:
+    try:
+        df_raw = pd.read_csv(archivo)
+        # Normaliza columnas quitando solo los sufijos _18 o _21
+        df_raw.columns = [re.sub(r'_(18|21)$', '', c) for c in df_raw.columns]
+        st.session_state["df"] = df_raw
+        st.success("Archivo cargado y columnas normalizadas ✅")
+        st.caption(f"Columnas detectadas: {', '.join(list(df_raw.columns)[:12])}" + ("..." if len(df_raw.columns) > 12 else ""))
+    except Exception as e:
+        st.error(f"Error al leer el archivo: {e}")
 
-def ensure_numeric(df, cols):
-    for c in cols:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors="coerce")
-    return df
+df = st.session_state["df"]
 
-def indiscernibility(attr, table: pd.DataFrame):
-    u_ind = {}
-    for i in table.index:
-        key = tuple(table.loc[i, a] for a in attr)
-        u_ind.setdefault(key, set()).add(i)
-    return sorted(u_ind.values(), key=len, reverse=True)
+if df is None:
+    st.info("Carga un archivo para continuar.")
+    st.stop()
+
+st.subheader("Vista previa (datos originales)")
+st.dataframe(df.head(30), use_container_width=True)
 
 # =========================
-# App: cabecera + carga
+# 2) Selección de SEX (1=Hombre, 2=Mujer o Ambos)
 # =========================
-st.set_page_config(page_title="ENASEM modular", layout="wide")
-st.title("ENASEM (2018/2021) — App modular")
+if "SEX" not in df.columns:
+    st.error("No se encontró la columna 'SEX' (después de normalizar).")
+    st.stop()
 
-COLUMNAS_BASE = [
-    "AGE","SEX","C4","C6","C12","C19","C22A","C26","C32","C37",
-    "C49_1","C49_2","C49_8","C64","C66","C67_1","C67_2","C68E","C68G","C68H",
-    "C69A","C69B","C71A","C76","H1","H4","H5","H6","H8","H9","H10","H11","H12",
-    "H13","H15A","H15B","H15D","H16A","H16D","H17A","H17D","H18A","H18D","H19A","H19D"
-]
+# Aseguramos que SEX sea numérico (1/2)
+df["SEX"] = pd.to_numeric(df["SEX"], errors="coerce")
 
-with st.sidebar:
-    st.header("Carga de datos")
-    up = st.file_uploader("CSV ENASEM 2018/2021", type=["csv"])
-    if up and st.button("Procesar archivo"):
-        df = load_csv_streamlit(up, usecols=COLUMNAS_BASE)
-        df = combine_height(df, "C67_1", "C67_2", "C67")
-        df.insert(0, "Indice", df.index)  # opcional
-        st.session_state["df"] = df
-        st.success("Archivo cargado y normalizado.")
+opcion_sex = st.radio(
+    "Selecciona el sexo a analizar",
+    options=["Ambos", "Hombre (1)", "Mujer (2)"],
+    horizontal=True,
+)
 
-df = st.session_state.get("df")
-if df is not None:
-    st.caption(f"Filas: {len(df):,} | Columnas: {len(df.columns)}")
-    st.dataframe(df.head(50), use_container_width=True)
+if opcion_sex == "Hombre (1)":
+    df_sex = df[df["SEX"] == 1].copy()
+elif opcion_sex == "Mujer (2)":
+    df_sex = df[df["SEX"] == 2].copy()
 else:
-    st.info("Carga un archivo en la barra lateral para comenzar.")
+    df_sex = df.copy()
 
-###################filtro de edad##################################################
+st.session_state["df_sex"] = df_sex
 
-@feature("Filtro por edad", order=10)
-def ui_age_filter():
-    df = st.session_state.get("df")
-    if df is None:
-        return
-    posibles_cols_edad = ["AGE", "AGE_18", "AGE_21"]  # por si llega crudo
-    col_edad = next((c for c in posibles_cols_edad if c in df.columns), None)
-    if col_edad is None:
-        st.warning("No se encontró columna de edad (AGE).")
-        return
+c1, c2 = st.columns(2)
+c1.metric("Filas totales (archivo)", len(df))
+c2.metric("Filas tras filtro de SEX", len(df_sex))
 
-    df[col_edad] = pd.to_numeric(df[col_edad], errors="coerce")
-    if df[col_edad].notna().sum() == 0:
-        st.warning("Columna de edad sin valores numéricos.")
-        return
+st.write("Vista previa tras filtrar por SEX:")
+st.dataframe(df_sex.head(30), use_container_width=True)
 
-    e_min, e_max = int(df[col_edad].min(skipna=True)), int(df[col_edad].max(skipna=True))
-    st.subheader("🎚️ Filtro por rango de edad")
-    age_lo, age_hi = st.slider("Rango de edad", e_min, e_max, value=(e_min, e_max), step=1)
-    df_f = df[df[col_edad].between(age_lo, age_hi, inclusive="both")].copy()
+# =========================
+# 3) Selección de rango de edad (columna AGE)
+# =========================
+if "AGE" not in df_sex.columns:
+    st.error("No se encontró la columna 'AGE' (después de normalizar).")
+    st.stop()
 
-    c1, c2 = st.columns(2)
-    c1.metric("Filas totales", len(df))
-    c2.metric("Filtradas por edad", len(df_f))
+# Aseguramos que AGE sea numérico
+df_sex["AGE"] = pd.to_numeric(df_sex["AGE"], errors="coerce")
 
-    st.dataframe(df_f.head(30), use_container_width=True)
-    # Guardar para que otras features usen el filtrado
-    st.session_state["df_filtered"] = df_f
+if df_sex["AGE"].notna().sum() == 0:
+    st.warning("La columna AGE no tiene valores numéricos válidos.")
+    st.stop()
 
+edad_min = int(df_sex["AGE"].min(skipna=True))
+edad_max = int(df_sex["AGE"].max(skipna=True))
 
+st.subheader("Filtro por rango de edad")
+rango = st.slider(
+    "Selecciona el rango de edad (años)",
+    min_value=edad_min,
+    max_value=edad_max,
+    value=(edad_min, edad_max),
+    step=1,
+)
+edad_inf, edad_sup = rango
 
+df_filtrado = df_sex[df_sex["AGE"].between(edad_inf, edad_sup, inclusive="both")].copy()
+st.session_state["df_filtered"] = df_filtrado
+
+c3, c4 = st.columns(2)
+c3.metric("Edad mínima", edad_inf)
+c4.metric("Edad máxima", edad_sup)
+
+st.write("Vista previa tras filtro de SEX + EDAD:")
+st.dataframe(df_filtrado.head(30), use_container_width=True)
+
+st.success(f"Filtrado final: {len(df_filtrado):,} filas")
