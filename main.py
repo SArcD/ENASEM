@@ -869,7 +869,7 @@ st.dataframe(df_eval_riesgo.reset_index(), use_container_width=True)
 
 # Descargar
 st.download_button(
-    "Descargar filas del pastel con nivel_riesgo (CSV)",
+    "Descargue filas del pastel con nivel_riesgo (CSV)",
     data=df_eval_riesgo.reset_index().to_csv(index=False).encode("utf-8"),
     file_name="filas_pastel_con_nivel_riesgo.csv",
     mime="text/csv",
