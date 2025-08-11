@@ -84,10 +84,8 @@ if "blocks_to_labels" not in globals():
 
 import streamlit as st
 
-# URL RAW del logo en GitHub
 LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
 
-# Encabezado con imagen + título
 col_logo, col_title = st.columns([1, 3], gap="small")
 
 with col_logo:
@@ -96,9 +94,13 @@ with col_logo:
 with col_title:
     st.markdown(
         """
-        <h1 style="margin-bottom:6px;">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="font-size:1.05rem; color:#444;">
-            Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
+        <div style="display:inline-block; text-align:left;">
+            <h1 style="margin-bottom:6px; display:inline-block;">
+                RS²: Rough Sets para Riesgo de Sarcopenia
+            </h1>
+            <div style="font-size:1.05rem; color:#444; max-width: 40ch;">
+                Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
+            </div>
         </div>
         """,
         unsafe_allow_html=True
