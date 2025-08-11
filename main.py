@@ -274,7 +274,7 @@ if st.session_state["df_sexo"] is not None:
     st.subheader("Filtrado por sexo")
     c1, c2 = st.columns(2)
     c1.metric("Filas totales", len(datos_seleccionados))
-    c2.metric("Filas tras SEX", len(st.session_state["df_sexo"]))
+    c2.metric("Filas después de filtrar por sexo", len(st.session_state["df_sexo"]))
     #st.dataframe(st.session_state["df_sexo"].head(30), use_container_width=True)
 
 
@@ -349,10 +349,14 @@ with st.sidebar:
 # =========================
 if st.session_state["df_filtrado"] is not None:
     st.subheader("Filtrado por sexo + edad")
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("Filas base", len(base_df))
     c2.metric("Edad mínima", st.session_state["age_min"] if st.session_state["age_min"] is not None else "-")
     c3.metric("Edad máxima", st.session_state["age_max"] if st.session_state["age_max"] is not None else "-")
+    #c4.metric("Filas después de filtrado", len(base_df))
+    c4.metric("Filas después de filtrado",         len(st.session_state["df_filtrado"]))
+
+
     #st.dataframe(st.session_state["df_filtrado"].head(30), use_container_width=True)
     #st.success(f"Filtrado final: {len(st.session_state['df_filtrado']):,} filas")
 
