@@ -731,6 +731,12 @@ if st.session_state["df_comorb"] is not None:
                     cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
                     st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
 
+for c in comorb_cols_presentes:
+    df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0)
+
+# 🔹 Convertir respuestas 6 o 7 en las columnas H a 1
+cols_H = [col for col in df_work.columns if col.startswith("H")]
+df_work[cols_H] = df_work[cols_H].replace({6: 1, 7: 1})
 
 
 # HAsta aqui el filtrado
