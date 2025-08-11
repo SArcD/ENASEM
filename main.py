@@ -110,7 +110,7 @@ with col_title:
 
 
 st.set_page_config(page_title="ENASEM — Carga y preparación", layout="wide")
-st.title("ENASEM — Predictor de riesgo de sarcopenia (Encuestas 2018/2021)")
+st.title("Predictor de riesgo de sarcopenia (a partir de la Encuesta Nacional Sobre Envejecimiento en México 2018/2021)")
 st.markdown("""
 <style>
 /* Justificar todo el texto de párrafos, listas y tablas */
@@ -718,6 +718,7 @@ if st.session_state["df_comorb"] is not None:
     c1, c2 = st.columns(2)
     c1.metric("Filas base para filtrar.", base_len)
     c2.metric("Filas después del filtrado", len(st.session_state["df_comorb"]))
+    st.markdown("""A continuación se muestra la base de datos que se utiliza´ra en el análisis""")
     st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
 
     # Resumen rápido (cuenta de 1 en cada comorbilidad seleccionada)
