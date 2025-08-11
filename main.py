@@ -92,21 +92,22 @@ st.markdown("""
 p, li, td { text-align: justify; }
 </style>
 """, unsafe_allow_html=True)
-st.markdown("""
-### Instrucciones para iniciar el análisis
 
-- 📂 **Cargue el archivo** del año que desee analizar desde la barra lateral  
-  *(ejemplo: `conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_20XX.csv`)*.
-- 👥 **Seleccione el sexo** de los participantes o incluya ambos.
-- 📅 **Defina el rango de edad** con las casillas de la barra lateral.
-- 🩺 **Filtre por comorbilidades**:  
-  - **Sin comorbilidades** → ignora cualquier otra selección.  
-  - **AND** → incluye solo a quienes tienen **todas** las comorbilidades seleccionadas.  
-  - **OR** → incluye a quienes tienen **al menos una** de las seleccionadas.
-- 🧮 **Para comenzar el estudio**:  
-  1. Indique el número de conjuntos a crear.  
-  2. Indique el número mínimo de participantes por conjunto.  
-  3. Presione **Calcular indiscernibilidad**.
+st.markdown("""
+En esta sección se usan datos de la **Encuesta Nacional sobre Envejecimiento en México**.
+
+1. **Cargue el archivo** del año que desee analizar desde el botón en la barra lateral  
+   (ejemplo: `conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_20XX.csv`).  
+2. Puede **seleccionar el sexo** de los participantes o incluir a ambos.  
+3. Use las **casillas de la barra lateral** para definir rangos de edad específicos.  
+4. En comorbilidades:  
+   - **Sin comorbilidades**: ignora cualquier otra seleccionada.  
+   - **AND**: incluye solo a quienes tienen todas las comorbilidades seleccionadas.  
+   - **OR**: incluye a quienes tienen al menos una de las seleccionadas.  
+5. Para iniciar el estudio, indique:  
+   - Número de conjuntos que desea crear.  
+   - Número mínimo de participantes por conjunto.  
+   Luego presione el botón **Calcular indiscernibilidad**.
 """)
 
 
