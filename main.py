@@ -82,6 +82,26 @@ if "blocks_to_labels" not in globals():
         pres_diff = (diff_orig - diff_to_same) / diff_orig if diff_orig > 0 else 1.0
         return pres_same, pres_diff
 
+import streamlit as st
+
+# Ruta de la imagen generada previamente
+logo_path = "radar_pie_exact_v5.png"  # o radar_pie_realdata_outward.png según prefieras
+
+# Usar columnas para mostrar imagen y título lado a lado
+col1, col2 = st.columns([1, 3])  # Ajusta proporción ancho imagen/título
+
+with col1:
+    st.image(logo_path, use_column_width=True)
+
+with col2:
+    st.markdown("""
+        <h1 style='margin-bottom:0px;'>RS²: Rough Sets para Riesgo de Sarcopenia</h1>
+        <p style='font-size: 1.1em; margin-top: 5px;'>
+        Análisis y visualización interactiva usando lógica de conjuntos rugosos para estimar y clasificar el riesgo de sarcopenia.
+        </p>
+    """, unsafe_allow_html=True)
+
+
 
 
 st.set_page_config(page_title="ENASEM — Carga y preparación", layout="wide")
