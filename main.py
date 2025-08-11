@@ -1560,33 +1560,61 @@ else:
 # Predicción en TODO el DF indiscernible (no solo el pastel)
 # =========================
 ss = st.session_state
-req = ("rf_best4_model", "rf_best4_cols", "rf_best4_imp", "rf_label_encoder", "ind_df")
-if not all(k in ss for k in req):
-    st.info("Entrena primero el modelo (best4) para habilitar la predicción completa.")
+
+have4 = all(k in ss for k in ("rf_best4_model","rf_best4_cols","rf_best4_imp","rf_label_encoder"))
+have3 = all(k in ss for k in ("rf_best3_model","rf_best3_cols","rf_best3_imp","rf_label_encoder"))
+
+if not ("ind_df" in ss):
+    st.info("Calcula indiscernibilidad primero (para disponer de ind_df).")
 else:
     st.subheader("Predicción en todo el DataFrame (indiscernible)")
 
-    # 1) DF completo (ADL, index='Indice'; puede tener NaN)
-    df_all = ss["ind_df"].copy()
+    df_all = ss["ind_df"].copy()  # ADL con posibles NaN (index='Indice')
 
-    # 2) Preparar X con las columnas del modelo; crear faltantes y convertir a numérico
-    feat = ss["rf_best4_cols"]
-    for c in feat:
-        if c not in df_all.columns:
-            df_all[c] = np.nan
-    X_all = df_all[feat].apply(pd.to_numeric, errors="coerce")
+    if not (have4 or have3):
+        st.warning("No encuentro modelos entrenados (4/3 vars). Entrena los RF para generar predicciones.")
+        df_pred_all = df_all.copy()
+        df_pred_all["nivel_riesgo_pred"] = "Sin datos"
+        ss["df_pred_all_rf"] = df_pred_all
+    else:
+        le = ss["rf_label_encoder"]
 
-    # Imputar con la MISMA mediana del train
-    X_all_imp = ss["rf_best4_imp"].transform(X_all)
+        # Serie donde iremos llenando las predicciones finales
+        pred_all = pd.Series(index=df_all.index, dtype="object")
 
-    # 3) Predecir
-    ypred_all = ss["rf_best4_model"].predict(X_all_imp)
-    labels_all = ss["rf_label_encoder"].inverse_transform(ypred_all)
+        # --- helper para predecir con un set de columnas ---
+        def predict_with(cols, model, imputer=None, mask_limit=None):
+            mask = df_all[cols].notna().all(axis=1)
+            if mask_limit is not None:
+                mask = mask & mask_limit
+            if not mask.any():
+                return pd.Index([]), None
+            X = df_all.loc[mask, cols].apply(pd.to_numeric, errors="coerce")
+            if imputer is not None:
+                X = imputer.transform(X)
+            y = model.predict(X)
+            return df_all.index[mask], le.inverse_transform(y)
 
-    df_pred_all = df_all.copy()
-    df_pred_all["nivel_riesgo_pred"] = labels_all
-    ss["df_pred_all_rf"] = df_pred_all
+        # 1) Primero 4 variables
+        if have4:
+            idx4, lab4 = predict_with(ss["rf_best4_cols"], ss["rf_best4_model"], ss["rf_best4_imp"])
+            if len(idx4) > 0:
+                pred_all.loc[idx4] = lab4
 
+        # 2) Luego 3 variables para las filas sin predicción aún
+        if have3:
+            restante = pred_all.isna()
+            idx3, lab3 = predict_with(ss["rf_best3_cols"], ss["rf_best3_model"], ss["rf_best3_imp"], mask_limit=restante)
+            if idx3 is not None and len(idx3) > 0:
+                pred_all.loc[idx3] = lab3
+
+        pred_all.fillna("Sin datos", inplace=True)
+
+        df_pred_all = df_all.copy()
+        df_pred_all["nivel_riesgo_pred"] = pred_all
+        ss["df_pred_all_rf"] = df_pred_all
+
+    # Muestra y descarga
     st.dataframe(df_pred_all.reset_index().head(50), use_container_width=True)
     st.download_button(
         "Descargar predicciones RF (todo ind_df) CSV",
@@ -1597,174 +1625,80 @@ else:
     )
 
     # =========================
-    # Comparativa: RF pastel vs RF todo ind_df
+    # Barras: Regla (sin NaN) vs RF (todo ind_df)
     # =========================
-    orden = ["Riesgo nulo", "Riesgo leve", "Riesgo moderado", "Riesgo severo"]
+    orden = ["Riesgo nulo","Riesgo leve","Riesgo moderado","Riesgo severo"]
 
-    # A) Distribución RF en pastel (si existe)
-    df_pastel_pred = ss.get("df_pred_pastel_rf")
-    if isinstance(df_pastel_pred, pd.DataFrame) and "nivel_riesgo_pred" in df_pastel_pred.columns:
-        dist_rf_pastel = (
-            df_pastel_pred["nivel_riesgo_pred"]
-            .value_counts()
-            .reindex(orden, fill_value=0)
+    # Regla sobre filas sin NaN en las columnas seleccionadas para ind
+    cols_sel = ss.get("ind_cols", [])
+    if cols_sel:
+        df_regla = df_all.dropna(subset=cols_sel).copy()
+        vals = df_regla[cols_sel].apply(pd.to_numeric, errors="coerce")
+        ones = (vals == 1).sum(axis=1)
+        twos = (vals == 2).all(axis=1)
+        regla = np.where(
+            twos, "Riesgo nulo",
+            np.where(
+                ones <= 2,
+                np.where(ones >= 1, "Riesgo leve", "Riesgo leve"),
+                np.where(ones == 3, "Riesgo moderado", "Riesgo severo")
+            )
         )
+        dist_regla = pd.Series(regla).value_counts().reindex(orden, fill_value=0)
     else:
-        dist_rf_pastel = pd.Series([0]*len(orden), index=orden)
+        dist_regla = pd.Series([0]*len(orden), index=orden)
 
-    # B) Distribución RF en todo ind_df
+    # RF sobre todo ind_df (ya calculado arriba)
     dist_rf_all = (
         df_pred_all["nivel_riesgo_pred"]
         .value_counts()
-        .reindex(orden, fill_value=0)
+        .reindex(orden + (["Sin datos"] if "Sin datos" in df_pred_all["nivel_riesgo_pred"].values else []), fill_value=0)
     )
 
+    # Si existe "Sin datos", lo excluimos de la comparación principal para que no sesgue
+    dist_rf_bar = dist_rf_all.reindex(orden, fill_value=0)
+
+    # Barras comparativas
     x = np.arange(len(orden)); width = 0.38
-    ymax = max(dist_rf_pastel.max(), dist_rf_all.max()) if len(orden) else 1
+    ymax = max(dist_regla.max(), dist_rf_bar.max(), 1)
 
-    fig_cmp, ax_cmp = plt.subplots(figsize=(8, 4.5))
-    b1 = ax_cmp.bar(x - width/2, dist_rf_pastel.values, width, label="RF (solo pastel)")
-    b2 = ax_cmp.bar(x + width/2, dist_rf_all.values,  width, label="RF (todo ind_df)")
-    ax_cmp.set_xticks(x); ax_cmp.set_xticklabels(orden, rotation=0)
-    ax_cmp.set_ylabel("Conteos"); ax_cmp.set_title("RF: pastel vs. todo ind_df")
-    ax_cmp.legend(); ax_cmp.grid(axis='y', linestyle='--', alpha=0.3)
-
+    fig_b, ax_b = plt.subplots(figsize=(9, 4.8))
+    b1 = ax_b.bar(x - width/2, dist_regla.values, width, label="Regla (sin NaN)")
+    b2 = ax_b.bar(x + width/2, dist_rf_bar.values,  width, label="RF (todo ind_df)")
+    ax_b.set_xticks(x); ax_b.set_xticklabels(orden)
+    ax_b.set_ylabel("Participantes")
+    ax_b.set_title("Niveles de riesgo: Regla vs RF")
+    ax_b.legend(); ax_b.grid(axis='y', linestyle='--', alpha=0.3)
     for bars in (b1, b2):
         for r in bars:
             h = r.get_height()
-            ax_cmp.text(r.get_x()+r.get_width()/2, h + 0.01*ymax, f"{int(h)}",
-                        ha="center", va="bottom", fontsize=9)
-    st.pyplot(fig_cmp)
+            ax_b.text(r.get_x()+r.get_width()/2, h + 0.01*ymax, f"{int(h)}",
+                      ha="center", va="bottom", fontsize=9)
+    st.pyplot(fig_b)
 
-# === FINAL: Pasteles de distribución de riesgo ===
-# (usa la regla en filas sin NaN y RF 4→3 en todo ind_df)
-ss = st.session_state
-need = ("ind_df", "ind_cols")
-if not all(k in ss for k in need):
-    st.info("Primero calcula indiscernibilidad (para disponer de ind_df e ind_cols).")
-else:
-    # ---------- 1) Filas SIN NaN en las ADL seleccionadas (regla) ----------
-    df_all: pd.DataFrame = ss["ind_df"].copy()        # ADL con posibles NaN (index=Indice)
-    cols_sel = ss["ind_cols"]
-
-    df_no_nan = df_all.dropna(subset=cols_sel).copy()
-
-    vals = df_no_nan[cols_sel].apply(pd.to_numeric, errors="coerce")
-    count_ones = (vals == 1).sum(axis=1)
-    all_twos   = (vals == 2).all(axis=1)
-
-    riesgo_regla = np.where(
-        all_twos, "Riesgo nulo",
-        np.where(
-            count_ones <= 2,
-            np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
-            np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
-        )
-    )
-    s_regla = pd.Series(riesgo_regla, index=df_no_nan.index, name="nivel_riesgo_regla")
-
-    # ---------- 2) TODO ind_df con modelos (RF 4-vars y 3-vars) ----------
-    have4 = all(k in ss for k in ("rf_best4_model", "rf_best4_cols", "rf_label_encoder"))
-    have3 = all(k in ss for k in ("rf_best3_model", "rf_best3_cols", "rf_label_encoder"))
-
-    if not (have4 or have3):
-        st.warning("No encuentro modelos entrenados (4/3 vars). Entrena los RF para generar el pastel global.")
-        s_pred = pd.Series([], dtype="object")
-    else:
-        le = ss["rf_label_encoder"]
-        pred_all = pd.Series(index=df_all.index, dtype="object")
-
-        # — 4 variables (prioridad)
-        if have4:
-            cols4 = ss["rf_best4_cols"]
-            mask4 = df_all[cols4].notna().all(axis=1)
-            if mask4.any():
-                X4 = df_all.loc[mask4, cols4].apply(pd.to_numeric, errors="coerce")
-                y4 = ss["rf_best4_model"].predict(X4)
-                pred_all.loc[mask4] = le.inverse_transform(y4)
-
-        # — 3 variables (para las restantes)
-        if have3:
-            cols3 = ss["rf_best3_cols"]
-            mask_restante = pred_all.isna()
-            if mask_restante.any():
-                m3 = df_all.loc[mask_restante, cols3].notna().all(axis=1)
-                idx3 = df_all.loc[mask_restante].index[m3]
-                if len(idx3) > 0:
-                    X3 = df_all.loc[idx3, cols3].apply(pd.to_numeric, errors="coerce")
-                    y3 = ss["rf_best3_model"].predict(X3)
-                    pred_all.loc[idx3] = le.inverse_transform(y3)
-
-        pred_all.fillna("Sin datos", inplace=True)
-        s_pred = pred_all.rename("nivel_riesgo_pred")
-
-    # ---------- Pasteles ----------
-    orden = ["Riesgo nulo", "Riesgo leve", "Riesgo moderado", "Riesgo severo"]
-    orden_full = orden + (["Sin datos"] if "Sin datos" in s_pred.values else [])
-
-    c1 = s_regla.value_counts().reindex(orden, fill_value=0)
-    c2 = s_pred.value_counts().reindex(orden_full, fill_value=0)
-
+    # =========================
+    # Pasteles: (1) Regla sin NaN vs (2) RF todo ind_df
+    # =========================
+    # 1) Pastel de la regla
     fig1, ax1 = plt.subplots(figsize=(6.5, 6.5))
-    vals1 = c1.values
-    if vals1.sum() == 0:
-        ax1.text(0.5, 0.5, "Sin filas válidas\n(sin NaN) para la regla",
+    v1 = dist_regla.values
+    if v1.sum() == 0:
+        ax1.text(0.5, 0.5, "Sin filas válidas (sin NaN) para la regla",
                  ha="center", va="center", fontsize=12)
         ax1.axis("off")
     else:
-        ax1.pie(vals1, labels=c1.index, autopct=lambda p: f"{p:.1f}%", startangle=120)
-        ax1.axis('equal')
-        ax1.set_title("Riesgo — solo filas sin NaN (regla)")
+        ax1.pie(v1, labels=dist_regla.index, autopct=lambda p: f"{p:.1f}%", startangle=120)
+        ax1.axis('equal'); ax1.set_title("Riesgo — solo filas sin NaN (regla)")
     st.pyplot(fig1)
 
+    # 2) Pastel RF (incluye 'Sin datos' si lo hubo)
     fig2, ax2 = plt.subplots(figsize=(6.5, 6.5))
-    vals2 = c2.values
-    if vals2.sum() == 0:
+    v2 = dist_rf_all.values
+    if v2.sum() == 0:
         ax2.text(0.5, 0.5, "No hay predicciones RF disponibles",
                  ha="center", va="center", fontsize=12)
         ax2.axis("off")
     else:
-        ax2.pie(vals2, labels=c2.index, autopct=lambda p: f"{p:.1f}%", startangle=120)
-        ax2.axis('equal')
-        ax2.set_title("Riesgo — todo ind_df (RF 4→3 vars)")
+        ax2.pie(v2, labels=dist_rf_all.index, autopct=lambda p: f"{p:.1f}%", startangle=120)
+        ax2.axis('equal'); ax2.set_title("Riesgo — todo ind_df (RF 4→3 vars)")
     st.pyplot(fig2)
-
-
-# === Barras comparativas: Regla (sin NaN) vs RF (todo ind_df) ===
-orden = ["Riesgo nulo", "Riesgo leve", "Riesgo moderado", "Riesgo severo"]
-
-# Conteos de la regla (sin NaN) ya los tienes en c1
-cnt_regla = c1.reindex(orden, fill_value=0)
-
-# Conteos de RF: toma solo las 4 categorías (ignora "Sin datos" en la comparación)
-cnt_rf = c2.reindex(orden, fill_value=0) if isinstance(c2, pd.Series) else pd.Series([0]*len(orden), index=orden)
-
-# Si ambos están vacíos, evita gráfico en blanco
-if cnt_regla.sum() == 0 and cnt_rf.sum() == 0:
-    st.info("No hay datos suficientes para la comparación de barras (regla vs RF).")
-else:
-    x = np.arange(len(orden))
-    width = 0.38
-    ymax = max(cnt_regla.max(), cnt_rf.max()) if len(orden) else 1
-
-    fig_bar, ax_bar = plt.subplots(figsize=(8, 4.8))
-    b1 = ax_bar.bar(x - width/2, cnt_regla.values, width, label="Regla (sin NaN)")
-    b2 = ax_bar.bar(x + width/2, cnt_rf.values,  width, label="RF (todo ind_df)")
-
-    ax_bar.set_xticks(x); ax_bar.set_xticklabels(orden)
-    ax_bar.set_ylabel("Participantes"); ax_bar.set_title("Niveles de riesgo: Regla vs RF")
-    ax_bar.legend()
-    ax_bar.grid(axis='y', linestyle='--', alpha=0.3)
-
-    # Anotar conteos
-    for bars in (b1, b2):
-        for r in bars:
-            h = r.get_height()
-            ax_bar.text(r.get_x()+r.get_width()/2, h + 0.01*max(1, ymax), f"{int(h)}",
-                        ha="center", va="bottom", fontsize=9)
-
-    st.pyplot(fig_bar)
-
-# (Opcional) Si quieres un tercer gráfico mostrando cómo se distribuye "Sin datos" en RF:
-if "Sin datos" in c2.index and c2.sum() > 0:
-    st.caption(f"Filas sin predicción por RF (faltaron columnas del reducto): {int(c2['Sin datos'])}")
