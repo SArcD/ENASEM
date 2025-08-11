@@ -835,7 +835,7 @@ with st.sidebar:
     )
     min_size_for_pie = st.number_input(
         "Tamaño mínimo de clase para incluir en el pastel",
-        min_value=2, max_value=100000, value=30, step=1
+        min_value=1, max_value=100000, value=30, step=1
     )
     top_n_radar = st.number_input(
         "N conjuntos más numerosos para radar",
