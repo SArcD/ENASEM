@@ -1635,6 +1635,33 @@ else:
         st.success("Modelos RF entrenados (best4 y, si procede, best3).")
 
 
+####FALLBACK
+# === Fallback que acepta NaN en predicción: HistGradientBoosting ===
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.preprocessing import LabelEncoder
+
+# Usa el mismo dataset del pastel con la etiqueta 'nivel_riesgo'
+# (si en tu código se llama distinto, cambia df_pastel_eval por el correcto,
+# por ejemplo: st.session_state["df_eval_riesgo"])
+df_fb = df_pastel_eval.copy()
+
+Xfb = df_fb[st.session_state["ind_cols"]].apply(pd.to_numeric, errors="coerce")
+yfb_raw = df_fb["nivel_riesgo"].astype(str)
+
+le_fb = LabelEncoder()
+yfb = le_fb.fit_transform(yfb_raw.values)
+
+hgb = HistGradientBoostingClassifier(max_iter=300, learning_rate=0.1, random_state=42)
+hgb.fit(Xfb, yfb)
+
+st.session_state["fb_hgb_model"] = hgb
+st.session_state["fb_hgb_cols"]  = st.session_state["ind_cols"]
+st.session_state["fb_hgb_le"]    = le_fb
+
+st.info("Modelo fallback (HGB) entrenado.")
+
+
+
 # =========================
 # Predicción en TODO el DF indiscernible (no solo el pastel)
 # =========================
@@ -1701,6 +1728,18 @@ else:
         # usa el LE del modelo disponible (prefiere 4 vars)
         le = ss["rf_best4_le"] if have4 else ss["rf_best3_le"]
 
+ #       # Fallback final con HGB para filas aún sin predicción
+ #       have_fb = all(k in st.session_state for k in ("fb_hgb_model","fb_hgb_cols","fb_hgb_le"))
+ #       if have_fb:
+  #          faltantes = pred_all.isna()
+  #          if faltantes.any():
+   #             Xfb_all = df_all.loc[faltantes, st.session_state["fb_hgb_cols"]].apply(pd.to_numeric, errors="coerce")
+   #             yfb_hat = st.session_state["fb_hgb_model"].predict(Xfb_all)
+   #             lab_fb  = st.session_state["fb_hgb_le"].inverse_transform(yfb_hat)
+   #             pred_all.loc[faltantes] = lab_fb
+
+
+        
         # Serie donde iremos llenando las predicciones finales
         pred_all = pd.Series(index=df_all.index, dtype="object")
 
@@ -1749,13 +1788,33 @@ else:
             if lab3 is not None and len(idx3) > 0:
                 pred_all.loc[idx3] = lab3
 
-        # Etiquetar el resto
+        # 3) Fallback HGB para las que aún queden sin predicción
+        have_fb = all(k in st.session_state for k in ("fb_hgb_model","fb_hgb_cols","fb_hgb_le"))
+        if have_fb:
+            faltantes = pred_all.isna()
+            if faltantes.any():
+                Xfb_all = df_all.loc[faltantes, st.session_state["fb_hgb_cols"]].apply(pd.to_numeric, errors="coerce")
+                yfb_hat = st.session_state["fb_hgb_model"].predict(Xfb_all)
+                lab_fb  = st.session_state["fb_hgb_le"].inverse_transform(yfb_hat)
+                pred_all.loc[faltantes] = lab_fb
+
         pred_all.fillna("Sin datos", inplace=True)
 
         df_pred_all = df_all.copy()
         df_pred_all["nivel_riesgo_pred"] = pred_all
         ss["df_pred_all_rf"] = df_pred_all
 
+        
+        # Etiquetar el resto
+        #pred_all.fillna("Sin datos", inplace=True)
+
+        #df_pred_all = df_all.copy()
+        #df_pred_all["nivel_riesgo_pred"] = pred_all
+        #ss["df_pred_all_rf"] = df_pred_all
+
+
+
+    
     
     # Muestra y descarga
     st.dataframe(df_pred_all.reset_index().head(50), use_container_width=True)
