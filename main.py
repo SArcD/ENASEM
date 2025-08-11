@@ -84,22 +84,25 @@ if "blocks_to_labels" not in globals():
 
 import streamlit as st
 
-# Ruta de la imagen generada previamente
-logo_path = "radar_pie_exact_v5.png"  # o radar_pie_realdata_outward.png según prefieras
+# URL RAW del logo en GitHub
+LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
 
-# Usar columnas para mostrar imagen y título lado a lado
-col1, col2 = st.columns([1, 3])  # Ajusta proporción ancho imagen/título
+# Encabezado con imagen + título
+col_logo, col_title = st.columns([1, 3], gap="small")
 
-with col1:
-    st.image(logo_path, use_column_width=True)
+with col_logo:
+    st.image(LOGO_URL, use_column_width=True)
 
-with col2:
-    st.markdown("""
-        <h1 style='margin-bottom:0px;'>RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <p style='font-size: 1.1em; margin-top: 5px;'>
-        Análisis y visualización interactiva usando lógica de conjuntos rugosos para estimar y clasificar el riesgo de sarcopenia.
-        </p>
-    """, unsafe_allow_html=True)
+with col_title:
+    st.markdown(
+        """
+        <h1 style="margin-bottom:6px;">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
+        <div style="font-size:1.05rem; color:#444;">
+            Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 
