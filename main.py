@@ -1892,116 +1892,233 @@ else:
 ################################
 
 # =========================
-# 🧾 Captura/edición de varios pacientes (manual) + Recalcular sin reiniciar
+# Formulario inteligente: captura manual y Excel
 # =========================
-ss = st.session_state
+import io
 
-# Columnas ADL a pedir (usa las de indiscernibilidad; si no, toma 5 primeras del catálogo)
-manual_adl_cols = ss.get("ind_cols") or ss.get("ind_adl_cols", [])[:5]
-if not manual_adl_cols:
-    st.info("Aún no hay columnas ADL de referencia (ind_cols). Calcula indiscernibilidad primero para una mejor experiencia.")
+# -------- Utilidad central: predicción 4→3→fallback→regla --------
+def predecir_con_modelos(df_in: pd.DataFrame) -> pd.DataFrame:
+    ss = st.session_state
+    df = df_in.copy()
 
-# Inicializar tabla en sesión (si no existe)
-base_cols = ["ID", "Sexo", "Edad"] + list(manual_adl_cols)
-if "manual_patients_df" not in ss:
-    ss["manual_patients_df"] = pd.DataFrame(columns=base_cols)
-# Asegurar columnas clave por si cambió la selección de ADL
-for c in base_cols:
-    if c not in ss["manual_patients_df"].columns:
-        ss["manual_patients_df"][c] = np.nan
+    # el LE preferido (4 → 3 → fb)
+    le = ss.get("rf_best4_le") or ss.get("rf_best3_le") or ss.get("fb_hgb_le")
 
-st.markdown("### 🧾 Captura manual (múltiples pacientes)")
-st.caption("1) Agrega pacientes; 2) corrige en la tabla; 3) pulsa **Recalcular diagnósticos**. Nada se pierde entre recomputaciones.")
+    pred = pd.Series(index=df.index, dtype="object")
 
-# ---------- (1) Formulario para agregar una fila ----------
-with st.form("form_add_manual"):
-    c1, c2, c3 = st.columns([1,1,1])
-    with c1:
-        pid = st.text_input("ID / Nombre", value="")
-    with c2:
-        sexo = st.selectbox("Sexo", ["", "M", "F", "Otro"], index=0)
-    with c3:
-        edad = st.number_input("Edad", min_value=0, max_value=120, value=60, step=1)
+    def _predict(cols_key, model_key, imp_key=None, mask=None):
+        cols = ss.get(cols_key)
+        model = ss.get(model_key)
+        imp = ss.get(imp_key) if imp_key else None
+        if not cols or model is None:
+            return
+        m = df[cols].notna().all(axis=1)
+        if mask is not None:
+            m = m & mask
+        if not m.any():
+            return
+        X = df.loc[m, cols].apply(pd.to_numeric, errors="coerce")
+        if imp is not None:
+            X = imp.transform(X)
+        y = model.predict(X)
+        lab = le.inverse_transform(y) if le is not None else y
+        pred.loc[m] = lab
 
-    st.caption("ADL (0/1/2). Usa 'Sin dato' si desconoces alguna.")
-    grid = st.columns(min(5, max(3, len(manual_adl_cols) or [0])))
-    new_row = {"ID": pid, "Sexo": sexo, "Edad": edad}
-    for i, c in enumerate(manual_adl_cols):
-        with grid[i % len(grid)]:
-            val = st.selectbox(f"{c}", ["Sin dato", 0, 1, 2], index=0, key=f"manual_{c}")
-            new_row[c] = (np.nan if val == "Sin dato" else int(val))
+    # 1) RF de 4 variables
+    _predict("rf_best4_cols", "rf_best4", "rf_best4_imp")
 
-    add_ok = st.form_submit_button("➕ Agregar a la tabla")
-    if add_ok:
-        if (pid is None) or (str(pid).strip() == ""):
-            st.warning("Asigna un ID/Nombre para identificar al paciente.")
-        else:
-            # Alinear a columnas actuales
-            row_df = pd.DataFrame([new_row], columns=base_cols)
-            ss["manual_patients_df"] = pd.concat([ss["manual_patients_df"], row_df], ignore_index=True)
-            st.success(f"Paciente **{pid}** agregado.")
+    # 2) RF de 3 variables (solo filas restantes)
+    _predict("rf_best3_cols", "rf_best3", "rf_best3_imp", mask=pred.isna())
 
-# ---------- (2) Editor para corregir datos (persistente) ----------
-st.caption("Puedes **editar directamente** en la tabla. Marca 'Eliminar' para borrar filas seleccionadas.")
-if "Eliminar" not in ss["manual_patients_df"].columns:
-    ss["manual_patients_df"]["Eliminar"] = False
+    # 3) Fallback HGB si existe (para filas sin predicción aún)
+    if pred.isna().any() and st.session_state.get("fb_hgb_model") is not None:
+        cols_fb = st.session_state.get("fb_hgb_cols", [])
+        if cols_fb:
+            m = pred.isna() & df[cols_fb].notna().all(axis=1)
+            if m.any():
+                Xfb = df.loc[m, cols_fb].apply(pd.to_numeric, errors="coerce")
+                yfb = st.session_state["fb_hgb_model"].predict(Xfb)
+                lab_fb = st.session_state["fb_hgb_le"].inverse_transform(yfb) if st.session_state.get("fb_hgb_le") else yfb
+                pred.loc[m] = lab_fb
 
-edited_df = st.data_editor(
-    ss["manual_patients_df"][base_cols + ["Eliminar"]],
-    num_rows="dynamic",
-    use_container_width=True,
-    key="editor_manual_patients",
-)
-# Guardar cambios de edición en sesión (sin recalcular aún)
-ss["manual_patients_df"] = edited_df.copy()
+    # 4) Último recurso: regla (si están TODAS las ind_cols sin NaN)
+    ind_cols = st.session_state.get("ind_cols", [])
+    if pred.isna().any() and ind_cols:
+        m = pred.isna() & df[ind_cols].notna().all(axis=1)
+        if m.any():
+            val = df.loc[m, ind_cols].apply(pd.to_numeric, errors="coerce")
+            ones = (val == 1).sum(axis=1)
+            twos = (val == 2).all(axis=1)
+            lab = np.where(
+                twos, "Riesgo nulo",
+                np.where(
+                    ones <= 2,
+                    np.where(ones >= 1, "Riesgo leve", "Riesgo leve"),
+                    np.where(ones == 3, "Riesgo moderado", "Riesgo considerable")
+                )
+            )
+            pred.loc[m] = lab
 
-# ---------- (3) Botones de acción ----------
-bcol1, bcol2, bcol3 = st.columns([1,1,1])
-with bcol1:
-    if st.button("🗑️ Eliminar filas marcadas"):
-        mask_keep = ~ss["manual_patients_df"]["Eliminar"].fillna(False).astype(bool)
-        kept = ss["manual_patients_df"].loc[mask_keep, :].drop(columns=["Eliminar"], errors="ignore")
-        # reañadir columna Eliminar para futuras ediciones
-        kept["Eliminar"] = False
-        ss["manual_patients_df"] = kept.reset_index(drop=True)
-        st.success("Filas eliminadas.")
-with bcol2:
-    if st.button("🧹 Vaciar tabla"):
-        ss["manual_patients_df"] = pd.DataFrame(columns=base_cols + ["Eliminar"])
-        st.success("Tabla vaciada.")
-with bcol3:
-    recalc = st.button("🔁 Recalcular diagnósticos")
+    pred.fillna("Sin datos", inplace=True)
+    return pd.DataFrame({"nivel_riesgo_pred": pred})
 
-# ---------- (4) Recalcular diagnósticos SOLO cuando se presione el botón ----------
-if recalc:
-    df_in = ss["manual_patients_df"].drop(columns=["Eliminar"], errors="ignore").copy()
+# ---------- Columnas ADL a pedir en el formulario ----------
+cand = set(st.session_state.get("ind_cols", [])) | set(st.session_state.get("rf_best4_cols", [])) | set(st.session_state.get("rf_best3_cols", []))
+if not cand:
+    cand = set(st.session_state.get("ind_adl_cols", [])[:5])  # fallback
+manual_adl_cols = sorted(list(cand))
 
-    # Asegurar que existen columnas ADL requeridas por los modelos/regla
-    need_for_pred = set(base_cols)  # meta + adl mostradas
-    # también intenta incluir best4/best3 que existan, por si no son las mismas que manual_adl_cols
-    for k in ("rf_best4_cols", "rf_best3_cols", "fb_hgb_cols", "ind_cols"):
-        if k in ss and ss[k]:
-            need_for_pred |= set(ss[k])
-    for c in need_for_pred:
-        if c not in df_in.columns:
-            df_in[c] = np.nan
+st.header("🧾 Formulario inteligente de diagnóstico")
 
-    # Reutiliza la función que ya tienes
-    if "predecir_con_modelos" not in globals():
-        st.error("No encuentro la función 'predecir_con_modelos'. Asegúrate de pegar primero el bloque de predicción.")
-    else:
-        res = predecir_con_modelos(df_in)
-        ss["manual_pred_out"] = pd.concat([df_in[["ID","Sexo","Edad"]], res], axis=1)
+tabs = st.tabs(["✍️ Captura manual", "📄 Subir Excel"])
 
-# ---------- (5) Mostrar resultados y permitir descarga ----------
-out = ss.get("manual_pred_out")
-if isinstance(out, pd.DataFrame) and not out.empty:
-    st.subheader("Resultados de la captura manual")
-    st.dataframe(out, use_container_width=True)
-    st.download_button(
-        "Descargar diagnósticos (captura manual)",
-        data=out.to_csv(index=False).encode("utf-8"),
-        file_name="diagnosticos_captura_manual.csv",
-        mime="text/csv",
-        key="dl_diag_manual"
+# ==========================================================
+# TAB 1: Captura manual (edición dinámica, recálculo in-place)
+# ==========================================================
+with tabs[0]:
+    st.markdown("Ingresa pacientes manualmente (puedes agregar/eliminar filas). Luego presiona **Recalcular diagnósticos**.")
+
+    # Inicializa tabla en sesión si no existe
+    if "manual_df" not in st.session_state:
+        base_cols = ["Indice", "Sexo", "Edad"] + manual_adl_cols
+        st.session_state["manual_df"] = pd.DataFrame([{
+            "Indice": "",
+            "Sexo": "",
+            "Edad": ""
+        } | {c: "" for c in manual_adl_cols}], columns=base_cols)
+
+    # Editor dinámico
+    edited = st.data_editor(
+        st.session_state["manual_df"],
+        num_rows="dynamic",
+        use_container_width=True,
+        column_config={
+            "Sexo": st.column_config.SelectboxColumn(options=["", "M", "F"], help="Opcional"),
+            "Edad": st.column_config.NumberColumn(min_value=0, max_value=120, step=1, help="Opcional"),
+            **{c: st.column_config.NumberColumn(min_value=0, max_value=2, step=1, help="Valores esperados: 0/1/2") for c in manual_adl_cols}
+        },
+        key="manual_editor"
     )
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button("Guardar cambios en la tabla", use_container_width=True):
+            st.session_state["manual_df"] = edited.copy()
+            st.success("Tabla actualizada.")
+    with c2:
+        if st.button("Limpiar tabla", use_container_width=True):
+            base_cols = ["Indice", "Sexo", "Edad"] + manual_adl_cols
+            st.session_state["manual_df"] = pd.DataFrame(columns=base_cols)
+            st.rerun()
+    with c3:
+        recalcular = st.button("Recalcular diagnósticos", use_container_width=True)
+
+    if recalcular:
+        df_man = st.session_state["manual_df"].copy()
+
+        # Asegurar índice 'Indice'
+        if "Indice" not in df_man.columns or df_man["Indice"].isna().all() or (df_man["Indice"] == "").all():
+            df_man["Indice"] = [f"row_{i+1}" for i in range(len(df_man))]
+        df_man.set_index("Indice", inplace=True, drop=False)
+
+        # Asegurar que existan todas las columnas de modelos (si faltan, se crean vacías)
+        need4 = st.session_state.get("rf_best4_cols", [])
+        need3 = st.session_state.get("rf_best3_cols", [])
+        for c in set(need4) | set(need3):
+            if c not in df_man.columns:
+                df_man[c] = np.nan
+
+        # Predecir
+        df_pred = predecir_con_modelos(df_man)
+        out = df_man.join(df_pred, how="left")
+
+        st.subheader("Resultados (captura manual)")
+        st.dataframe(out.reset_index(drop=True), use_container_width=True)
+
+        st.download_button(
+            "Descargar diagnósticos (CSV)",
+            data=out.to_csv(index=False).encode("utf-8"),
+            file_name="diagnosticos_manual.csv",
+            mime="text/csv",
+            key="dl_diag_manual"
+        )
+
+# =====================================
+# TAB 2: Subir Excel y predecir en lote
+# =====================================
+with tabs[1]:
+    st.markdown("Sube un archivo Excel con las columnas de ADL requeridas. Se intentará mapear automáticamente sufijos _18/_21.")
+
+    up = st.file_uploader("Cargar archivo .xlsx", type=["xlsx"])
+    if up is not None:
+        # Detectar hojas
+        xls = pd.ExcelFile(up)
+        hoja = st.selectbox("Hoja", xls.sheet_names, index=0)
+        df_up = pd.read_excel(up, sheet_name=hoja)
+
+        st.caption(f"Vista previa de la hoja '{hoja}':")
+        st.dataframe(df_up.head(20), use_container_width=True)
+
+        # Auto-mapeo de columnas: exacto o con sufijos _18/_21
+        target_cols = manual_adl_cols  # las necesarias por modelos/ind
+        def _match_col(base_name: str, cols):
+            candidates = [base_name, f"{base_name}_18", f"{base_name}_21"]
+            for cand in candidates:
+                if cand in cols:
+                    return cand
+            return None
+
+        rename_map = {}
+        faltantes = []
+        for base in target_cols:
+            real = _match_col(base, df_up.columns)
+            if real is not None:
+                rename_map[real] = base
+            else:
+                faltantes.append(base)
+
+        df_work = df_up.copy()
+        if rename_map:
+            df_work.rename(columns=rename_map, inplace=True)
+
+        # Asegurar 'Indice'
+        if "Indice" not in df_work.columns:
+            # buscamos alguna columna identificadora común
+            id_guess = None
+            for cand in ["ID", "Id", "id", "folio", "Folio", "CURP", "curp"]:
+                if cand in df_work.columns:
+                    id_guess = cand
+                    break
+            if id_guess:
+                df_work.rename(columns={id_guess: "Indice"}, inplace=True)
+            else:
+                df_work["Indice"] = [f"row_{i+1}" for i in range(len(df_work))]
+        df_work.set_index("Indice", inplace=True, drop=False)
+
+        # Crear columnas faltantes de ADL (se rellenan con NaN)
+        for c in target_cols:
+            if c not in df_work.columns:
+                df_work[c] = np.nan
+
+        st.info(f"Columnas ADL objetivo: {target_cols}")
+        if faltantes:
+            st.warning(f"No se encontraron en el archivo (se crearán vacías): {faltantes}")
+
+        if st.button("Predecir archivo", use_container_width=True, key="btn_pred_file"):
+            df_pred = predecir_con_modelos(df_work)
+            out = df_work.join(df_pred, how="left")
+
+            st.subheader("Resultados del archivo")
+            st.dataframe(out.head(50), use_container_width=True)
+
+            # Guardar y descargar
+            bio = io.BytesIO()
+            out.to_excel(bio, index=False, engine="xlsxwriter")
+            st.download_button(
+                "Descargar diagnósticos (XLSX)",
+                data=bio.getvalue(),
+                file_name="diagnosticos_archivo.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="dl_diag_xlsx"
+            )
+
