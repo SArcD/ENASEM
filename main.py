@@ -1404,4 +1404,167 @@ else:
 
 
 
+# =========================
+# Riesgo para TODAS las filas con reductos (RF + SMOTE)
+# =========================
+from itertools import combinations
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from imblearn.over_sampling import SMOTE
+from sklearn.metrics import classification_report
+import warnings
+
+ss = st.session_state
+need = ("ind_cols", "df_eval_riesgo", "ind_df_reducido")
+if not all(k in ss for k in need):
+    st.info("Primero calcula indiscernibilidad y la columna 'nivel_riesgo' (df_eval_riesgo).")
+else:
+    st.subheader("Asignación de riesgo usando reductos (maneja NaN)")
+
+    BASE5 = ss["ind_cols"]              # tus 5 ADL base (en el orden elegido)
+    df_train_full = ss["df_eval_riesgo"]  # SOLO filas sin NaN en las 5, ya trae 'nivel_riesgo'
+    df_base_pred  = ss["ind_df_reducido"].copy()
+    if "Indice" in df_base_pred.columns:
+        df_base_pred.set_index("Indice", inplace=True)
+    df_base_pred.index.name = "Indice"
+
+    # ---- función entrenar un RF para un subconjunto de columnas ----
+    def train_rf_for_cols(cols, seed=42):
+        cols = list(cols)
+        # X: solo esas columnas, Y: nivel_riesgo (de filas COMPLETAS)
+        df_tr = df_train_full.dropna(subset=BASE5)  # por seguridad
+        X = df_tr[cols].apply(pd.to_numeric, errors="coerce")
+        y = df_tr["nivel_riesgo"].astype(str)
+
+        # checar tamaño/clases
+        if len(X) < 20 or y.nunique() < 2:
+            return None  # sin datos suficientes
+
+        # encode
+        le = LabelEncoder()
+        y_enc = le.fit_transform(y)
+
+        # split
+        try:
+            Xtr, Xte, ytr, yte = train_test_split(
+                X, y_enc, test_size=0.25, random_state=seed, stratify=y_enc
+            )
+        except ValueError:
+            # si alguna clase queda muy chica, sin estratificar
+            Xtr, Xte, ytr, yte = train_test_split(
+                X, y_enc, test_size=0.25, random_state=seed
+            )
+
+        # SMOTE
+        try:
+            sm = SMOTE(random_state=seed)
+            Xtr_sm, ytr_sm = sm.fit_resample(Xtr, ytr)
+        except Exception:
+            # si SMOTE falla por poca muestra/clase, caemos a class_weight
+            Xtr_sm, ytr_sm = Xtr, ytr
+
+        rf = RandomForestClassifier(
+            n_estimators=400,
+            max_depth=None,
+            random_state=seed,
+            n_jobs=-1,
+            class_weight=None  # lo dejamos None si SMOTE funcionó
+        )
+
+        # si no hubo SMOTE (por excepción), usa balanced
+        if (Xtr_sm is Xtr) and (ytr_sm is ytr):
+            rf = RandomForestClassifier(
+                n_estimators=400,
+                max_depth=None,
+                random_state=seed,
+                n_jobs=-1,
+                class_weight="balanced"
+            )
+
+        rf.fit(Xtr_sm, ytr_sm)
+
+        # mini-eval (opcional, solo para log)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            ypred = rf.predict(Xte)
+            rep = classification_report(yte, ypred, target_names=le.classes_, zero_division=0, output_dict=False)
+        return {"model": rf, "encoder": le, "cols": tuple(cols), "report": rep}
+
+    # ---- entrenar modelos para 5, 4 y 3 columnas ----
+    # cache en sesión para no re-entrenar
+    if "rf_combo_models" not in ss:
+        ss["rf_combo_models"] = {}
+
+    models = ss["rf_combo_models"]
+    combos_to_train = []
+
+    # 5/5
+    combos_to_train.append(tuple(BASE5))
+    # 4/5 (falta una)
+    combos_to_train += list(combinations(BASE5, 4))
+    # 3/5 (faltan dos)
+    combos_to_train += list(combinations(BASE5, 3))
+
+    with st.spinner("Entrenando modelos (5, 4 y 3 variables)…"):
+        entrenados, omitidos = 0, 0
+        for cols in combos_to_train:
+            key = tuple(cols)
+            if key in models:
+                continue
+            res = train_rf_for_cols(cols)
+            if res is None:
+                omitidos += 1
+            else:
+                models[key] = res
+                entrenados += 1
+        ss["rf_combo_models"] = models
+    st.success(f"Listo: {entrenados} modelos entrenados, {omitidos} omitidos por falta de datos.")
+
+    # ---- función de predicción por fila: usa el mayor subconjunto disponible ----
+    def predict_row(series):
+        present = [c for c in BASE5 if pd.notna(series.get(c))]
+        # probar 5 -> 4 -> 3
+        for k in (5, 4, 3):
+            if len(present) < k:
+                continue
+            # conjunto exacto de tamaño k que coincide con columnas presentes
+            # (cuando len(present)==k, hay una sola opción)
+            for cols in combinations(present, k):
+                key = tuple(cols)
+                if key in models:
+                    info = models[key]
+                    X = pd.DataFrame([series[list(key)]], columns=list(key)).apply(pd.to_numeric, errors="coerce").fillna(0)
+                    yhat = info["model"].predict(X)[0]
+                    label = info["encoder"].inverse_transform([yhat])[0]
+                    return label, key
+        return None, None  # no hay suficientes columnas
+
+    # ---- aplicar a TODO el DF reducido ----
+    preds = []
+    used_cols = []
+    for idx, row in df_base_pred[BASE5].iterrows():
+        label, used = predict_row(row)
+        preds.append(label if label is not None else "No predicho")
+        used_cols.append(",".join(used) if used is not None else "")
+
+    df_pred = df_base_pred.copy()
+    df_pred["diagnostico_predicho"] = preds
+    df_pred["cols_usadas_modelo"] = used_cols
+
+    st.subheader("Diagnóstico predicho para todas las filas (usando reductos)")
+    st.dataframe(df_pred.reset_index().head(200), use_container_width=True)
+
+    st.download_button(
+        "Descargar con diagnóstico predicho (CSV)",
+        data=df_pred.reset_index().to_csv(index=False).encode("utf-8"),
+        file_name="df_riesgo_predicho_reductos.csv",
+        mime="text/csv",
+        key="dl_df_riesgo_predicho_reductos"
+    )
+
+    # guardar en sesión
+    ss["df_predicho_reductos"] = df_pred
+
+
 
