@@ -190,7 +190,7 @@ datos_seleccionados = datos_seleccionados[columnas_finales_presentes]
 # -----------------------------------------
 # Mostrar resultados
 # -----------------------------------------
-st.subheader("Datos seleccionados y normalizados")
+st.subheader("Datos cargados para el análisis")
 st.dataframe(datos_seleccionados, use_container_width=True)
 
 with st.expander("Información del conjunto de datos"):
@@ -269,7 +269,7 @@ if base_df is None:
     base_df = datos_seleccionados.copy()
 
 with st.sidebar:
-    st.subheader("Seleccione rango de edad")
+    st.subheader("Seleccione el rango de edad (puede teclear los valores dentro de los recuadros")
     if "AGE" not in base_df.columns:
         st.warning("No se encontró la columna 'AGE' en los datos.")
     else:
@@ -358,21 +358,104 @@ comorb_map = {
     "Artritis/Reumatismo (C32)": "C32",
 }
 
-with st.sidebar:
-    st.subheader("Seleccione comorbilidades")
+#with st.sidebar:
+#    st.subheader("Seleccione comorbilidades del grupo de pacientes a estudiar")
 
-    # Opciones visibles (labels) cuya columna real existe en el DF
+#    # Opciones visibles (labels) cuya columna real existe en el DF
+#    opciones_visibles = [lbl for lbl, col in comorb_map.items() if col in df_base_comorb.columns]
+
+#    if not opciones_visibles:
+#        st.warning("No se encontraron columnas de comorbilidades esperadas (C4, C6, C12, C19, C22A, C26, C32).")
+#        st.session_state["df_comorb"] = df_base_comorb.copy()
+#    else:
+#        # Lógica AND/OR y restricción de no seleccionadas
+#        modo = st.radio("Lógica entre las seleccionadas", ["Todas (AND)", "Cualquiera (OR)"],
+#                        index=0, horizontal=True)
+#        exigir_no = st.checkbox("Exigir que las NO seleccionadas estén en 0/2", value=True,
+#                                help="Si está activado, las comorbilidades no seleccionadas deben ser 0 o 2.")
+
+#        opciones_visibles_con_none = ["Sin comorbilidades"] + opciones_visibles
+#        seleccion = st.multiselect(
+#            "Comorbilidades (1 = Sí, 2/0 = No).",
+#            options=opciones_visibles_con_none,
+#            default=[],
+#            help=("• ‘Sin comorbilidades’: conserva filas con TODAS las comorbilidades en 2/0.\n"
+#                  "• Si seleccionas comorbilidades: puedes combinar con lógica AND/OR, "
+#                  "y decidir si las NO seleccionadas deben estar en 0/2.")
+#        )
+#        st.session_state["comorb_selection"] = seleccion
+
+#        # Preparar DF y asegurar numérico 0/1/2
+#        df_work = df_base_comorb.copy()
+#        comorb_cols_presentes = [comorb_map[lbl] for lbl in opciones_visibles]  # columnas reales presentes
+#        for c in comorb_cols_presentes:
+#            df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0)
+
+#        NO_SET = {0, 2}
+#        YES_VAL = 1
+
+#        if not seleccion:
+#            df_out = df_work.copy()
+
+#        elif "Sin comorbilidades" in seleccion:
+#            if len(seleccion) > 1:
+#                st.info("Se seleccionó 'Sin comorbilidades'. Se ignorarán otras selecciones para este filtro.")
+#            mask_all_none = df_work[comorb_cols_presentes].isin(NO_SET).all(axis=1)
+#            df_out = df_work[mask_all_none].copy()
+
+#        else:
+#            cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_work.columns]
+#            cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
+
+#            if not cols_sel:
+#                df_out = df_work.copy()
+#            else:
+#                # AND vs OR
+#                if modo.startswith("Todas"):
+#                    mask_sel = (df_work[cols_sel] == YES_VAL).all(axis=1)
+#                else:
+#                    mask_sel = (df_work[cols_sel] == YES_VAL).any(axis=1)
+
+#                if exigir_no and cols_rest:
+#                    mask_rest = df_work[cols_rest].isin(NO_SET).all(axis=1)
+#                    mask = mask_sel & mask_rest
+#                else:
+#                    mask = mask_sel
+
+#                df_out = df_work[mask].copy()
+
+#        st.session_state["df_comorb"] = df_out
+#        st.caption(f"Filas tras filtro de comorbilidades: {len(df_out):,}")
+
+
+with st.sidebar:
+    st.subheader("Seleccione comorbilidades del grupo de pacientes a estudiar")
+
     opciones_visibles = [lbl for lbl, col in comorb_map.items() if col in df_base_comorb.columns]
 
     if not opciones_visibles:
         st.warning("No se encontraron columnas de comorbilidades esperadas (C4, C6, C12, C19, C22A, C26, C32).")
-        st.session_state["df_comorb"] = df_base_comorb.copy()
+        df_out = df_base_comorb.copy()
+        # Agregamos columna comorbilidad (todo 'Desconocido' si no hay columnas)
+        df_out["comorbilidad"] = "Desconocido"
+        st.session_state["df_comorb"] = df_out
+        st.caption(f"Filas tras filtro de comorbilidades: {len(df_out):,}")
     else:
-        # Lógica AND/OR y restricción de no seleccionadas
+        # NUEVO: Modo de estudio
+        modo_estudio = st.radio(
+            "Modo de estudio",
+            ["Filtrar (según selección)", "Comparar (Sin vs Con)", "Todos (un solo grupo)"],
+            index=0, horizontal=False
+        )
+
+        # Configuración del filtro (solo relevante para 'Filtrar' y 'Comparar')
         modo = st.radio("Lógica entre las seleccionadas", ["Todas (AND)", "Cualquiera (OR)"],
                         index=0, horizontal=True)
-        exigir_no = st.checkbox("Exigir que las NO seleccionadas estén en 0/2", value=True,
-                                help="Si está activado, las comorbilidades no seleccionadas deben ser 0 o 2.")
+        exigir_no = st.checkbox(
+            "Exigir que las NO seleccionadas estén en 0/2",
+            value=True,
+            help="Si está activado, las comorbilidades no seleccionadas deben ser 0 o 2."
+        )
 
         opciones_visibles_con_none = ["Sin comorbilidades"] + opciones_visibles
         seleccion = st.multiselect(
@@ -380,52 +463,109 @@ with st.sidebar:
             options=opciones_visibles_con_none,
             default=[],
             help=("• ‘Sin comorbilidades’: conserva filas con TODAS las comorbilidades en 2/0.\n"
-                  "• Si seleccionas comorbilidades: puedes combinar con lógica AND/OR, "
-                  "y decidir si las NO seleccionadas deben estar en 0/2.")
+                  "• Si seleccionas comorbilidades: combina con lógica AND/OR y decide si las NO seleccionadas deben estar en 0/2.")
         )
         st.session_state["comorb_selection"] = seleccion
 
         # Preparar DF y asegurar numérico 0/1/2
         df_work = df_base_comorb.copy()
-        comorb_cols_presentes = [comorb_map[lbl] for lbl in opciones_visibles]  # columnas reales presentes
+        comorb_cols_presentes = [comorb_map[lbl] for lbl in opciones_visibles]
         for c in comorb_cols_presentes:
             df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0)
 
         NO_SET = {0, 2}
         YES_VAL = 1
 
-        if not seleccion:
-            df_out = df_work.copy()
+        # Máscaras base
+        mask_none = df_work[comorb_cols_presentes].isin(NO_SET).all(axis=1)   # Sin comorbilidades
+        mask_any  = (df_work[comorb_cols_presentes] == YES_VAL).any(axis=1)   # Al menos una
 
-        elif "Sin comorbilidades" in seleccion:
-            if len(seleccion) > 1:
-                st.info("Se seleccionó 'Sin comorbilidades'. Se ignorarán otras selecciones para este filtro.")
-            mask_all_none = df_work[comorb_cols_presentes].isin(NO_SET).all(axis=1)
-            df_out = df_work[mask_all_none].copy()
+        # Auxiliar para "con comorbilidades" según selección
+        def build_with_group():
+            if not seleccion or (len(seleccion) == 1 and "Sin comorbilidades" in seleccion):
+                return df_work[mask_any].copy()
 
-        else:
-            cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_work.columns]
+            cols_sel = [comorb_map[lbl] for lbl in seleccion if lbl in comorb_map and comorb_map[lbl] in df_work.columns]
             cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
 
             if not cols_sel:
-                df_out = df_work.copy()
+                return df_work[mask_any].copy()
+
+            if modo.startswith("Todas"):
+                mask_sel = (df_work[cols_sel] == YES_VAL).all(axis=1)  # AND
             else:
-                # AND vs OR
-                if modo.startswith("Todas"):
-                    mask_sel = (df_work[cols_sel] == YES_VAL).all(axis=1)
+                mask_sel = (df_work[cols_sel] == YES_VAL).any(axis=1)  # OR
+
+            if exigir_no and cols_rest:
+                mask_rest = df_work[cols_rest].isin(NO_SET).all(axis=1)
+                mask = mask_sel & mask_rest
+            else:
+                mask = mask_sel
+
+            return df_work[mask].copy()
+
+        # ----- LÓGICA POR MODO -----
+        if modo_estudio == "Todos (un solo grupo)":
+            # No filtramos filas: estudiamos todo el universo como un solo grupo
+            df_out = df_work.copy()
+            # Etiquetamos por conveniencia (no obliga a agrupar)
+            df_out["comorbilidad"] = np.where(mask_none, "Sin comorbilidades", "Con comorbilidades")
+
+            st.session_state["df_comorb"] = df_out
+            st.caption(f"Filas (todos los pacientes): {len(df_out):,}")
+
+        elif modo_estudio == "Comparar (Sin vs Con)":
+            df_none = df_work[mask_none].copy()
+            df_with = build_with_group()
+
+            df_none["comorbilidad"] = "Sin comorbilidades"
+            df_with["comorbilidad"] = "Con comorbilidades"
+
+            df_both = pd.concat([df_none, df_with], axis=0, ignore_index=True)
+
+            st.session_state["df_comorb"] = df_both
+            st.caption(
+                f"Sin comorbilidades: {len(df_none):,} | Con comorbilidades: {len(df_with):,} | Total: {len(df_both):,}"
+            )
+
+        else:  # "Filtrar (según selección)"
+            if not seleccion:
+                df_out = df_work.copy()
+                # Etiqueta basada en presencia/ausencia
+                df_out["comorbilidad"] = np.where(
+                    mask_none, "Sin comorbilidades", "Con comorbilidades"
+                )
+
+            elif "Sin comorbilidades" in seleccion:
+                if len(seleccion) > 1:
+                    st.info("Se seleccionó 'Sin comorbilidades'. Se ignorarán otras selecciones para este filtro.")
+                df_out = df_work[mask_none].copy()
+                df_out["comorbilidad"] = "Sin comorbilidades"
+
+            else:
+                cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_work.columns]
+                cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
+
+                if not cols_sel:
+                    df_out = df_work.copy()
+                    df_out["comorbilidad"] = np.where(mask_none, "Sin comorbilidades", "Con comorbilidades")
                 else:
-                    mask_sel = (df_work[cols_sel] == YES_VAL).any(axis=1)
+                    if modo.startswith("Todas"):
+                        mask_sel = (df_work[cols_sel] == YES_VAL).all(axis=1)
+                    else:
+                        mask_sel = (df_work[cols_sel] == YES_VAL).any(axis=1)
 
-                if exigir_no and cols_rest:
-                    mask_rest = df_work[cols_rest].isin(NO_SET).all(axis=1)
-                    mask = mask_sel & mask_rest
-                else:
-                    mask = mask_sel
+                    if exigir_no and cols_rest:
+                        mask_rest = df_work[cols_rest].isin(NO_SET).all(axis=1)
+                        mask = mask_sel & mask_rest
+                    else:
+                        mask = mask_sel
 
-                df_out = df_work[mask].copy()
+                    df_out = df_work[mask].copy()
+                    df_out["comorbilidad"] = "Con comorbilidades"
 
-        st.session_state["df_comorb"] = df_out
-        st.caption(f"Filas tras filtro de comorbilidades: {len(df_out):,}")
+            st.session_state["df_comorb"] = df_out
+            st.caption(f"Filas tras filtro de comorbilidades: {len(df_out):,}")
 
 
 
