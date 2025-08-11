@@ -91,7 +91,7 @@ LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_e
 col_logo, col_title = st.columns([1, 3], gap="small")
 
 with col_logo:
-    st.image(LOGO_URL, use_column_width=True)
+    st.image(LOGO_URL, use_container_width=True)
 
 with col_title:
     st.markdown(
