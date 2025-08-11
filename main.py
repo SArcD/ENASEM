@@ -1891,84 +1891,138 @@ else:
 
 ################################
 
-# =========================
-# Formulario inteligente: captura manual y Excel
-# =========================
-import io
+# ==========================================================
+# Formularios: ✍️ Captura manual y 📄 Subir Excel
+# Requiere: pandas as pd, numpy as np, streamlit as st
+# Usa modelos si existen en st.session_state; si no, aplica la "regla".
+# ==========================================================
 
-# -------- Utilidad central: predicción 4→3→fallback→regla --------
+# --- Helper: normalizar nombres ADL externos (H11_18 -> H11, etc.) ---
+def _normalize_adl_columns(df: pd.DataFrame, adl_base: list[str]) -> pd.DataFrame:
+    if df is None or df.empty:
+        return df
+    rename_map = {}
+    lower_cols = {c.lower(): c for c in df.columns}
+    for base in adl_base:
+        # busca exacto, _18, _21 (case-insensitive)
+        for cand in (base, f"{base}_18", f"{base}_21"):
+            lc = cand.lower()
+            if lc in lower_cols:
+                rename_map[lower_cols[lc]] = base  # renombra a base
+                break
+    if rename_map:
+        df = df.rename(columns=rename_map)
+    return df
+
+# --- Helper: riesgo por "regla" con las columnas elegidas en indiscernibilidad ---
+def _riesgo_regla(df_in: pd.DataFrame, cols: list[str]) -> pd.Series:
+    if not isinstance(df_in, pd.DataFrame) or not cols:
+        return pd.Series(index=df_in.index if isinstance(df_in, pd.DataFrame) else [], dtype="object")
+    sub = df_in[cols].apply(pd.to_numeric, errors="coerce")
+    mask_ok = sub.notna().all(axis=1)
+    if not mask_ok.any():
+        return pd.Series(index=df_in.index, dtype="object")
+
+    vals = sub.loc[mask_ok]
+    count_ones = (vals == 1).sum(axis=1)
+    all_twos   = (vals == 2).all(axis=1)
+    nivel = np.where(
+        all_twos, "Riesgo nulo",
+        np.where(
+            count_ones <= 2,
+            np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
+            np.where(count_ones == 3, "Riesgo moderado", "Riesgo considerable")
+        )
+    )
+    out = pd.Series(index=df_in.index, dtype="object")
+    out.loc[mask_ok] = nivel
+    return out
+
+# --- Helper: predecir usando modelos (best4 -> best3) y si falta, "regla" ---
 def predecir_con_modelos(df_in: pd.DataFrame) -> pd.DataFrame:
     ss = st.session_state
-    df = df_in.copy()
+    if df_in is None or df_in.empty:
+        return pd.DataFrame(index=[], columns=["nivel_riesgo_pred"])
 
-    # el LE preferido (4 → 3 → fb)
-    le = ss.get("rf_best4_le") or ss.get("rf_best3_le") or ss.get("fb_hgb_le")
+    # Recuperar modelos entrenados (acepta variantes de nombre)
+    have4 = (("rf_best4" in ss and "rf_best4_cols" in ss and ("rf_best4_le" in ss or "rf_label_encoder" in ss))
+             or ("rf_best4_model" in ss and "rf_best4_cols" in ss and ("rf_best4_le" in ss or "rf_label_encoder" in ss)))
+    have3 = (("rf_best3" in ss and "rf_best3_cols" in ss and ("rf_best3_le" in ss or "rf_label_encoder" in ss))
+             or ("rf_best3_model" in ss and "rf_best3_cols" in ss and ("rf_best3_le" in ss or "rf_label_encoder" in ss)))
+
+    model4 = ss.get("rf_best4") or ss.get("rf_best4_model")
+    cols4  = ss.get("rf_best4_cols", [])
+    le4    = ss.get("rf_best4_le") or ss.get("rf_label_encoder")
+    imp4   = ss.get("rf_best4_imp") or ss.get("rf_best4_imputer")
+
+    model3 = ss.get("rf_best3") or ss.get("rf_best3_model")
+    cols3  = ss.get("rf_best3_cols", [])
+    le3    = ss.get("rf_best3_le") or ss.get("rf_label_encoder")
+    imp3   = ss.get("rf_best3_imp") or ss.get("rf_best3_imputer")
+
+    # Asegurar índice 'Indice'
+    df = df_in.copy()
+    if "Indice" in df.columns and df.index.name != "Indice":
+        df = df.set_index("Indice", drop=False)
+
+    # Convertir ADL a numérico ("" -> NaN)
+    adl_all = st.session_state.get("ind_adl_cols", st.session_state.get("ind_cols", []))
+    for c in adl_all:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
 
     pred = pd.Series(index=df.index, dtype="object")
 
-    def _predict(cols_key, model_key, imp_key=None, mask=None):
-        cols = ss.get(cols_key)
-        model = ss.get(model_key)
-        imp = ss.get(imp_key) if imp_key else None
-        if not cols or model is None:
-            return
-        m = df[cols].notna().all(axis=1)
-        if mask is not None:
-            m = m & mask
-        if not m.any():
-            return
-        X = df.loc[m, cols].apply(pd.to_numeric, errors="coerce")
-        if imp is not None:
-            X = imp.transform(X)
-        y = model.predict(X)
-        lab = le.inverse_transform(y) if le is not None else y
-        pred.loc[m] = lab
+    # Helper para predecir con un modelo y sus columnas
+    def _predict_block(cols, model, le, imputer, mask_limit=None):
+        if not cols or model is None or le is None:
+            return pd.Index([]), None
+        if not all(c in df.columns for c in cols):
+            return pd.Index([]), None
+        mask = df[cols].notna().all(axis=1)
+        if mask_limit is not None:
+            mask = mask & mask_limit
+        if not mask.any():
+            return pd.Index([]), None
+        X = df.loc[mask, cols].apply(pd.to_numeric, errors="coerce")
+        if imputer is not None:
+            X = imputer.transform(X)
+        yhat = model.predict(X)
+        labels = le.inverse_transform(yhat)
+        return df.index[mask], labels
 
-    # 1) RF de 4 variables
-    _predict("rf_best4_cols", "rf_best4", "rf_best4_imp")
+    # 1) Modelo de 4 variables
+    if have4:
+        idx4, lab4 = _predict_block(cols4, model4, le4, imp4)
+        if len(idx4) > 0:
+            pred.loc[idx4] = lab4
 
-    # 2) RF de 3 variables (solo filas restantes)
-    _predict("rf_best3_cols", "rf_best3", "rf_best3_imp", mask=pred.isna())
+    # 2) Modelo de 3 variables (solo donde falte)
+    if have3:
+        restante = pred.isna()
+        idx3, lab3 = _predict_block(cols3, model3, le3, imp3, mask_limit=restante)
+        if idx3 is not None and len(idx3) > 0:
+            pred.loc[idx3] = lab3
 
-    # 3) Fallback HGB si existe (para filas sin predicción aún)
-    if pred.isna().any() and st.session_state.get("fb_hgb_model") is not None:
-        cols_fb = st.session_state.get("fb_hgb_cols", [])
-        if cols_fb:
-            m = pred.isna() & df[cols_fb].notna().all(axis=1)
-            if m.any():
-                Xfb = df.loc[m, cols_fb].apply(pd.to_numeric, errors="coerce")
-                yfb = st.session_state["fb_hgb_model"].predict(Xfb)
-                lab_fb = st.session_state["fb_hgb_le"].inverse_transform(yfb) if st.session_state.get("fb_hgb_le") else yfb
-                pred.loc[m] = lab_fb
-
-    # 4) Último recurso: regla (si están TODAS las ind_cols sin NaN)
-    ind_cols = st.session_state.get("ind_cols", [])
-    if pred.isna().any() and ind_cols:
-        m = pred.isna() & df[ind_cols].notna().all(axis=1)
-        if m.any():
-            val = df.loc[m, ind_cols].apply(pd.to_numeric, errors="coerce")
-            ones = (val == 1).sum(axis=1)
-            twos = (val == 2).all(axis=1)
-            lab = np.where(
-                twos, "Riesgo nulo",
-                np.where(
-                    ones <= 2,
-                    np.where(ones >= 1, "Riesgo leve", "Riesgo leve"),
-                    np.where(ones == 3, "Riesgo moderado", "Riesgo considerable")
-                )
-            )
-            pred.loc[m] = lab
+    # 3) Fallback de "regla" (donde siga faltando)
+    if pred.isna().any():
+        ind_cols = st.session_state.get("ind_cols", [])
+        if ind_cols:
+            regla = _riesgo_regla(df, ind_cols)
+            pred.loc[pred.isna()] = regla.loc[pred.isna()]
 
     pred.fillna("Sin datos", inplace=True)
     return pd.DataFrame({"nivel_riesgo_pred": pred})
 
-# ---------- Columnas ADL a pedir en el formulario ----------
-cand = set(st.session_state.get("ind_cols", [])) | set(st.session_state.get("rf_best4_cols", [])) | set(st.session_state.get("rf_best3_cols", []))
-if not cand:
-    cand = set(st.session_state.get("ind_adl_cols", [])[:5])  # fallback
-manual_adl_cols = sorted(list(cand))
+# ==========================================================
+# UI: Tabs de captura manual y subir Excel
+# ==========================================================
+st.markdown("## 📋 Diagnóstico por captura o carga de archivo")
 
-st.header("🧾 Formulario inteligente de diagnóstico")
+manual_adl_cols = st.session_state.get("ind_adl_cols", st.session_state.get("ind_cols", []))
+if not manual_adl_cols:
+    # Fallback de ejemplo si aún no se calcularon ADL/ind_cols
+    manual_adl_cols = ["H11", "H15A", "H5", "H6", "C37"]
 
 tabs = st.tabs(["✍️ Captura manual", "📄 Subir Excel"])
 
@@ -1987,7 +2041,7 @@ with tabs[0]:
             "Edad": ""
         } | {c: "" for c in manual_adl_cols}], columns=base_cols)
 
-    # Editor dinámico
+    # Editor dinámico (NO predice aún)
     edited = st.data_editor(
         st.session_state["manual_df"],
         num_rows="dynamic",
@@ -1999,19 +2053,20 @@ with tabs[0]:
         },
         key="manual_editor"
     )
+    # 🔄 Sincroniza SIEMPRE lo editado
+    st.session_state["manual_df"] = edited.copy()
 
-    c1, c2, c3 = st.columns(3)
+    c1, c2 = st.columns(2)
     with c1:
-        if st.button("Guardar cambios en la tabla", use_container_width=True):
-            st.session_state["manual_df"] = edited.copy()
-            st.success("Tabla actualizada.")
-    with c2:
-        if st.button("Limpiar tabla", use_container_width=True):
-            base_cols = ["Indice", "Sexo", "Edad"] + manual_adl_cols
-            st.session_state["manual_df"] = pd.DataFrame(columns=base_cols)
+        if st.button("Añadir fila vacía", use_container_width=True):
+            nueva = {k: "" for k in st.session_state["manual_df"].columns}
+            st.session_state["manual_df"] = pd.concat(
+                [st.session_state["manual_df"], pd.DataFrame([nueva])],
+                ignore_index=True
+            )
             st.rerun()
-    with c3:
-        recalcular = st.button("Recalcular diagnósticos", use_container_width=True)
+    with c2:
+        recalcular = st.button("Recalcular diagnósticos", use_container_width=True, type="primary")
 
     if recalcular:
         df_man = st.session_state["manual_df"].copy()
@@ -2021,16 +2076,31 @@ with tabs[0]:
             df_man["Indice"] = [f"row_{i+1}" for i in range(len(df_man))]
         df_man.set_index("Indice", inplace=True, drop=False)
 
-        # Asegurar que existan todas las columnas de modelos (si faltan, se crean vacías)
+        # Asegurar columnas que usan los modelos
         need4 = st.session_state.get("rf_best4_cols", [])
         need3 = st.session_state.get("rf_best3_cols", [])
-        for c in set(need4) | set(need3):
+        needed = set(need4) | set(need3)
+        for c in needed:
             if c not in df_man.columns:
                 df_man[c] = np.nan
 
-        # Predecir
+        # Convertir ADL a numérico ("" -> NaN)
+        for c in manual_adl_cols:
+            if c in df_man.columns:
+                df_man[c] = pd.to_numeric(df_man[c], errors="coerce")
+
+        # Diagnóstico (modelos + regla)
         df_pred = predecir_con_modelos(df_man)
         out = df_man.join(df_pred, how="left")
+
+        total = len(out)
+        sin_datos = (out["nivel_riesgo_pred"] == "Sin datos").sum()
+        if sin_datos > 0:
+            st.info(
+                f"{sin_datos} de {total} fila(s) quedaron como **'Sin datos'**. "
+                "Completa **al menos** las 4 variables del mejor modelo (o 3 del secundario) "
+                "o todas las usadas en indiscernibilidad para que la **regla** aplique."
+            )
 
         st.subheader("Resultados (captura manual)")
         st.dataframe(out.reset_index(drop=True), use_container_width=True)
@@ -2043,82 +2113,91 @@ with tabs[0]:
             key="dl_diag_manual"
         )
 
-# =====================================
-# TAB 2: Subir Excel y predecir en lote
-# =====================================
+# ==========================================================
+# TAB 2: Subir Excel (normaliza columnas y permite edición)
+# ==========================================================
 with tabs[1]:
-    st.markdown("Sube un archivo Excel con las columnas de ADL requeridas. Se intentará mapear automáticamente sufijos _18/_21.")
+    st.markdown("Sube un **Excel (.xlsx)** o **CSV** con columnas de ADL. Se usarán los modelos entrenados y, si falta info, la regla.")
 
-    up = st.file_uploader("Cargar archivo .xlsx", type=["xlsx"])
+    up = st.file_uploader("Archivo Excel/CSV", type=["xlsx", "xls", "csv"], accept_multiple_files=False, key="up_excel_rf")
     if up is not None:
-        # Detectar hojas
-        xls = pd.ExcelFile(up)
-        hoja = st.selectbox("Hoja", xls.sheet_names, index=0)
-        df_up = pd.read_excel(up, sheet_name=hoja)
-
-        st.caption(f"Vista previa de la hoja '{hoja}':")
-        st.dataframe(df_up.head(20), use_container_width=True)
-
-        # Auto-mapeo de columnas: exacto o con sufijos _18/_21
-        target_cols = manual_adl_cols  # las necesarias por modelos/ind
-        def _match_col(base_name: str, cols):
-            candidates = [base_name, f"{base_name}_18", f"{base_name}_21"]
-            for cand in candidates:
-                if cand in cols:
-                    return cand
-            return None
-
-        rename_map = {}
-        faltantes = []
-        for base in target_cols:
-            real = _match_col(base, df_up.columns)
-            if real is not None:
-                rename_map[real] = base
+        # Cargar archivo
+        try:
+            if up.name.lower().endswith(".csv"):
+                df_up = pd.read_csv(up)
             else:
-                faltantes.append(base)
+                df_up = pd.read_excel(up)
+        except Exception as e:
+            st.error(f"No se pudo leer el archivo: {e}")
+            df_up = None
 
-        df_work = df_up.copy()
-        if rename_map:
-            df_work.rename(columns=rename_map, inplace=True)
+        if df_up is not None and not df_up.empty:
+            # Normalizar nombres ADL (H11_18 -> H11, etc.)
+            df_up = _normalize_adl_columns(df_up, manual_adl_cols)
 
-        # Asegurar 'Indice'
-        if "Indice" not in df_work.columns:
-            # buscamos alguna columna identificadora común
-            id_guess = None
-            for cand in ["ID", "Id", "id", "folio", "Folio", "CURP", "curp"]:
-                if cand in df_work.columns:
-                    id_guess = cand
-                    break
-            if id_guess:
-                df_work.rename(columns={id_guess: "Indice"}, inplace=True)
-            else:
-                df_work["Indice"] = [f"row_{i+1}" for i in range(len(df_work))]
-        df_work.set_index("Indice", inplace=True, drop=False)
+            # Asegurar columnas mínimas
+            base_cols = ["Indice", "Sexo", "Edad"]
+            for c in base_cols:
+                if c not in df_up.columns:
+                    df_up[c] = "" if c != "Edad" else np.nan
 
-        # Crear columnas faltantes de ADL (se rellenan con NaN)
-        for c in target_cols:
-            if c not in df_work.columns:
-                df_work[c] = np.nan
-
-        st.info(f"Columnas ADL objetivo: {target_cols}")
-        if faltantes:
-            st.warning(f"No se encontraron en el archivo (se crearán vacías): {faltantes}")
-
-        if st.button("Predecir archivo", use_container_width=True, key="btn_pred_file"):
-            df_pred = predecir_con_modelos(df_work)
-            out = df_work.join(df_pred, how="left")
-
-            st.subheader("Resultados del archivo")
-            st.dataframe(out.head(50), use_container_width=True)
-
-            # Guardar y descargar
-            bio = io.BytesIO()
-            out.to_excel(bio, index=False, engine="xlsxwriter")
-            st.download_button(
-                "Descargar diagnósticos (XLSX)",
-                data=bio.getvalue(),
-                file_name="diagnosticos_archivo.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key="dl_diag_xlsx"
+            # Editor (permite corregir antes de calcular)
+            edited_up = st.data_editor(
+                df_up,
+                num_rows="dynamic",
+                use_container_width=True,
+                column_config={
+                    "Sexo": st.column_config.SelectboxColumn(options=["", "M", "F"], help="Opcional"),
+                    "Edad": st.column_config.NumberColumn(min_value=0, max_value=120, step=1, help="Opcional"),
+                    **{c: st.column_config.NumberColumn(min_value=0, max_value=2, step=1, help="Valores esperados: 0/1/2") for c in manual_adl_cols if c in df_up.columns}
+                },
+                key="excel_editor"
             )
+            st.session_state["excel_df"] = edited_up.copy()
+
+            if st.button("Calcular diagnósticos (archivo)", type="primary", use_container_width=True, key="btn_calc_excel"):
+                df_file = st.session_state["excel_df"].copy()
+
+                # Asegurar índice
+                if "Indice" not in df_file.columns or df_file["Indice"].isna().all() or (df_file["Indice"] == "").all():
+                    df_file["Indice"] = [f"row_{i+1}" for i in range(len(df_file))]
+                df_file.set_index("Indice", inplace=True, drop=False)
+
+                # Convertir ADL a numérico
+                for c in manual_adl_cols:
+                    if c in df_file.columns:
+                        df_file[c] = pd.to_numeric(df_file[c], errors="coerce")
+
+                # Asegurar columnas de modelos
+                need4 = st.session_state.get("rf_best4_cols", [])
+                need3 = st.session_state.get("rf_best3_cols", [])
+                needed = set(need4) | set(need3)
+                for c in needed:
+                    if c not in df_file.columns:
+                        df_file[c] = np.nan
+
+                # Diagnóstico
+                df_pred = predecir_con_modelos(df_file)
+                outf = df_file.join(df_pred, how="left")
+
+                total = len(outf)
+                sin_datos = (outf["nivel_riesgo_pred"] == "Sin datos").sum()
+                if sin_datos > 0:
+                    st.info(
+                        f"{sin_datos} de {total} fila(s) quedaron como **'Sin datos'**. "
+                        "Completa 4 (o 3) ADL según el modelo, o todas las de indiscernibilidad para que aplique la regla."
+                    )
+
+                st.subheader("Resultados (archivo cargado)")
+                st.dataframe(outf.reset_index(drop=True), use_container_width=True)
+
+                st.download_button(
+                    "Descargar diagnósticos (CSV)",
+                    data=outf.to_csv(index=False).encode("utf-8"),
+                    file_name="diagnosticos_archivo.csv",
+                    mime="text/csv",
+                    key="dl_diag_excel"
+                )
+    else:
+        st.caption("Formato esperado: columnas **Indice, Sexo, Edad** (opcionales) + columnas ADL (H11, H15A, H5, H6, C37, etc.).")
 
