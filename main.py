@@ -1803,18 +1803,7 @@ else:
         df_pred_all = df_all.copy()
         df_pred_all["nivel_riesgo_pred"] = pred_all
         ss["df_pred_all_rf"] = df_pred_all
-
-        
-        # Etiquetar el resto
-        #pred_all.fillna("Sin datos", inplace=True)
-
-        #df_pred_all = df_all.copy()
-        #df_pred_all["nivel_riesgo_pred"] = pred_all
-        #ss["df_pred_all_rf"] = df_pred_all
-
-
-
-    
+   
     
     # Muestra y descarga
     st.dataframe(df_pred_all.reset_index().head(50), use_container_width=True)
