@@ -1728,3 +1728,43 @@ else:
         ax2.axis('equal')
         ax2.set_title("Riesgo — todo ind_df (RF 4→3 vars)")
     st.pyplot(fig2)
+
+
+# === Barras comparativas: Regla (sin NaN) vs RF (todo ind_df) ===
+orden = ["Riesgo nulo", "Riesgo leve", "Riesgo moderado", "Riesgo severo"]
+
+# Conteos de la regla (sin NaN) ya los tienes en c1
+cnt_regla = c1.reindex(orden, fill_value=0)
+
+# Conteos de RF: toma solo las 4 categorías (ignora "Sin datos" en la comparación)
+cnt_rf = c2.reindex(orden, fill_value=0) if isinstance(c2, pd.Series) else pd.Series([0]*len(orden), index=orden)
+
+# Si ambos están vacíos, evita gráfico en blanco
+if cnt_regla.sum() == 0 and cnt_rf.sum() == 0:
+    st.info("No hay datos suficientes para la comparación de barras (regla vs RF).")
+else:
+    x = np.arange(len(orden))
+    width = 0.38
+    ymax = max(cnt_regla.max(), cnt_rf.max()) if len(orden) else 1
+
+    fig_bar, ax_bar = plt.subplots(figsize=(8, 4.8))
+    b1 = ax_bar.bar(x - width/2, cnt_regla.values, width, label="Regla (sin NaN)")
+    b2 = ax_bar.bar(x + width/2, cnt_rf.values,  width, label="RF (todo ind_df)")
+
+    ax_bar.set_xticks(x); ax_bar.set_xticklabels(orden)
+    ax_bar.set_ylabel("Participantes"); ax_bar.set_title("Niveles de riesgo: Regla vs RF")
+    ax_bar.legend()
+    ax_bar.grid(axis='y', linestyle='--', alpha=0.3)
+
+    # Anotar conteos
+    for bars in (b1, b2):
+        for r in bars:
+            h = r.get_height()
+            ax_bar.text(r.get_x()+r.get_width()/2, h + 0.01*max(1, ymax), f"{int(h)}",
+                        ha="center", va="bottom", fontsize=9)
+
+    st.pyplot(fig_bar)
+
+# (Opcional) Si quieres un tercer gráfico mostrando cómo se distribuye "Sin datos" en RF:
+if "Sin datos" in c2.index and c2.sum() > 0:
+    st.caption(f"Filas sin predicción por RF (faltaron columnas del reducto): {int(c2['Sin datos'])}")
