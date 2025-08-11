@@ -294,7 +294,7 @@ if base_df is None:
     base_df = datos_seleccionados.copy()
 
 with st.sidebar:
-    st.subheader("Seleccione el rango de edad (puede teclear los valores dentro de los recuadros")
+    st.subheader("Seleccione el rango de edad (puede teclear los valores dentro de los recuadros).")
     if "AGE" not in base_df.columns:
         st.warning("No se encontró la columna 'AGE' en los datos.")
     else:
@@ -617,7 +617,7 @@ with st.sidebar:
         )
 
         # Configuración del filtro
-        modo = st.radio("Lógica entre las seleccionadas", ["Todas (AND)", "Cualquiera (OR)"],
+        modo = st.radio("Lógica entre las seleccionadas", ["Todas (las comorbilidades seleccionadas deben aparecer simultaneamente)", "Cualquiera (los participantes tendrán al menos una de las comorbilidades seleccionadas)."],
                         index=0, horizontal=True)
         exigir_no = st.checkbox(
             "Exigir que las NO seleccionadas estén en 0/2",
