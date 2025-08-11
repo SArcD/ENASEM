@@ -9,9 +9,6 @@ def determinar_color(valores):
     if 4 <= count_ones < 5: return 'orange'
     return 'red'
 
-
-
-
 # --- Utilidades comunes para particiones/metricas (definir si no existen) ---
 if "blocks_to_labels" not in globals():
     import numpy as np
@@ -88,7 +85,14 @@ if "blocks_to_labels" not in globals():
 
 
 st.set_page_config(page_title="ENASEM — Carga y preparación", layout="wide")
-st.title("ENASEM — Cargar y preparar columnas (2018/2021)")
+st.title("ENASEM — Predictor de riesgo de sarcopenia (Encuestas 2018/2021)")
+st.markdown("""
+<style>
+/* Justificar todo el texto de párrafos, listas y tablas */
+p, li, td { text-align: justify; }
+</style>
+""", unsafe_allow_html=True)
+
 
 # -----------------------------------------
 # Barra lateral: subir archivo
@@ -336,71 +340,6 @@ comorb_map = {
     "Embolia/Derrame/ICT (C26)": "C26",
     "Artritis/Reumatismo (C32)": "C32",
 }
-
-#with st.sidebar:
-#    st.subheader("Seleccione comorbilidades")
-#    # Opciones disponibles según las columnas que existan
-#    opciones_visibles = [lbl for lbl, col in comorb_map.items() if col in df_base_comorb.columns]
-
-#    if not opciones_visibles:
-#        st.warning("No se encontraron columnas de comorbilidades esperadas (C4, C6, C12, C19, C22A, C26, C32).")
-#        st.session_state["df_comorb"] = df_base_comorb.copy()
-#    else:
-#        # Agregamos la opción especial
-#        opciones_visibles_con_none = ["Sin comorbilidades"] + opciones_visibles
-
-#        seleccion = st.multiselect(
-#            "Comorbilidades (1 = Sí, 2/0 = No).",
-#            options=opciones_visibles_con_none,
-#            default=[],
-#            help=(
-#                "• ‘Sin comorbilidades’: conserva filas con TODAS las comorbilidades en 2/0.\n"
-#                "• Si seleccionas una o más comorbilidades: conserva filas con 1 en las seleccionadas y 2/0 en las demás."
-#            )
-#        )
-#        st.session_state["comorb_selection"] = seleccion
-
-#        # Preparar dataframe de trabajo y asegurar numérico 0/1/2
-#        df_work = df_base_comorb.copy()
-#        comorb_cols_presentes = [comorb_map[lbl] for lbl in opciones_visibles]  # columnas reales presentes
-#        for c in comorb_cols_presentes:
-#            df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0)
-
-#        # Conjunto de valores que consideramos "No": soporta 0 o 2
-#        NO_SET = {0, 2}
-#        YES_VAL = 1
-
-#        if not seleccion:
-#            # Sin selección → no filtrar por comorbilidades
-#            df_out = df_work.copy()
-
-#        elif "Sin comorbilidades" in seleccion:
-#            # Si el usuario mezcla "Sin comorbilidades" con otras, damos prioridad a "Sin comorbilidades"
-#            if len(seleccion) > 1:
-#                st.info("Se seleccionó 'Sin comorbilidades'. Se ignorarán otras selecciones para este filtro.")
-#            # Todas las comorbilidades deben estar en 2/0
-#            mask_all_none = df_work[comorb_cols_presentes].isin(NO_SET).all(axis=1)
-#            df_out = df_work[mask_all_none].copy()
-#
-#        else:
-#            # Selección específica: las seleccionadas en 1, las NO seleccionadas en 2/0
-#            cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_work.columns]
-#            cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
-
-#            if not cols_sel:
-#                # Nada mapeable → no filtrar
-#                df_out = df_work.copy()
-#            else:
-#                mask_selected_yes = (df_work[cols_sel] == YES_VAL).all(axis=1)
-#                mask_rest_no = True
-#                if cols_rest:
-#                    mask_rest_no = df_work[cols_rest].isin(NO_SET).all(axis=1)
-#                df_out = df_work[mask_selected_yes & mask_rest_no].copy()
-
-#        st.session_state["df_comorb"] = df_out
-
-
-
 
 with st.sidebar:
     st.subheader("Seleccione comorbilidades")
@@ -672,248 +611,6 @@ if generar:
             st.session_state["ind_classes"] = clases
             st.session_state["ind_lengths"] = longitudes_orden
             st.session_state["ind_min_size"] = int(min_size_for_pie)
-
-#            # 3) Pastel (usando tamaños de df_eval)
-#            candidatas = [(nombres[i], tam) for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
-#            if candidatas:
-#                labels = [n for n, _ in candidatas]
-#                valores = [v for _, v in candidatas]
-#                total = sum(valores)
-#                fig_pie, ax_pie = plt.subplots(figsize=(7, 7))
-#                ax_pie.pie(valores, labels=labels,
-#                           autopct=lambda p: f"{p:.1f}%\n({int(p*total/100):,})",
-#                           startangle=140)
-#                ax_pie.axis('equal')
-#                ax_pie.set_title(f"Participación de clases (≥ {min_size_for_pie} filas)")
-#                st.pyplot(fig_pie)
-#            else:
-#                st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el pastel.")
-#
-#            # ====== NUEVO (pegar aquí, después del pastel; dentro de if generar:) ======
-#            # df_ind existe en este bloque; usamos solo filas SIN NaN en las columnas seleccionadas
-#            #df_eval = df_ind.loc[df_ind[cols_attrs].dropna().index].copy()
-#
-#            # Guardarlo en sesión por si lo necesitas en otras secciones
-#            st.session_state["df_eval"] = df_eval.copy()
-
-#            # Calcular nivel de riesgo según la regla:
-#            # - Riesgo nulo: TODAS las columnas seleccionadas valen 2
-#            # - Riesgo leve: 1 o 2 columnas valen 1  (o 0 si no son todas 2)
-#            # - Riesgo moderado: exactamente 3 columnas valen 1
-#            # - Riesgo severo: 4 o 5 columnas valen 1
-#            vals = df_eval[cols_attrs].apply(pd.to_numeric, errors="coerce")
-#            count_ones = (vals == 1).sum(axis=1)
-#            all_twos   = (vals == 2).all(axis=1)
-
-#            nivel = np.where(
-#                all_twos, "Riesgo nulo",
-#                np.where(
-#                    count_ones <= 2,
-#                    np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
-#                    np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
-#                )
-#            )
-#
-#            df_eval_riesgo = df_eval.copy()
-#            df_eval_riesgo["nivel_riesgo"] = nivel
-#
-#            st.subheader("Filas usadas en el pastel (sin NaN) + nivel_riesgo")
-#            st.dataframe(df_eval_riesgo.reset_index(), use_container_width=True)
-#
-#            st.download_button(
-#                "Descargar filas del pastel con nivel_riesgo (CSV)",
-#                data=df_eval_riesgo.reset_index().to_csv(index=False).encode("utf-8"),
-#                file_name="filas_pastel_con_nivel_riesgo.csv",
-#                mime="text/csv",
-#                key="dl_df_eval_riesgo"
-#            )
-#
-#            # Por si más adelante quieres reutilizarlo
-#            st.session_state["df_eval_riesgo"] = df_eval_riesgo.copy()
-#            # ====== FIN NUEVO ======
-
-
-
-            
-#            # 4) Radar de los N conjuntos más grandes (sobre df_eval)
-#            st.subheader("Radar de los conjuntos más numerosos")
-#            top_idxs = [i for i, _ in longitudes_orden[:int(top_n_radar)]]
-#            top_sets = [(nombres[i], clases[i]) for i in top_idxs]
-
-#            def determinar_color(valores):
-#                count_ones = sum(1 for v in valores if pd.to_numeric(v, errors="coerce") == 1)
-#                if count_ones == 0:
-#                    return 'blue'
-#                elif 1 <= count_ones < 3:
-#                    return 'green'
-#                elif count_ones == 3:
-#                    return 'yellow'
-#                elif 4 <= count_ones < 5:
-#                    return 'orange'
-#                else:
-#                    return 'red'
-
-#            total_pacientes = len(df_eval)
-#            n = int(top_n_radar)
-#            cols_grid = 5
-#            rows_grid = int(np.ceil(n / cols_grid))
-#            fig, axs = plt.subplots(rows_grid, cols_grid, figsize=(cols_grid*6, rows_grid*5), subplot_kw=dict(polar=True))
-#            axs = np.atleast_2d(axs)
-#            fig.subplots_adjust(hspace=0.8, wspace=0.6)
-#
-#            k = len(cols_attrs)
-#            angulos = np.linspace(0, 2 * np.pi, k, endpoint=False).tolist()
-#            angulos_cerrado = angulos + angulos[:1]
-
-#            for idx_plot in range(rows_grid * cols_grid):
-#                r = idx_plot // cols_grid
-#                c = idx_plot % cols_grid
-#                ax = axs[r, c]
-#                if idx_plot >= n:
-#                    ax.axis('off')
-#                    continue
-
-#                nombre, conjunto_idx = top_sets[idx_plot]
-#                indices = sorted(list(conjunto_idx))
-#                df_conj = df_eval.loc[indices, cols_attrs]
-
-#                if df_conj.empty:
-#                    valores = [0]*k
-#                    num_filas_df = 0
-#                else:
-#                    valores = df_conj.iloc[0].tolist()
-#                    num_filas_df = len(df_conj)
-
-#                valores_cerrados = list(valores) + [valores[0]]
-#                color = determinar_color(valores)
-
-#                ax.plot(angulos_cerrado, valores_cerrados, color=color)
-#                ax.fill(angulos_cerrado, valores_cerrados, color=color, alpha=0.25)
-#                ax.set_theta_offset(np.pi / 2)
-#                ax.set_theta_direction(-1)
-#                ax.set_xticks(angulos)
-#                ax.set_xticklabels(cols_attrs, fontsize=10)
-#                ax.yaxis.grid(True)
-#                ax.set_ylim(0, 2)
-#                ax.set_yticks([0, 1, 2])
-#                ax.set_yticklabels([0, 1, 2], fontsize=9)
-
-#                porcentaje = (num_filas_df / total_pacientes * 100) if total_pacientes else 0.0
-#                ax.set_title(nombre, fontsize=12)
-#                ax.text(0.5, -0.2, f"Filas: {num_filas_df} ({porcentaje:.2f}%)",
-#                        transform=ax.transAxes, ha="center", va="center", fontsize=10)
-#
-#            st.pyplot(fig)
-
-#            # ============ Gráfico compuesto (pastel + radares incrustados) ============
-#            candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
-#            if candidatas_idx_nom_tam:
-#                nombres_dataframes = [nom for _, nom, _ in candidatas_idx_nom_tam]
-#                tamanios = [tam for _, _, tam in candidatas_idx_nom_tam]
-#                total_incluido = sum(tamanios)
-#                porcentajes = [(nom, (tam/total_incluido*100.0) if total_incluido else 0.0)
-#                               for _, nom, tam in candidatas_idx_nom_tam]
-
-#                valores_dataframes, colores_dataframes = [], []
-#                for idx, _, _ in candidatas_idx_nom_tam:
- #                   indices = sorted(list(clases[idx]))
-#                    sub = df_eval.loc[indices, cols_attrs]
-#                    vals = sub.iloc[0].tolist() if not sub.empty else [0]*len(cols_attrs)
-#                    valores_dataframes.append(vals)
-#                    colores_dataframes.append(determinar_color(vals))
-
-#                min_radio = 1.0
-#                max_radio = 2.40
-#                radar_size_min = 0.10
-#                radar_size_max = 0.19
-#                etiquetas_radar = [et.replace('_21','').replace('_18','') for et in cols_attrs]
-
-#                fig_comp = plt.figure(figsize=(16, 16))
-#                main_ax = plt.subplot(111)
-#                main_ax.set_position([0.1, 0.1, 0.8, 0.8])
-
-#                if porcentajes:
-#                    _, valores_porcentajes = zip(*porcentajes)
-#                    valores_porcentajes = [float(p) for p in valores_porcentajes]
-#                else:
-#                    valores_porcentajes = []
-
-#                colores_ajustados = colores_dataframes[:len(valores_porcentajes)]
-#                wedges, texts, autotexts = main_ax.pie(
-#                    valores_porcentajes,
-#                    colors=colores_ajustados,
-#                    autopct='%1.1f%%',
-#                    startangle=90,
-#                    textprops={'fontsize': 17},
-#                    labeldistance=1.1
-#                )
-#
-#                if wedges:
-#                    angulos_pastel = [(w.theta1 + w.theta2)/2 for w in wedges]
-#                    anchos = [abs(w.theta2 - w.theta1) for w in wedges]
-#                    max_ancho = max(anchos) if anchos else 1
-#                    angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
-#
-#                    radios_personalizados = [
-#                        min_radio + (1 - (log1p(a)/log1p(max_ancho))) * (max_radio - min_radio)
-#                        for a in anchos
-#                    ]
-#                    tamaños_radar = [
-#                        radar_size_min + (a/max_ancho) * (radar_size_max - radar_size_min)
-#                        for a in anchos
-#                    ]
-
-#                    angulos_rad_separados = angulos_rad.copy()
-#                    min_sep = np.deg2rad(7)
-#                    for i in range(1, len(angulos_rad_separados)):
-#                        while abs(angulos_rad_separados[i] - angulos_rad_separados[i-1]) < min_sep:
-#                            angulos_rad_separados[i] += min_sep/2
-#
-#                    for i, (nombre, vals, color, ang_rad, r_inset, tam_radar) in enumerate(
-#                        zip(nombres_dataframes, valores_dataframes, colores_dataframes,
-#                            angulos_rad_separados, radios_personalizados, tamaños_radar)
-#                    ):
-#                        factor_alejamiento = 2.3
-#                        x = 0.5 + r_inset*np.cos(ang_rad)/factor_alejamiento
-#                        y = 0.5 + r_inset*np.sin(ang_rad)/factor_alejamiento
-#                        radar_ax = fig_comp.add_axes([x - tam_radar/2, y - tam_radar/2, tam_radar, tam_radar], polar=True)
-#
-#                        vals = list(vals)[:len(cols_attrs)] or [0]*len(cols_attrs)
-#                        vals_c = vals + [vals[0]]
-#                        angs = np.linspace(0, 2*np.pi, len(cols_attrs), endpoint=False).tolist()
-#                        angs_c = angs + [angs[0]]
-#
-#                        radar_ax.set_theta_offset(np.pi/2)
-#                        radar_ax.set_theta_direction(-1)
-#                        radar_ax.plot(angs_c, vals_c, color=color)
-#                        radar_ax.fill(angs_c, vals_c, color=color, alpha=0.3)
-#                        radar_ax.set_xticks(angs)
-#                        radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
-#                        radar_ax.set_yticks([0,1,2])
-#                        radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
-#                        radar_ax.set_ylim(0,2)
-#                        radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
-
-#                        x0 = 0.5 + 0.3*np.cos(ang_rad)
-#                        y0 = 0.5 + 0.3*np.sin(ang_rad)
-#                        con = ConnectionPatch(
-#                            xyA=(x0, y0), coordsA=fig_comp.transFigure,
-#                            xyB=(x, y), coordsB=fig_comp.transFigure,
-#                            color='gray', lw=0.8, linestyle='--'
-#                        )
-#                        fig_comp.add_artist(con)
-
-#                st.pyplot(fig_comp)
-#                try:
-#                    plt.savefig("radar_pastel_final.png", dpi=300, bbox_inches='tight', facecolor='white')
-#                    st.download_button(
-#                        "Descargar imagen (PNG)",
-#                        data=open("radar_pastel_final.png", "rb").read(),
-#                        file_name="radar_pastel_final.png",
-#                        mime="image/png"
-#                    )
-#                except Exception:
-#                    pass
 
 # ==== RENDER FUERA DEL BOTÓN: usa lo que quedó en session_state ====
 
@@ -1682,62 +1379,10 @@ else:
         df_pred_all = df_all.copy()
         df_pred_all["nivel_riesgo_pred"] = "Sin datos"
         ss["df_pred_all_rf"] = df_pred_all
-    #else:
-    #    # usa el LE del modelo disponible (prefiere 4 vars)
-    #    le = ss["rf_best4_le"] if have4 else ss["rf_best3_le"]
-
-    #    # Serie donde iremos llenando las predicciones finales
-    #    pred_all = pd.Series(index=df_all.index, dtype="object")
-#
-#        # --- helper para predecir con un set de columnas ---
-#        def predict_with(cols, model, imputer=None, mask_limit=None):
-#            mask = df_all[cols].notna().all(axis=1)
-#            if mask_limit is not None:
-#                mask = mask & mask_limit
-#            if not mask.any():
-#                return pd.Index([]), None
-#            X = df_all.loc[mask, cols].apply(pd.to_numeric, errors="coerce")
-#            if imputer is not None:
-#                X = imputer.transform(X)
-#            y = model.predict(X)
-#            return df_all.index[mask], le.inverse_transform(y)
-
-#        # 1) Primero 4 variables
-#        if have4:
-#            idx4, lab4 = predict_with(ss["rf_best4_cols"], ss["rf_best4"], ss["rf_best4_imp"])
-#            if len(idx4) > 0:
-#                pred_all.loc[idx4] = lab4
-
-#        # 2) Luego 3 variables para las filas sin predicción aún
-#        if have3:
-#            restante = pred_all.isna()
-#            idx3, lab3 = predict_with(ss["rf_best3_cols"], ss["rf_best3"], ss["rf_best3_imp"], mask_limit=restante)
-#            if idx3 is not None and len(idx3) > 0:
-#                pred_all.loc[idx3] = lab3
-
-#        pred_all.fillna("Sin datos", inplace=True)
-#
-#        df_pred_all = df_all.copy()
-#        df_pred_all["nivel_riesgo_pred"] = pred_all
-#        ss["df_pred_all_rf"] = df_pred_all
-
-
-
 
     else:
         # usa el LE del modelo disponible (prefiere 4 vars)
         le = ss["rf_best4_le"] if have4 else ss["rf_best3_le"]
-
- #       # Fallback final con HGB para filas aún sin predicción
- #       have_fb = all(k in st.session_state for k in ("fb_hgb_model","fb_hgb_cols","fb_hgb_le"))
- #       if have_fb:
-  #          faltantes = pred_all.isna()
-  #          if faltantes.any():
-   #             Xfb_all = df_all.loc[faltantes, st.session_state["fb_hgb_cols"]].apply(pd.to_numeric, errors="coerce")
-   #             yfb_hat = st.session_state["fb_hgb_model"].predict(Xfb_all)
-   #             lab_fb  = st.session_state["fb_hgb_le"].inverse_transform(yfb_hat)
-   #             pred_all.loc[faltantes] = lab_fb
-
 
         
         # Serie donde iremos llenando las predicciones finales
