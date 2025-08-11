@@ -1157,4 +1157,236 @@ else:
         st.pyplot(figc)
 
 
+# =========================
+# Reductos de 4 y 3 variables (evaluación vs. partición original en el subconjunto del pastel)
+# =========================
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from itertools import combinations
+
+ss = st.session_state
+need = ("ind_df_eval", "ind_cols", "ind_classes", "ind_lengths", "ind_min_size")
+if not all(k in ss for k in need) or not isinstance(ss["ind_df_eval"], pd.DataFrame):
+    st.info("👉 Calcula indiscernibilidad primero (se necesitan ind_df_eval, ind_cols, ind_classes...).")
+else:
+    # ---------- utilidades (locales) ----------
+    def blocks_to_labels(blocks, universo):
+        lbl = {}
+        for k, S in enumerate(blocks):
+            for idx in S:
+                lbl[idx] = k
+        return np.array([lbl.get(i, -1) for i in universo])
+
+    def contingency_from_labels(y_true, y_pred):
+        s1 = pd.Series(y_true).astype("category")
+        s2 = pd.Series(y_pred).astype("category")
+        return pd.crosstab(s1, s2).values
+
+    def pairs_same(counts):
+        counts = np.asarray(counts, dtype=np.int64)
+        return (counts * (counts - 1) // 2).sum()
+
+    def ari_from_contingency(C):
+        n = C.sum()
+        if n == 0:
+            return 1.0
+        a = C.sum(axis=1)
+        b = C.sum(axis=0)
+        sum_comb = (C * (C - 1) // 2).sum()
+        sum_a = (a * (a - 1) // 2).sum()
+        sum_b = (b * (b - 1) // 2).sum()
+        T = n * (n - 1) // 2
+        expected = (sum_a * sum_b) / T if T else 0.0
+        max_index = 0.5 * (sum_a + sum_b)
+        denom = max_index - expected
+        return float((sum_comb - expected) / denom) if denom != 0 else 1.0
+
+    def nmi_from_contingency(C):
+        n = C.sum()
+        if n == 0:
+            return 1.0
+        a = C.sum(axis=1)
+        b = C.sum(axis=0)
+        # Mutual Information
+        I = 0.0
+        for i in range(C.shape[0]):
+            for j in range(C.shape[1]):
+                nij = C[i, j]
+                if nij > 0:
+                    I += (nij / n) * np.log((nij * n) / (a[i] * b[j]))
+        p = a / n
+        q = b / n
+        Hu = -np.sum([pi * np.log(pi) for pi in p if pi > 0])
+        Hv = -np.sum([qj * np.log(qj) for qj in q if qj > 0])
+        denom = np.sqrt(Hu * Hv)
+        return float(I / denom) if denom > 0 else 1.0
+
+    def preservation_metrics_from_contingency(C):
+        n = C.sum()
+        if n == 0:
+            return 1.0, 1.0
+        T = n * (n - 1) // 2
+        a = C.sum(axis=1)
+        b = C.sum(axis=0)
+        same_orig = pairs_same(a)
+        same_red  = pairs_same(b)
+        same_both = (C * (C - 1) // 2).sum()
+        pres_same = same_both / same_orig if same_orig > 0 else 1.0
+        diff_orig = T - same_orig
+        diff_to_same = same_red - same_both
+        pres_diff = (diff_orig - diff_to_same) / diff_orig if diff_orig > 0 else 1.0
+        return pres_same, pres_diff
+
+    # ---------- subconjunto del pastel ----------
+    umbral = int(ss["ind_min_size"])
+    ids_pastel = [i for i, tam in ss["ind_lengths"] if tam >= umbral]
+    if not ids_pastel:
+        st.info(f"No hay clases con tamaño ≥ {umbral} para evaluar reductos.")
+    else:
+        universo_sel = sorted(set().union(*[ss["ind_classes"][i] for i in ids_pastel]))
+        if len(universo_sel) == 0:
+            st.info("No hay filas en el subconjunto del pastel.")
+        else:
+            df_eval_sub = ss["ind_df_eval"].loc[universo_sel].copy()  # SIN NaN en columnas usadas originalmente
+            cols_all = list(ss["ind_cols"])
+            m = len(cols_all)
+            if m < 3:
+                st.info("Se requieren al menos 3 variables en la partición original para evaluar reductos de 3/4.")
+            else:
+                # ---------- partición original en el subconjunto ----------
+                bloques_orig = indiscernibility(cols_all, df_eval_sub)
+                y_orig = blocks_to_labels(bloques_orig, universo_sel)
+
+                # ---------- generar reductos de tamaño 4 y 3 ----------
+                reductos = {}
+                if m >= 4:
+                    for comb in combinations(cols_all, 4):
+                        reductos[f"De 4: {', '.join(comb)}"] = list(comb)
+                if m >= 3:
+                    for comb in combinations(cols_all, 3):
+                        reductos[f"De 3: {', '.join(comb)}"] = list(comb)
+
+                # (opcional) limitar por seguridad si hay demasiadas combinaciones
+                MAX_MODELOS = 500
+                if len(reductos) > MAX_MODELOS:
+                    st.warning(f"Hay {len(reductos)} combinaciones. Se evaluarán solo las primeras {MAX_MODELOS}.")
+                    reductos = dict(list(reductos.items())[:MAX_MODELOS])
+
+                # ---------- evaluar reductos ----------
+                resultados = []
+                block_sizes = {"Original": [len(S) for S in bloques_orig]}
+
+                for nombre, cols in reductos.items():
+                    bloques_red = indiscernibility(cols, df_eval_sub)
+                    y_red = blocks_to_labels(bloques_red, universo_sel)
+                    C = contingency_from_labels(y_orig, y_red)
+
+                    ari = ari_from_contingency(C)
+                    nmi = nmi_from_contingency(C)
+                    pres_same, pres_diff = preservation_metrics_from_contingency(C)
+
+                    resultados.append({
+                        "Reducto": nombre,
+                        "#vars": len(cols),
+                        "#bloques(orig)": len(bloques_orig),
+                        "#bloques(red)": len(bloques_red),
+                        "ARI": round(ari, 3),
+                        "NMI": round(nmi, 3),
+                        "Preservación iguales (%)": round(pres_same * 100, 1),
+                        "Preservación distintos (%)": round(pres_diff * 100, 1),
+                    })
+                    block_sizes[nombre] = [len(S) for S in bloques_red]
+
+                if not resultados:
+                    st.info("No se pudieron evaluar reductos en el subconjunto.")
+                else:
+                    df_closeness = pd.DataFrame(resultados).sort_values(
+                        by=["ARI", "Preservación iguales (%)", "Preservación distintos (%)"],
+                        ascending=False
+                    ).reset_index(drop=True)
+
+                    st.subheader("Reductos de 4 y 3 variables — Métricas (subconjunto del pastel)")
+                    st.caption(f"Filas en evaluación: {len(universo_sel):,} | Variables originales: {m}")
+                    st.dataframe(df_closeness, use_container_width=True)
+
+                    st.download_button(
+                        "Descargar métricas de reductos (CSV)",
+                        data=df_closeness.to_csv(index=False).encode("utf-8"),
+                        file_name="reductos_4y3_metricas.csv",
+                        mime="text/csv",
+                        key="dl_reductos_4y3"
+                    )
+
+                    # ---------- mejores reductos de 4 y 3 ----------
+                    best4 = df_closeness[df_closeness["#vars"] == 4].head(1)
+                    best3 = df_closeness[df_closeness["#vars"] == 3].head(1)
+
+                    if not best4.empty:
+                        r = best4.iloc[0]
+                        st.success(
+                            f"🟩 Mejor reducto de 4 variables: **{r['Reducto']}** — "
+                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
+                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
+                            f"Pres. distintos={r['Preservación distintos (%)']}%"
+                        )
+                    if not best3.empty:
+                        r = best3.iloc[0]
+                        st.success(
+                            f"🟨 Mejor reducto de 3 variables: **{r['Reducto']}** — "
+                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
+                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
+                            f"Pres. distintos={r['Preservación distintos (%)']}%"
+                        )
+
+                    # ---------- Expander con gráficos opcionales ----------
+                    with st.expander("Gráficos: Boxplot de tamaños y Heatmap del mejor reducto", expanded=False):
+                        # Boxplot: Original vs top-K (mezcla de 4 y 3)
+                        K = min(10, len(df_closeness))
+                        top_names = ["Original"] + df_closeness.loc[:K-1, "Reducto"].tolist()
+                        max_len = max(len(block_sizes[n]) for n in top_names)
+                        data_box = np.full((max_len, len(top_names)), np.nan)
+                        for j, nm in enumerate(top_names):
+                            arr = np.array(block_sizes[nm], dtype=float)
+                            data_box[:len(arr), j] = arr
+
+                        fig_box, ax_box = plt.subplots(figsize=(max(10, 1.2*len(top_names)), 6))
+                        ax_box.boxplot([data_box[:, j][~np.isnan(data_box[:, j])] for j in range(len(top_names))],
+                                       notch=True)
+                        ax_box.set_xticks(range(1, len(top_names)+1))
+                        ax_box.set_xticklabels(top_names, rotation=45, ha="right")
+                        ax_box.set_ylabel("Tamaño de bloque")
+                        ax_box.set_title("Distribución de tamaños de bloques — Original vs. mejores reductos")
+                        ax_box.grid(axis='y', linestyle='--', alpha=0.4)
+                        st.pyplot(fig_box)
+
+                        # Heatmap del mejor global (máximo ARI)
+                        best_name = df_closeness.iloc[0]["Reducto"]
+                        # Recuperar columnas desde el nombre:
+                        # El nombre tiene formato "De k: A, B, C" -> parsear
+                        cols_best = [c.strip() for c in best_name.split(":", 1)[1].split(",")]
+                        bloques_best = indiscernibility(cols_best, df_eval_sub)
+
+                        M = np.zeros((len(bloques_orig), len(bloques_best)), dtype=int)
+                        for i, Bo in enumerate(bloques_orig):
+                            for j, Br in enumerate(bloques_best):
+                                M[i, j] = len(Bo.intersection(Br))
+
+                        fig_hm, ax_hm = plt.subplots(figsize=(10, 6))
+                        im = ax_hm.imshow(M, cmap="Blues")
+                        fig_hm.colorbar(im, ax=ax_hm, fraction=0.046, pad=0.04)
+                        ax_hm.set_xlabel(f"Partición reducida ({best_name})")
+                        ax_hm.set_ylabel("Partición original (subconjunto)")
+                        ax_hm.set_title("Correspondencia entre bloques (conteos)")
+                        ax_hm.set_xticks(range(M.shape[1])); ax_hm.set_xticklabels([f"Red_{j+1}" for j in range(M.shape[1])])
+                        ax_hm.set_yticks(range(M.shape[0])); ax_hm.set_yticklabels([f"Orig_{i+1}" for i in range(M.shape[0])])
+
+                        if M.shape[0] * M.shape[1] <= 900:
+                            for i in range(M.shape[0]):
+                                for j in range(M.shape[1]):
+                                    ax_hm.text(j, i, str(M[i, j]), ha="center", va="center", fontsize=8)
+                        st.pyplot(fig_hm)
+
+
+
 
