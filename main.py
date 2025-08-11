@@ -1671,5 +1671,135 @@ else:
             st.pyplot(fig_cmp2)
 
 
+# === FINAL: Pasteles de distribución de riesgo ===
+ss = st.session_state
+if all(k in ss for k in ("rf_best3_model","rf_best3_cols","rf_label_encoder","ind_df")) and "df_eval_riesgo" in ss:
+    # (aquí va el bloque de los dos gráficos de pastel)
+    # =========================
+    # Pasteles de riesgo: (1) sin NaN (regla) vs (2) todo ind_df (RF)
+    # =========================
+    ss = st.session_state
+    need = ("ind_df", "ind_cols")
+    if not all(k in ss for k in need):
+        st.info("Primero calcula indiscernibilidad (para disponer de ind_df e ind_cols).")
+    else:
+        # ---------- 1) Filas SIN NaN en las ADL seleccionadas (regla) ----------
+        df_all: pd.DataFrame = ss["ind_df"].copy()        # ADL con posibles NaN (index=Indice)
+        cols_sel = ss["ind_cols"]
+
+        # Subconjunto sin NaN SOLO en las columnas elegidas para ind
+        df_no_nan = df_all.dropna(subset=cols_sel).copy()
+
+        # Regla de riesgo sobre df_no_nan
+        vals = df_no_nan[cols_sel].apply(pd.to_numeric, errors="coerce")
+        count_ones = (vals == 1).sum(axis=1)
+        all_twos   = (vals == 2).all(axis=1)
+
+        riesgo_regla = np.where(
+            all_twos, "Riesgo nulo",
+            np.where(
+                count_ones <= 2,
+                np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
+                np.where(count_ones == 3, "Riesgo moderado", "Riesgo considerable")
+            )
+        )
+        s_regla = pd.Series(riesgo_regla, index=df_no_nan.index, name="nivel_riesgo_regla")
+
+        # ---------- 2) TODO ind_df con modelos (RF 4-vars y 3-vars) ----------
+        # Se usan solo si existen. Si no, avisamos.
+        have4 = all(k in ss for k in ("rf_best4_model", "rf_best4_cols", "rf_label_encoder"))
+        have3 = all(k in ss for k in ("rf_best3_model", "rf_best3_cols", "rf_label_encoder"))
+
+        if not (have4 or have3):
+            st.warning("No encuentro modelos entrenados (4/3 vars). Entrena los RF para generar el pastel global.")
+            s_pred = pd.Series([], dtype="object")
+        else:
+            le = ss["rf_label_encoder"]
+            pred_all = pd.Series(index=df_all.index, dtype="object")  # aquí caerán las etiquetas finales
+
+            # — 4 variables (prioridad)
+            if have4:
+                cols4 = ss["rf_best4_cols"]
+                # solo filas con todas las 4 presentes
+                mask4 = df_all[cols4].notna().all(axis=1)
+                if mask4.any():
+                    X4 = df_all.loc[mask4, cols4].apply(pd.to_numeric, errors="coerce")
+                    y4 = ss["rf_best4_model"].predict(X4)
+                    pred_all.loc[mask4] = le.inverse_transform(y4)
+
+            # — 3 variables (para las que no entraron arriba)
+            if have3:
+                cols3 = ss["rf_best3_cols"]
+                mask_restante = pred_all.isna()
+                if mask_restante.any():
+                    m3 = df_all.loc[mask_restante, cols3].notna().all(axis=1)
+                    idx3 = df_all.loc[mask_restante].index[m3]
+                    if len(idx3) > 0:
+                        X3 = df_all.loc[idx3, cols3].apply(pd.to_numeric, errors="coerce")
+                        y3 = ss["rf_best3_model"].predict(X3)
+                        pred_all.loc[idx3] = le.inverse_transform(y3)
+
+            # Etiquetar las que quedaron sin poder predecir
+            pred_all.fillna("Sin datos", inplace=True)
+            s_pred = pred_all.rename("nivel_riesgo_pred")
+
+        # ---------- Pasteles ----------
+        orden = ["Riesgo nulo", "Riesgo leve", "Riesgo moderado", "Riesgo considerable"]
+        # (para el segundo pastel añadimos 'Sin datos' si aparece)
+        orden_full = orden + (["Sin datos"] if "Sin datos" in s_pred.values else [])
+
+        # Conteos
+        c1 = s_regla.value_counts().reindex(orden, fill_value=0)
+        c2 = s_pred.value_counts().reindex(orden_full, fill_value=0)
+
+        # 1) Pastel sin NaN (regla)
+        fig1, ax1 = plt.subplots(figsize=(6.5, 6.5))
+        vals1 = c1.values
+        if vals1.sum() == 0:
+            ax1.text(0.5, 0.5, "Sin filas válidas\n(sin NaN) para la regla",
+                     ha="center", va="center", fontsize=12)
+            ax1.axis("off")
+        else:
+            ax1.pie(vals1, labels=c1.index, autopct=lambda p: f"{p:.1f}%", startangle=120)
+            ax1.axis('equal')
+            ax1.set_title("Riesgo — solo filas sin NaN (regla)")
+
+        st.pyplot(fig1)
+
+        # 2) Pastel sobre todo ind_df (RF)
+        fig2, ax2 = plt.subplots(figsize=(6.5, 6.5))
+        vals2 = c2.values
+        if vals2.sum() == 0:
+            ax2.text(0.5, 0.5, "No hay predicciones RF disponibles",
+                     ha="center", va="center", fontsize=12)
+            ax2.axis("off")
+        else:
+            ax2.pie(vals2, labels=c2.index, autopct=lambda p: f"{p:.1f}%", startangle=120)
+            ax2.axis('equal')
+            ax2.set_title("Riesgo — todo ind_df (RF 4→3 vars)")
+
+        st.pyplot(fig2)
+
+        # Descargas opcionales
+        out1 = pd.DataFrame({"Indice": s_regla.index, "nivel_riesgo_regla": s_regla.values})
+        st.download_button(
+            "Descargar niveles (regla, sin NaN)",
+            data=out1.to_csv(index=False).encode("utf-8"),
+            file_name="riesgo_regla_sin_nan.csv",
+            mime="text/csv",
+            key="dl_regla_sin_nan"
+        )
+        if len(s_pred) > 0:
+            out2 = pd.DataFrame({"Indice": s_pred.index, "nivel_riesgo_pred": s_pred.values})
+            st.download_button(
+                "Descargar niveles (RF, todo ind_df)",
+                data=out2.to_csv(index=False).encode("utf-8"),
+                file_name="riesgo_rf_todo_ind_df.csv",
+                mime="text/csv",
+                key="dl_rf_todo"
+            )
+
+else:
+    st.info("👉 Entrena el RF y calcula indiscernibilidad antes de mostrar los pasteles.")
 
 
