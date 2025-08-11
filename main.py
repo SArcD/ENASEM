@@ -718,7 +718,7 @@ if st.session_state["df_comorb"] is not None:
     c1, c2 = st.columns(2)
     c1.metric("Filas base para filtrar.", base_len)
     c2.metric("Filas después del filtrado", len(st.session_state["df_comorb"]))
-    st.markdown("""A continuación se muestra la base de datos que se utiliza´ra en el análisis""")
+    st.markdown("""**A continuación se muestra la base de datos que se utilizará en el análisis.**""")
     st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
 
     # Resumen rápido (cuenta de 1 en cada comorbilidad seleccionada)
