@@ -337,67 +337,145 @@ comorb_map = {
     "Artritis/Reumatismo (C32)": "C32",
 }
 
+#with st.sidebar:
+#    st.subheader("Seleccione comorbilidades")
+#    # Opciones disponibles según las columnas que existan
+#    opciones_visibles = [lbl for lbl, col in comorb_map.items() if col in df_base_comorb.columns]
+
+#    if not opciones_visibles:
+#        st.warning("No se encontraron columnas de comorbilidades esperadas (C4, C6, C12, C19, C22A, C26, C32).")
+#        st.session_state["df_comorb"] = df_base_comorb.copy()
+#    else:
+#        # Agregamos la opción especial
+#        opciones_visibles_con_none = ["Sin comorbilidades"] + opciones_visibles
+
+#        seleccion = st.multiselect(
+#            "Comorbilidades (1 = Sí, 2/0 = No).",
+#            options=opciones_visibles_con_none,
+#            default=[],
+#            help=(
+#                "• ‘Sin comorbilidades’: conserva filas con TODAS las comorbilidades en 2/0.\n"
+#                "• Si seleccionas una o más comorbilidades: conserva filas con 1 en las seleccionadas y 2/0 en las demás."
+#            )
+#        )
+#        st.session_state["comorb_selection"] = seleccion
+
+#        # Preparar dataframe de trabajo y asegurar numérico 0/1/2
+#        df_work = df_base_comorb.copy()
+#        comorb_cols_presentes = [comorb_map[lbl] for lbl in opciones_visibles]  # columnas reales presentes
+#        for c in comorb_cols_presentes:
+#            df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0)
+
+#        # Conjunto de valores que consideramos "No": soporta 0 o 2
+#        NO_SET = {0, 2}
+#        YES_VAL = 1
+
+#        if not seleccion:
+#            # Sin selección → no filtrar por comorbilidades
+#            df_out = df_work.copy()
+
+#        elif "Sin comorbilidades" in seleccion:
+#            # Si el usuario mezcla "Sin comorbilidades" con otras, damos prioridad a "Sin comorbilidades"
+#            if len(seleccion) > 1:
+#                st.info("Se seleccionó 'Sin comorbilidades'. Se ignorarán otras selecciones para este filtro.")
+#            # Todas las comorbilidades deben estar en 2/0
+#            mask_all_none = df_work[comorb_cols_presentes].isin(NO_SET).all(axis=1)
+#            df_out = df_work[mask_all_none].copy()
+#
+#        else:
+#            # Selección específica: las seleccionadas en 1, las NO seleccionadas en 2/0
+#            cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_work.columns]
+#            cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
+
+#            if not cols_sel:
+#                # Nada mapeable → no filtrar
+#                df_out = df_work.copy()
+#            else:
+#                mask_selected_yes = (df_work[cols_sel] == YES_VAL).all(axis=1)
+#                mask_rest_no = True
+#                if cols_rest:
+#                    mask_rest_no = df_work[cols_rest].isin(NO_SET).all(axis=1)
+#                df_out = df_work[mask_selected_yes & mask_rest_no].copy()
+
+#        st.session_state["df_comorb"] = df_out
+
+
+
+
 with st.sidebar:
     st.subheader("Seleccione comorbilidades")
-    # Opciones disponibles según las columnas que existan
+
+    # Opciones visibles (labels) cuya columna real existe en el DF
     opciones_visibles = [lbl for lbl, col in comorb_map.items() if col in df_base_comorb.columns]
 
     if not opciones_visibles:
         st.warning("No se encontraron columnas de comorbilidades esperadas (C4, C6, C12, C19, C22A, C26, C32).")
         st.session_state["df_comorb"] = df_base_comorb.copy()
     else:
-        # Agregamos la opción especial
-        opciones_visibles_con_none = ["Sin comorbilidades"] + opciones_visibles
+        # Lógica AND/OR y restricción de no seleccionadas
+        modo = st.radio("Lógica entre las seleccionadas", ["Todas (AND)", "Cualquiera (OR)"],
+                        index=0, horizontal=True)
+        exigir_no = st.checkbox("Exigir que las NO seleccionadas estén en 0/2", value=True,
+                                help="Si está activado, las comorbilidades no seleccionadas deben ser 0 o 2.")
 
+        opciones_visibles_con_none = ["Sin comorbilidades"] + opciones_visibles
         seleccion = st.multiselect(
             "Comorbilidades (1 = Sí, 2/0 = No).",
             options=opciones_visibles_con_none,
             default=[],
-            help=(
-                "• ‘Sin comorbilidades’: conserva filas con TODAS las comorbilidades en 2/0.\n"
-                "• Si seleccionas una o más comorbilidades: conserva filas con 1 en las seleccionadas y 2/0 en las demás."
-            )
+            help=("• ‘Sin comorbilidades’: conserva filas con TODAS las comorbilidades en 2/0.\n"
+                  "• Si seleccionas comorbilidades: puedes combinar con lógica AND/OR, "
+                  "y decidir si las NO seleccionadas deben estar en 0/2.")
         )
         st.session_state["comorb_selection"] = seleccion
 
-        # Preparar dataframe de trabajo y asegurar numérico 0/1/2
+        # Preparar DF y asegurar numérico 0/1/2
         df_work = df_base_comorb.copy()
         comorb_cols_presentes = [comorb_map[lbl] for lbl in opciones_visibles]  # columnas reales presentes
         for c in comorb_cols_presentes:
             df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0)
 
-        # Conjunto de valores que consideramos "No": soporta 0 o 2
         NO_SET = {0, 2}
         YES_VAL = 1
 
         if not seleccion:
-            # Sin selección → no filtrar por comorbilidades
             df_out = df_work.copy()
 
         elif "Sin comorbilidades" in seleccion:
-            # Si el usuario mezcla "Sin comorbilidades" con otras, damos prioridad a "Sin comorbilidades"
             if len(seleccion) > 1:
                 st.info("Se seleccionó 'Sin comorbilidades'. Se ignorarán otras selecciones para este filtro.")
-            # Todas las comorbilidades deben estar en 2/0
             mask_all_none = df_work[comorb_cols_presentes].isin(NO_SET).all(axis=1)
             df_out = df_work[mask_all_none].copy()
 
         else:
-            # Selección específica: las seleccionadas en 1, las NO seleccionadas en 2/0
             cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_work.columns]
             cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
 
             if not cols_sel:
-                # Nada mapeable → no filtrar
                 df_out = df_work.copy()
             else:
-                mask_selected_yes = (df_work[cols_sel] == YES_VAL).all(axis=1)
-                mask_rest_no = True
-                if cols_rest:
-                    mask_rest_no = df_work[cols_rest].isin(NO_SET).all(axis=1)
-                df_out = df_work[mask_selected_yes & mask_rest_no].copy()
+                # AND vs OR
+                if modo.startswith("Todas"):
+                    mask_sel = (df_work[cols_sel] == YES_VAL).all(axis=1)
+                else:
+                    mask_sel = (df_work[cols_sel] == YES_VAL).any(axis=1)
+
+                if exigir_no and cols_rest:
+                    mask_rest = df_work[cols_rest].isin(NO_SET).all(axis=1)
+                    mask = mask_sel & mask_rest
+                else:
+                    mask = mask_sel
+
+                df_out = df_work[mask].copy()
 
         st.session_state["df_comorb"] = df_out
+        st.caption(f"Filas tras filtro de comorbilidades: {len(df_out):,}")
+
+
+
+
+
+
 
 # =========================
 # Vista previa — Filtrado por SEX + EDAD + COMORBILIDADES
