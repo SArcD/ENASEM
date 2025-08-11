@@ -737,10 +737,17 @@ with st.sidebar:
 
 if st.session_state["df_comorb"] is not None:
     # 🔹 Convertir respuestas 6 o 7 en columnas H a 1 en la base final
+    #cols_H = [col for col in st.session_state["df_comorb"].columns if col.startswith("H")]
+    #if cols_H:
+    #    st.session_state["df_comorb"][cols_H] = (
+    #        st.session_state["df_comorb"][cols_H].replace({6: 1, 7: 1})
+    #    )
+
     cols_H = [col for col in st.session_state["df_comorb"].columns if col.startswith("H")]
     if cols_H:
         st.session_state["df_comorb"][cols_H] = (
-            st.session_state["df_comorb"][cols_H].replace({6: 1, 7: 1})
+            st.session_state["df_comorb"][cols_H]
+            .replace({6: 1, 7: 1, 8: np.nan})
         )
 
     st.subheader("Tras filtrado por sexo + edad + comorbilidades")
