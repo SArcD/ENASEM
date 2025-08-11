@@ -1378,9 +1378,24 @@ else:
                         ax_hm.set_xlabel(f"Partición reducida ({best_name})")
                         ax_hm.set_ylabel("Partición original (subconjunto)")
                         ax_hm.set_title("Correspondencia entre bloques (conteos)")
-                        ax_hm.set_xticks(range(M.shape[1])); ax_hm.set_xticklabels([f"Red_{j+1}" for j in range(M.shape[1])])
-                        ax_hm.set_yticks(range(M.shape[0])); ax_hm.set_yticklabels([f"Orig_{i+1}" for i in range(M.shape[0])])
+#                        ax_hm.set_xticks(range(M.shape[1])); ax_hm.set_xticklabels([f"Red_{j+1}" for j in range(M.shape[1])])
+#                        ax_hm.set_yticks(range(M.shape[0])); ax_hm.set_yticklabels([f"Orig_{i+1}" for i in range(M.shape[0])])
 
+                        # Ticks y etiquetas (evitar traslapes)
+                        ax_hm.set_xticks(np.arange(M.shape[1]))
+                        ax_hm.set_yticks(np.arange(M.shape[0]))
+                        ax_hm.set_xticklabels([f"Red_{j+1}" for j in range(M.shape[1])], rotation=45, ha="right", fontsize=9)
+                        ax_hm.set_yticklabels([f"Orig_{i+1}" for i in range(M.shape[0])], fontsize=9)
+
+                        # separa un poco las etiquetas del eje
+                        ax_hm.tick_params(axis="x", which="major", pad=8)
+                        ax_hm.tick_params(axis="y", which="major", pad=8)
+
+                        
+                        # deja más espacio para las etiquetas
+                        fig_hm.tight_layout()
+                        fig_hm.subplots_adjust(bottom=0.24, left=0.24)  # ajusta si aún ves traslape
+                        
                         if M.shape[0] * M.shape[1] <= 900:
                             for i in range(M.shape[0]):
                                 for j in range(M.shape[1]):
