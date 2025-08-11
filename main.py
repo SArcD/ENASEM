@@ -1897,3 +1897,122 @@ else:
         ax2.pie(v2, labels=dist_rf_all.index, autopct=lambda p: f"{p:.1f}%", startangle=120)
         ax2.axis('equal'); ax2.set_title("Riesgo — todo ind_df (RF 4→3 vars)")
     st.pyplot(fig2)
+
+
+
+################################
+
+# =========================
+# 🧾 Captura/edición de varios pacientes (manual) + Recalcular sin reiniciar
+# =========================
+ss = st.session_state
+
+# Columnas ADL a pedir (usa las de indiscernibilidad; si no, toma 5 primeras del catálogo)
+manual_adl_cols = ss.get("ind_cols") or ss.get("ind_adl_cols", [])[:5]
+if not manual_adl_cols:
+    st.info("Aún no hay columnas ADL de referencia (ind_cols). Calcula indiscernibilidad primero para una mejor experiencia.")
+
+# Inicializar tabla en sesión (si no existe)
+base_cols = ["ID", "Sexo", "Edad"] + list(manual_adl_cols)
+if "manual_patients_df" not in ss:
+    ss["manual_patients_df"] = pd.DataFrame(columns=base_cols)
+# Asegurar columnas clave por si cambió la selección de ADL
+for c in base_cols:
+    if c not in ss["manual_patients_df"].columns:
+        ss["manual_patients_df"][c] = np.nan
+
+st.markdown("### 🧾 Captura manual (múltiples pacientes)")
+st.caption("1) Agrega pacientes; 2) corrige en la tabla; 3) pulsa **Recalcular diagnósticos**. Nada se pierde entre recomputaciones.")
+
+# ---------- (1) Formulario para agregar una fila ----------
+with st.form("form_add_manual"):
+    c1, c2, c3 = st.columns([1,1,1])
+    with c1:
+        pid = st.text_input("ID / Nombre", value="")
+    with c2:
+        sexo = st.selectbox("Sexo", ["", "M", "F", "Otro"], index=0)
+    with c3:
+        edad = st.number_input("Edad", min_value=0, max_value=120, value=60, step=1)
+
+    st.caption("ADL (0/1/2). Usa 'Sin dato' si desconoces alguna.")
+    grid = st.columns(min(5, max(3, len(manual_adl_cols) or [0])))
+    new_row = {"ID": pid, "Sexo": sexo, "Edad": edad}
+    for i, c in enumerate(manual_adl_cols):
+        with grid[i % len(grid)]:
+            val = st.selectbox(f"{c}", ["Sin dato", 0, 1, 2], index=0, key=f"manual_{c}")
+            new_row[c] = (np.nan if val == "Sin dato" else int(val))
+
+    add_ok = st.form_submit_button("➕ Agregar a la tabla")
+    if add_ok:
+        if (pid is None) or (str(pid).strip() == ""):
+            st.warning("Asigna un ID/Nombre para identificar al paciente.")
+        else:
+            # Alinear a columnas actuales
+            row_df = pd.DataFrame([new_row], columns=base_cols)
+            ss["manual_patients_df"] = pd.concat([ss["manual_patients_df"], row_df], ignore_index=True)
+            st.success(f"Paciente **{pid}** agregado.")
+
+# ---------- (2) Editor para corregir datos (persistente) ----------
+st.caption("Puedes **editar directamente** en la tabla. Marca 'Eliminar' para borrar filas seleccionadas.")
+if "Eliminar" not in ss["manual_patients_df"].columns:
+    ss["manual_patients_df"]["Eliminar"] = False
+
+edited_df = st.data_editor(
+    ss["manual_patients_df"][base_cols + ["Eliminar"]],
+    num_rows="dynamic",
+    use_container_width=True,
+    key="editor_manual_patients",
+)
+# Guardar cambios de edición en sesión (sin recalcular aún)
+ss["manual_patients_df"] = edited_df.copy()
+
+# ---------- (3) Botones de acción ----------
+bcol1, bcol2, bcol3 = st.columns([1,1,1])
+with bcol1:
+    if st.button("🗑️ Eliminar filas marcadas"):
+        mask_keep = ~ss["manual_patients_df"]["Eliminar"].fillna(False).astype(bool)
+        kept = ss["manual_patients_df"].loc[mask_keep, :].drop(columns=["Eliminar"], errors="ignore")
+        # reañadir columna Eliminar para futuras ediciones
+        kept["Eliminar"] = False
+        ss["manual_patients_df"] = kept.reset_index(drop=True)
+        st.success("Filas eliminadas.")
+with bcol2:
+    if st.button("🧹 Vaciar tabla"):
+        ss["manual_patients_df"] = pd.DataFrame(columns=base_cols + ["Eliminar"])
+        st.success("Tabla vaciada.")
+with bcol3:
+    recalc = st.button("🔁 Recalcular diagnósticos")
+
+# ---------- (4) Recalcular diagnósticos SOLO cuando se presione el botón ----------
+if recalc:
+    df_in = ss["manual_patients_df"].drop(columns=["Eliminar"], errors="ignore").copy()
+
+    # Asegurar que existen columnas ADL requeridas por los modelos/regla
+    need_for_pred = set(base_cols)  # meta + adl mostradas
+    # también intenta incluir best4/best3 que existan, por si no son las mismas que manual_adl_cols
+    for k in ("rf_best4_cols", "rf_best3_cols", "fb_hgb_cols", "ind_cols"):
+        if k in ss and ss[k]:
+            need_for_pred |= set(ss[k])
+    for c in need_for_pred:
+        if c not in df_in.columns:
+            df_in[c] = np.nan
+
+    # Reutiliza la función que ya tienes
+    if "predecir_con_modelos" not in globals():
+        st.error("No encuentro la función 'predecir_con_modelos'. Asegúrate de pegar primero el bloque de predicción.")
+    else:
+        res = predecir_con_modelos(df_in)
+        ss["manual_pred_out"] = pd.concat([df_in[["ID","Sexo","Edad"]], res], axis=1)
+
+# ---------- (5) Mostrar resultados y permitir descarga ----------
+out = ss.get("manual_pred_out")
+if isinstance(out, pd.DataFrame) and not out.empty:
+    st.subheader("Resultados de la captura manual")
+    st.dataframe(out, use_container_width=True)
+    st.download_button(
+        "Descargar diagnósticos (captura manual)",
+        data=out.to_csv(index=False).encode("utf-8"),
+        file_name="diagnosticos_captura_manual.csv",
+        mime="text/csv",
+        key="dl_diag_manual"
+    )
