@@ -271,7 +271,7 @@ with st.sidebar:
 # Vista previa del filtrado por SEX
 # =========================
 if st.session_state["df_sexo"] is not None:
-    st.subheader("Vista previa — Filtrado por sexo")
+    st.subheader("Filtrado por sexo")
     c1, c2 = st.columns(2)
     c1.metric("Filas totales", len(datos_seleccionados))
     c2.metric("Filas tras SEX", len(st.session_state["df_sexo"]))
@@ -348,7 +348,7 @@ with st.sidebar:
 # Vista previa del filtrado por SEX + EDAD
 # =========================
 if st.session_state["df_filtrado"] is not None:
-    st.subheader("Vista previa — Filtrado por sexo + edad")
+    st.subheader("Filtrado por sexo + edad")
     c1, c2, c3 = st.columns(3)
     c1.metric("Filas base", len(base_df))
     c2.metric("Edad mínima", st.session_state["age_min"] if st.session_state["age_min"] is not None else "-")
@@ -701,7 +701,7 @@ with st.sidebar:
 # Vista previa — Filtrado por SEX + EDAD + COMORBILIDADES
 # =========================
 if st.session_state["df_comorb"] is not None:
-    st.subheader("Vista previa — Tras filtros (Sexo + Edad + Comorbilidades)")
+    st.subheader("Tras filtrado por sexo + edad + comorbilidades)")
     # Seleccionar base segura para longitud
     base_df_for_len = st.session_state.get("df_filtrado")
     if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
@@ -729,9 +729,6 @@ if st.session_state["df_comorb"] is not None:
 
 
 # HAsta aqui el filtrado
-
-# =========================
-# Indiscernibilidad + resumen + pastel + radar
 # =========================
 # Indiscernibilidad + resumen + pastel + radar (con exclusión de NaN)
 # =========================
