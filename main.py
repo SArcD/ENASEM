@@ -1556,59 +1556,119 @@ else:
 
         st.success("Modelos RF entrenados (best4 y, si procede, best3).")
 
-        # ---------- Predicción en TODO el pastel (imputando) con el modelo best4 ----------
-        Xp = df_pastel_full.copy()
-        # asegurar columnas del modelo
-        for c in ss["rf_best4_cols"]:
-            if c not in Xp.columns:
-                Xp[c] = np.nan
-        Xp = Xp[ss["rf_best4_cols"]].apply(pd.to_numeric, errors="coerce")
-        Xp_imp = ss["rf_best4_imp"].transform(Xp)  # imputa NaN con medianas del train
-        ypred = ss["rf_best4"].predict(Xp_imp)
-        ypred_labels = ss["rf_best4_le"].inverse_transform(ypred)
+        # =========================
+# Predicción en TODO el DF indiscernible (no solo el pastel)
+# =========================
+ss = st.session_state
+req = ("rf_best4", "rf_best4_cols", "rf_best4_le", "rf_best4_imp", "ind_df")
+if not all(k in ss for k in req):
+    st.info("Entrena primero el modelo (best4) para habilitar la predicción completa.")
+else:
+    st.subheader("Predicción en todo el DataFrame (indiscernible)")
 
-        df_pred_pastel = df_pastel_full.copy()
-        df_pred_pastel["nivel_riesgo_pred"] = ypred_labels
-        ss["df_pred_pastel_rf"] = df_pred_pastel
+    # 1) DF completo (ADL, index='Indice'; puede tener NaN)
+    df_all = ss["ind_df"].copy()
 
-        # ---------- Barras comparativas ----------
-        orden = ["Riesgo nulo","Riesgo leve","Riesgo moderado","Riesgo severo"]
+    # 2) Preparar X con las columnas del modelo; crear faltantes y convertir a numérico
+    feat = ss["rf_best4_cols"]
+    for c in feat:
+        if c not in df_all.columns:
+            df_all[c] = np.nan
+    X_all = df_all[feat].apply(pd.to_numeric, errors="coerce")
 
-        # A) distribución "regla" (solo filas SIN NaN en las 5 originales dentro del pastel)
-        dist_regla = pd.Series(df_pastel_eval["nivel_riesgo"]).value_counts().reindex(orden, fill_value=0)
+    # Imputar con la MISMA mediana del train
+    X_all_imp = ss["rf_best4_imp"].transform(X_all)
 
-        # B) distribución "RF" (predicho) sobre TODO el pastel
-        dist_rf = pd.Series(df_pred_pastel["nivel_riesgo_pred"]).value_counts().reindex(orden, fill_value=0)
+    # 3) Predecir
+    ypred_all = ss["rf_best4"].predict(X_all_imp)
+    labels_all = ss["rf_best4_le"].inverse_transform(ypred_all)
 
-        x = np.arange(len(orden))
-        width = 0.38
-        figb, axb = plt.subplots(figsize=(8, 4.5))
-        b1 = axb.bar(x - width/2, dist_regla.values, width, label="Regla (sin NaN)")
-        b2 = axb.bar(x + width/2, dist_rf.values, width, label="RF (todo pastel)")
+    df_pred_all = df_all.copy()
+    df_pred_all["nivel_riesgo_pred"] = labels_all
+    ss["df_pred_all_rf"] = df_pred_all
 
-        axb.set_xticks(x); axb.set_xticklabels(orden, rotation=0)
-        axb.set_ylabel("Conteos")
-        axb.set_title("Comparativa de niveles de riesgo")
-        axb.legend()
-        axb.grid(axis='y', linestyle='--', alpha=0.3)
+    st.dataframe(df_pred_all.reset_index().head(50), use_container_width=True)
+    st.download_button(
+        "Descargar predicciones RF (todo ind_df) CSV",
+        data=df_pred_all.reset_index().to_csv(index=False).encode("utf-8"),
+        file_name="predicciones_rf_todo_ind_df.csv",
+        mime="text/csv",
+        key="dl_pred_all_rf"
+    )
 
-        # anotar valores
-        for bars in (b1, b2):
-            for r in bars:
-                h = r.get_height()
-                axb.text(r.get_x()+r.get_width()/2, h+0.01*max(dist_regla.max(), dist_rf.max()),
-                         f"{int(h)}", ha="center", va="bottom", fontsize=9)
+    # =========================
+    # Comparativa: RF pastel vs RF todo ind_df
+    # =========================
+    orden = ["Riesgo nulo", "Riesgo leve", "Riesgo moderado", "Riesgo severo"]
 
-        st.pyplot(figb)
-
-        # Descargas útiles
-        st.download_button(
-            "Descargar predicciones RF (todo pastel) CSV",
-            data=df_pred_pastel.reset_index().to_csv(index=False).encode("utf-8"),
-            file_name="predicciones_pastel_rf.csv",
-            mime="text/csv",
-            key="dl_pred_pastel_rf"
+    # A) Distribución RF en pastel (si existe)
+    df_pastel_pred = ss.get("df_pred_pastel_rf")
+    if isinstance(df_pastel_pred, pd.DataFrame) and "nivel_riesgo_pred" in df_pastel_pred.columns:
+        dist_rf_pastel = (
+            df_pastel_pred["nivel_riesgo_pred"]
+            .value_counts()
+            .reindex(orden, fill_value=0)
         )
+    else:
+        dist_rf_pastel = pd.Series([0]*len(orden), index=orden)
+
+    # B) Distribución RF en todo ind_df
+    dist_rf_all = (
+        df_pred_all["nivel_riesgo_pred"]
+        .value_counts()
+        .reindex(orden, fill_value=0)
+    )
+
+    x = np.arange(len(orden)); width = 0.38
+    ymax = max(dist_rf_pastel.max(), dist_rf_all.max()) if len(orden) else 1
+
+    fig_cmp, ax_cmp = plt.subplots(figsize=(8, 4.5))
+    b1 = ax_cmp.bar(x - width/2, dist_rf_pastel.values, width, label="RF (solo pastel)")
+    b2 = ax_cmp.bar(x + width/2, dist_rf_all.values,  width, label="RF (todo ind_df)")
+    ax_cmp.set_xticks(x); ax_cmp.set_xticklabels(orden, rotation=0)
+    ax_cmp.set_ylabel("Conteos"); ax_cmp.set_title("RF: pastel vs. todo ind_df")
+    ax_cmp.legend(); ax_cmp.grid(axis='y', linestyle='--', alpha=0.3)
+
+    for bars in (b1, b2):
+        for r in bars:
+            h = r.get_height()
+            ax_cmp.text(r.get_x()+r.get_width()/2, h + 0.01*ymax, f"{int(h)}",
+                        ha="center", va="bottom", fontsize=9)
+    st.pyplot(fig_cmp)
+
+    # =========================
+    # (Opcional) Comparar contra la "regla" en TODO el DF (solo filas sin NaN en ind_cols)
+    # =========================
+    ind_cols = ss.get("ind_cols", [])
+    if ind_cols:
+        df_all_regla = df_all.dropna(subset=ind_cols).copy()
+        if not df_all_regla.empty:
+            valr = df_all_regla[ind_cols].apply(pd.to_numeric, errors="coerce")
+            ones = (valr == 1).sum(axis=1)
+            twos = (valr == 2).all(axis=1)
+            regla_all = np.where(
+                twos, "Riesgo nulo",
+                np.where(
+                    ones <= 2,
+                    np.where(ones >= 1, "Riesgo leve", "Riesgo leve"),
+                    np.where(ones == 3, "Riesgo moderado", "Riesgo severo")
+                )
+            )
+            dist_regla_all = pd.Series(regla_all).value_counts().reindex(orden, fill_value=0)
+
+            ymax2 = max(dist_regla_all.max(), dist_rf_all.max()) if len(orden) else 1
+            fig_cmp2, ax2 = plt.subplots(figsize=(8, 4.5))
+            b1 = ax2.bar(x - width/2, dist_regla_all.values, width, label="Regla (todo ind_df sin NaN)")
+            b2 = ax2.bar(x + width/2, dist_rf_all.values,    width, label="RF (todo ind_df)")
+            ax2.set_xticks(x); ax2.set_xticklabels(orden)
+            ax2.set_ylabel("Conteos"); ax2.set_title("Regla vs RF en todo ind_df")
+            ax2.legend(); ax2.grid(axis='y', linestyle='--', alpha=0.3)
+            for bars in (b1, b2):
+                for r in bars:
+                    h = r.get_height()
+                    ax2.text(r.get_x()+r.get_width()/2, h + 0.01*ymax2, f"{int(h)}",
+                             ha="center", va="bottom", fontsize=9)
+            st.pyplot(fig_cmp2)
 
 
 
