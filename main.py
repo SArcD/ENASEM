@@ -92,7 +92,7 @@ st.markdown("""
 p, li, td { text-align: justify; }
 </style>
 """, unsafe_allow_html=True)
-st.markdow("""En esta sección se utilizan los datos disponibles de la Encuesta Nacional sobre Envejecimiento en México.""")
+st.markdown("""En esta sección se utilizan los datos disponibles de la Encuesta Nacional sobre Envejecimiento en México.""")
 
 # -----------------------------------------
 # Barra lateral: subir archivo
