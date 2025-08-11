@@ -106,7 +106,7 @@ En esta sección se usan datos de la **Encuesta Nacional sobre Envejecimiento en
    - **OR**: incluye a quienes tienen al menos una de las seleccionadas.  
 5. Para iniciar el estudio, indique:  
    - Número de conjuntos que desea crear.  
-   - Número mínimo de participantes por conjunto.  
+   - Número mínimo de participantes que debe tener un conjunto para que se considere en el estudio para evitar estduiar conjuntos poco representativos).  
    Luego presione el botón **Calcular indiscernibilidad**.
 """)
 
