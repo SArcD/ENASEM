@@ -541,6 +541,8 @@ with st.sidebar:
         "N conjuntos más numerosos para radar",
         min_value=1, max_value=100, value=15, step=1
     )
+    # ✅ guarda el valor para re-render fuera del botón
+    st.session_state["top_n_radar_value"] = int(top_n_radar)
     generar = st.button("Calcular indiscernibilidad")
 
 # --- Cálculo ---
@@ -593,247 +595,454 @@ if generar:
             st.session_state["ind_lengths"] = longitudes_orden
             st.session_state["ind_min_size"] = int(min_size_for_pie)
 
-            # 3) Pastel (usando tamaños de df_eval)
-            candidatas = [(nombres[i], tam) for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
-            if candidatas:
-                labels = [n for n, _ in candidatas]
-                valores = [v for _, v in candidatas]
-                total = sum(valores)
-                fig_pie, ax_pie = plt.subplots(figsize=(7, 7))
-                ax_pie.pie(valores, labels=labels,
-                           autopct=lambda p: f"{p:.1f}%\n({int(p*total/100):,})",
-                           startangle=140)
-                ax_pie.axis('equal')
-                ax_pie.set_title(f"Participación de clases (≥ {min_size_for_pie} filas)")
-                st.pyplot(fig_pie)
-            else:
-                st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el pastel.")
+#            # 3) Pastel (usando tamaños de df_eval)
+#            candidatas = [(nombres[i], tam) for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
+#            if candidatas:
+#                labels = [n for n, _ in candidatas]
+#                valores = [v for _, v in candidatas]
+#                total = sum(valores)
+#                fig_pie, ax_pie = plt.subplots(figsize=(7, 7))
+#                ax_pie.pie(valores, labels=labels,
+#                           autopct=lambda p: f"{p:.1f}%\n({int(p*total/100):,})",
+#                           startangle=140)
+#                ax_pie.axis('equal')
+#                ax_pie.set_title(f"Participación de clases (≥ {min_size_for_pie} filas)")
+#                st.pyplot(fig_pie)
+#            else:
+#                st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el pastel.")
+#
+#            # ====== NUEVO (pegar aquí, después del pastel; dentro de if generar:) ======
+#            # df_ind existe en este bloque; usamos solo filas SIN NaN en las columnas seleccionadas
+#            #df_eval = df_ind.loc[df_ind[cols_attrs].dropna().index].copy()
+#
+#            # Guardarlo en sesión por si lo necesitas en otras secciones
+#            st.session_state["df_eval"] = df_eval.copy()
 
-            # ====== NUEVO (pegar aquí, después del pastel; dentro de if generar:) ======
-            # df_ind existe en este bloque; usamos solo filas SIN NaN en las columnas seleccionadas
-            #df_eval = df_ind.loc[df_ind[cols_attrs].dropna().index].copy()
+#            # Calcular nivel de riesgo según la regla:
+#            # - Riesgo nulo: TODAS las columnas seleccionadas valen 2
+#            # - Riesgo leve: 1 o 2 columnas valen 1  (o 0 si no son todas 2)
+#            # - Riesgo moderado: exactamente 3 columnas valen 1
+#            # - Riesgo severo: 4 o 5 columnas valen 1
+#            vals = df_eval[cols_attrs].apply(pd.to_numeric, errors="coerce")
+#            count_ones = (vals == 1).sum(axis=1)
+#            all_twos   = (vals == 2).all(axis=1)
 
-            # Guardarlo en sesión por si lo necesitas en otras secciones
-            st.session_state["df_eval"] = df_eval.copy()
-
-            # Calcular nivel de riesgo según la regla:
-            # - Riesgo nulo: TODAS las columnas seleccionadas valen 2
-            # - Riesgo leve: 1 o 2 columnas valen 1  (o 0 si no son todas 2)
-            # - Riesgo moderado: exactamente 3 columnas valen 1
-            # - Riesgo severo: 4 o 5 columnas valen 1
-            vals = df_eval[cols_attrs].apply(pd.to_numeric, errors="coerce")
-            count_ones = (vals == 1).sum(axis=1)
-            all_twos   = (vals == 2).all(axis=1)
-
-            nivel = np.where(
-                all_twos, "Riesgo nulo",
-                np.where(
-                    count_ones <= 2,
-                    np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
-                    np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
-                )
-            )
-
-            df_eval_riesgo = df_eval.copy()
-            df_eval_riesgo["nivel_riesgo"] = nivel
-
-            st.subheader("Filas usadas en el pastel (sin NaN) + nivel_riesgo")
-            st.dataframe(df_eval_riesgo.reset_index(), use_container_width=True)
-
-            st.download_button(
-                "Descargar filas del pastel con nivel_riesgo (CSV)",
-                data=df_eval_riesgo.reset_index().to_csv(index=False).encode("utf-8"),
-                file_name="filas_pastel_con_nivel_riesgo.csv",
-                mime="text/csv",
-                key="dl_df_eval_riesgo"
-            )
-
-            # Por si más adelante quieres reutilizarlo
-            st.session_state["df_eval_riesgo"] = df_eval_riesgo.copy()
-            # ====== FIN NUEVO ======
+#            nivel = np.where(
+#                all_twos, "Riesgo nulo",
+#                np.where(
+#                    count_ones <= 2,
+#                    np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
+#                    np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
+#                )
+#            )
+#
+#            df_eval_riesgo = df_eval.copy()
+#            df_eval_riesgo["nivel_riesgo"] = nivel
+#
+#            st.subheader("Filas usadas en el pastel (sin NaN) + nivel_riesgo")
+#            st.dataframe(df_eval_riesgo.reset_index(), use_container_width=True)
+#
+#            st.download_button(
+#                "Descargar filas del pastel con nivel_riesgo (CSV)",
+#                data=df_eval_riesgo.reset_index().to_csv(index=False).encode("utf-8"),
+#                file_name="filas_pastel_con_nivel_riesgo.csv",
+#                mime="text/csv",
+#                key="dl_df_eval_riesgo"
+#            )
+#
+#            # Por si más adelante quieres reutilizarlo
+#            st.session_state["df_eval_riesgo"] = df_eval_riesgo.copy()
+#            # ====== FIN NUEVO ======
 
 
 
             
-            # 4) Radar de los N conjuntos más grandes (sobre df_eval)
-            st.subheader("Radar de los conjuntos más numerosos")
-            top_idxs = [i for i, _ in longitudes_orden[:int(top_n_radar)]]
-            top_sets = [(nombres[i], clases[i]) for i in top_idxs]
+#            # 4) Radar de los N conjuntos más grandes (sobre df_eval)
+#            st.subheader("Radar de los conjuntos más numerosos")
+#            top_idxs = [i for i, _ in longitudes_orden[:int(top_n_radar)]]
+#            top_sets = [(nombres[i], clases[i]) for i in top_idxs]
 
-            def determinar_color(valores):
-                count_ones = sum(1 for v in valores if pd.to_numeric(v, errors="coerce") == 1)
-                if count_ones == 0:
-                    return 'blue'
-                elif 1 <= count_ones < 3:
-                    return 'green'
-                elif count_ones == 3:
-                    return 'yellow'
-                elif 4 <= count_ones < 5:
-                    return 'orange'
-                else:
-                    return 'red'
+#            def determinar_color(valores):
+#                count_ones = sum(1 for v in valores if pd.to_numeric(v, errors="coerce") == 1)
+#                if count_ones == 0:
+#                    return 'blue'
+#                elif 1 <= count_ones < 3:
+#                    return 'green'
+#                elif count_ones == 3:
+#                    return 'yellow'
+#                elif 4 <= count_ones < 5:
+#                    return 'orange'
+#                else:
+#                    return 'red'
 
-            total_pacientes = len(df_eval)
-            n = int(top_n_radar)
-            cols_grid = 5
-            rows_grid = int(np.ceil(n / cols_grid))
-            fig, axs = plt.subplots(rows_grid, cols_grid, figsize=(cols_grid*6, rows_grid*5), subplot_kw=dict(polar=True))
-            axs = np.atleast_2d(axs)
-            fig.subplots_adjust(hspace=0.8, wspace=0.6)
+#            total_pacientes = len(df_eval)
+#            n = int(top_n_radar)
+#            cols_grid = 5
+#            rows_grid = int(np.ceil(n / cols_grid))
+#            fig, axs = plt.subplots(rows_grid, cols_grid, figsize=(cols_grid*6, rows_grid*5), subplot_kw=dict(polar=True))
+#            axs = np.atleast_2d(axs)
+#            fig.subplots_adjust(hspace=0.8, wspace=0.6)
+#
+#            k = len(cols_attrs)
+#            angulos = np.linspace(0, 2 * np.pi, k, endpoint=False).tolist()
+#            angulos_cerrado = angulos + angulos[:1]
 
-            k = len(cols_attrs)
-            angulos = np.linspace(0, 2 * np.pi, k, endpoint=False).tolist()
-            angulos_cerrado = angulos + angulos[:1]
+#            for idx_plot in range(rows_grid * cols_grid):
+#                r = idx_plot // cols_grid
+#                c = idx_plot % cols_grid
+#                ax = axs[r, c]
+#                if idx_plot >= n:
+#                    ax.axis('off')
+#                    continue
 
-            for idx_plot in range(rows_grid * cols_grid):
-                r = idx_plot // cols_grid
-                c = idx_plot % cols_grid
-                ax = axs[r, c]
-                if idx_plot >= n:
-                    ax.axis('off')
-                    continue
+#                nombre, conjunto_idx = top_sets[idx_plot]
+#                indices = sorted(list(conjunto_idx))
+#                df_conj = df_eval.loc[indices, cols_attrs]
 
-                nombre, conjunto_idx = top_sets[idx_plot]
-                indices = sorted(list(conjunto_idx))
-                df_conj = df_eval.loc[indices, cols_attrs]
+#                if df_conj.empty:
+#                    valores = [0]*k
+#                    num_filas_df = 0
+#                else:
+#                    valores = df_conj.iloc[0].tolist()
+#                    num_filas_df = len(df_conj)
 
-                if df_conj.empty:
-                    valores = [0]*k
-                    num_filas_df = 0
-                else:
-                    valores = df_conj.iloc[0].tolist()
-                    num_filas_df = len(df_conj)
+#                valores_cerrados = list(valores) + [valores[0]]
+#                color = determinar_color(valores)
 
-                valores_cerrados = list(valores) + [valores[0]]
-                color = determinar_color(valores)
+#                ax.plot(angulos_cerrado, valores_cerrados, color=color)
+#                ax.fill(angulos_cerrado, valores_cerrados, color=color, alpha=0.25)
+#                ax.set_theta_offset(np.pi / 2)
+#                ax.set_theta_direction(-1)
+#                ax.set_xticks(angulos)
+#                ax.set_xticklabels(cols_attrs, fontsize=10)
+#                ax.yaxis.grid(True)
+#                ax.set_ylim(0, 2)
+#                ax.set_yticks([0, 1, 2])
+#                ax.set_yticklabels([0, 1, 2], fontsize=9)
 
-                ax.plot(angulos_cerrado, valores_cerrados, color=color)
-                ax.fill(angulos_cerrado, valores_cerrados, color=color, alpha=0.25)
-                ax.set_theta_offset(np.pi / 2)
-                ax.set_theta_direction(-1)
-                ax.set_xticks(angulos)
-                ax.set_xticklabels(cols_attrs, fontsize=10)
-                ax.yaxis.grid(True)
-                ax.set_ylim(0, 2)
-                ax.set_yticks([0, 1, 2])
-                ax.set_yticklabels([0, 1, 2], fontsize=9)
+#                porcentaje = (num_filas_df / total_pacientes * 100) if total_pacientes else 0.0
+#                ax.set_title(nombre, fontsize=12)
+#                ax.text(0.5, -0.2, f"Filas: {num_filas_df} ({porcentaje:.2f}%)",
+#                        transform=ax.transAxes, ha="center", va="center", fontsize=10)
+#
+#            st.pyplot(fig)
 
-                porcentaje = (num_filas_df / total_pacientes * 100) if total_pacientes else 0.0
-                ax.set_title(nombre, fontsize=12)
-                ax.text(0.5, -0.2, f"Filas: {num_filas_df} ({porcentaje:.2f}%)",
-                        transform=ax.transAxes, ha="center", va="center", fontsize=10)
+#            # ============ Gráfico compuesto (pastel + radares incrustados) ============
+#            candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
+#            if candidatas_idx_nom_tam:
+#                nombres_dataframes = [nom for _, nom, _ in candidatas_idx_nom_tam]
+#                tamanios = [tam for _, _, tam in candidatas_idx_nom_tam]
+#                total_incluido = sum(tamanios)
+#                porcentajes = [(nom, (tam/total_incluido*100.0) if total_incluido else 0.0)
+#                               for _, nom, tam in candidatas_idx_nom_tam]
 
-            st.pyplot(fig)
+#                valores_dataframes, colores_dataframes = [], []
+#                for idx, _, _ in candidatas_idx_nom_tam:
+ #                   indices = sorted(list(clases[idx]))
+#                    sub = df_eval.loc[indices, cols_attrs]
+#                    vals = sub.iloc[0].tolist() if not sub.empty else [0]*len(cols_attrs)
+#                    valores_dataframes.append(vals)
+#                    colores_dataframes.append(determinar_color(vals))
 
-            # ============ Gráfico compuesto (pastel + radares incrustados) ============
-            candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= int(min_size_for_pie)]
-            if candidatas_idx_nom_tam:
-                nombres_dataframes = [nom for _, nom, _ in candidatas_idx_nom_tam]
-                tamanios = [tam for _, _, tam in candidatas_idx_nom_tam]
-                total_incluido = sum(tamanios)
-                porcentajes = [(nom, (tam/total_incluido*100.0) if total_incluido else 0.0)
-                               for _, nom, tam in candidatas_idx_nom_tam]
+#                min_radio = 1.0
+#                max_radio = 2.40
+#                radar_size_min = 0.10
+#                radar_size_max = 0.19
+#                etiquetas_radar = [et.replace('_21','').replace('_18','') for et in cols_attrs]
 
-                valores_dataframes, colores_dataframes = [], []
-                for idx, _, _ in candidatas_idx_nom_tam:
-                    indices = sorted(list(clases[idx]))
-                    sub = df_eval.loc[indices, cols_attrs]
-                    vals = sub.iloc[0].tolist() if not sub.empty else [0]*len(cols_attrs)
-                    valores_dataframes.append(vals)
-                    colores_dataframes.append(determinar_color(vals))
+#                fig_comp = plt.figure(figsize=(16, 16))
+#                main_ax = plt.subplot(111)
+#                main_ax.set_position([0.1, 0.1, 0.8, 0.8])
 
-                min_radio = 1.0
-                max_radio = 2.40
-                radar_size_min = 0.10
-                radar_size_max = 0.19
-                etiquetas_radar = [et.replace('_21','').replace('_18','') for et in cols_attrs]
+#                if porcentajes:
+#                    _, valores_porcentajes = zip(*porcentajes)
+#                    valores_porcentajes = [float(p) for p in valores_porcentajes]
+#                else:
+#                    valores_porcentajes = []
 
-                fig_comp = plt.figure(figsize=(16, 16))
-                main_ax = plt.subplot(111)
-                main_ax.set_position([0.1, 0.1, 0.8, 0.8])
+#                colores_ajustados = colores_dataframes[:len(valores_porcentajes)]
+#                wedges, texts, autotexts = main_ax.pie(
+#                    valores_porcentajes,
+#                    colors=colores_ajustados,
+#                    autopct='%1.1f%%',
+#                    startangle=90,
+#                    textprops={'fontsize': 17},
+#                    labeldistance=1.1
+#                )
+#
+#                if wedges:
+#                    angulos_pastel = [(w.theta1 + w.theta2)/2 for w in wedges]
+#                    anchos = [abs(w.theta2 - w.theta1) for w in wedges]
+#                    max_ancho = max(anchos) if anchos else 1
+#                    angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
+#
+#                    radios_personalizados = [
+#                        min_radio + (1 - (log1p(a)/log1p(max_ancho))) * (max_radio - min_radio)
+#                        for a in anchos
+#                    ]
+#                    tamaños_radar = [
+#                        radar_size_min + (a/max_ancho) * (radar_size_max - radar_size_min)
+#                        for a in anchos
+#                    ]
 
-                if porcentajes:
-                    _, valores_porcentajes = zip(*porcentajes)
-                    valores_porcentajes = [float(p) for p in valores_porcentajes]
-                else:
-                    valores_porcentajes = []
+#                    angulos_rad_separados = angulos_rad.copy()
+#                    min_sep = np.deg2rad(7)
+#                    for i in range(1, len(angulos_rad_separados)):
+#                        while abs(angulos_rad_separados[i] - angulos_rad_separados[i-1]) < min_sep:
+#                            angulos_rad_separados[i] += min_sep/2
+#
+#                    for i, (nombre, vals, color, ang_rad, r_inset, tam_radar) in enumerate(
+#                        zip(nombres_dataframes, valores_dataframes, colores_dataframes,
+#                            angulos_rad_separados, radios_personalizados, tamaños_radar)
+#                    ):
+#                        factor_alejamiento = 2.3
+#                        x = 0.5 + r_inset*np.cos(ang_rad)/factor_alejamiento
+#                        y = 0.5 + r_inset*np.sin(ang_rad)/factor_alejamiento
+#                        radar_ax = fig_comp.add_axes([x - tam_radar/2, y - tam_radar/2, tam_radar, tam_radar], polar=True)
+#
+#                        vals = list(vals)[:len(cols_attrs)] or [0]*len(cols_attrs)
+#                        vals_c = vals + [vals[0]]
+#                        angs = np.linspace(0, 2*np.pi, len(cols_attrs), endpoint=False).tolist()
+#                        angs_c = angs + [angs[0]]
+#
+#                        radar_ax.set_theta_offset(np.pi/2)
+#                        radar_ax.set_theta_direction(-1)
+#                        radar_ax.plot(angs_c, vals_c, color=color)
+#                        radar_ax.fill(angs_c, vals_c, color=color, alpha=0.3)
+#                        radar_ax.set_xticks(angs)
+#                        radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
+#                        radar_ax.set_yticks([0,1,2])
+#                        radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
+#                        radar_ax.set_ylim(0,2)
+#                        radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
 
-                colores_ajustados = colores_dataframes[:len(valores_porcentajes)]
-                wedges, texts, autotexts = main_ax.pie(
-                    valores_porcentajes,
-                    colors=colores_ajustados,
-                    autopct='%1.1f%%',
-                    startangle=90,
-                    textprops={'fontsize': 17},
-                    labeldistance=1.1
+#                        x0 = 0.5 + 0.3*np.cos(ang_rad)
+#                        y0 = 0.5 + 0.3*np.sin(ang_rad)
+#                        con = ConnectionPatch(
+#                            xyA=(x0, y0), coordsA=fig_comp.transFigure,
+#                            xyB=(x, y), coordsB=fig_comp.transFigure,
+#                            color='gray', lw=0.8, linestyle='--'
+#                        )
+#                        fig_comp.add_artist(con)
+
+#                st.pyplot(fig_comp)
+#                try:
+#                    plt.savefig("radar_pastel_final.png", dpi=300, bbox_inches='tight', facecolor='white')
+#                    st.download_button(
+#                        "Descargar imagen (PNG)",
+#                        data=open("radar_pastel_final.png", "rb").read(),
+#                        file_name="radar_pastel_final.png",
+#                        mime="image/png"
+#                    )
+#                except Exception:
+#                    pass
+
+# ==== RENDER FUERA DEL BOTÓN: usa lo que quedó en session_state ====
+
+def _render_ind_outputs_from_state():
+    ss = st.session_state
+    need = ("ind_cols", "ind_df", "ind_df_eval", "ind_classes", "ind_lengths", "ind_min_size")
+    if not all(k in ss for k in need) or not ss["ind_classes"]:
+        return  # aún no hay datos para render
+
+    cols_attrs       = ss["ind_cols"]
+    df_ind           = ss["ind_df"]        # con NaN
+    df_eval          = ss["ind_df_eval"]   # SIN NaN en cols_attrs
+    clases           = ss["ind_classes"]
+    longitudes_orden = ss["ind_lengths"]
+    min_size_for_pie = int(ss["ind_min_size"])
+    top_n_radar      = ss.get("top_n_radar_value", 15)
+
+    nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
+
+    # --- Pastel ---
+    candidatas = [(nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
+    if candidatas:
+        labels  = [n for n, _ in candidatas]
+        valores = [v for _, v in candidatas]
+        total   = sum(valores)
+        fig_pie, ax_pie = plt.subplots(figsize=(7, 7))
+        ax_pie.pie(valores, labels=labels,
+                   autopct=lambda p: f"{p:.1f}%\n({int(p*total/100):,})",
+                   startangle=140)
+        ax_pie.axis('equal')
+        ax_pie.set_title(f"Participación de clases (≥ {min_size_for_pie} filas)")
+        st.pyplot(fig_pie)
+    else:
+        st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el pastel.")
+        return  # sin pastel no tiene sentido seguir
+
+    # --- DataFrame debajo del pastel + nivel_riesgo (solo filas de df_eval) ---
+    if not df_eval.empty:
+        vals = df_eval[cols_attrs].apply(pd.to_numeric, errors="coerce")
+        count_ones = (vals == 1).sum(axis=1)
+        all_twos   = (vals == 2).all(axis=1)
+        nivel = np.where(
+            all_twos, "Riesgo nulo",
+            np.where(
+                count_ones <= 2,
+                np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
+                np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
+            )
+        )
+        df_eval_riesgo = df_eval.copy()
+        df_eval_riesgo["nivel_riesgo"] = nivel
+        st.subheader("Filas usadas en el pastel (sin NaN) + nivel_riesgo")
+        st.dataframe(df_eval_riesgo.reset_index(), use_container_width=True)
+        st.download_button(
+            "Descargar filas del pastel con nivel_riesgo (CSV)",
+            data=df_eval_riesgo.reset_index().to_csv(index=False).encode("utf-8"),
+            file_name="filas_pastel_con_nivel_riesgo.csv",
+            mime="text/csv",
+            key="dl_df_eval_riesgo"
+        )
+        ss["df_eval_riesgo"] = df_eval_riesgo.copy()
+
+    # --- Radar de los N conjuntos más grandes (sobre df_eval) ---
+    def determinar_color(valores):
+        cnt = sum(1 for v in valores if pd.to_numeric(v, errors="coerce") == 1)
+        if cnt == 0: return 'blue'
+        if 1 <= cnt < 3: return 'green'
+        if cnt == 3: return 'yellow'
+        if 4 <= cnt < 5: return 'orange'
+        return 'red'
+
+    st.subheader("Radar de los conjuntos más numerosos")
+    top_idxs = [i for i, _ in longitudes_orden[:int(top_n_radar)]]
+    top_sets = [(nombres[i], clases[i]) for i in top_idxs]
+
+    total_pacientes = len(df_eval)
+    n = int(top_n_radar)
+    cols_grid = 5
+    rows_grid = int(np.ceil(n / cols_grid))
+    fig, axs = plt.subplots(rows_grid, cols_grid, figsize=(cols_grid*6, rows_grid*5), subplot_kw=dict(polar=True))
+    axs = np.atleast_2d(axs); fig.subplots_adjust(hspace=0.8, wspace=0.6)
+
+    k = len(cols_attrs)
+    angulos = np.linspace(0, 2 * np.pi, k, endpoint=False).tolist()
+    angulos_cerrado = angulos + angulos[:1]
+
+    for idx_plot in range(rows_grid * cols_grid):
+        r = idx_plot // cols_grid; c = idx_plot % cols_grid
+        ax = axs[r, c]
+        if idx_plot >= n:
+            ax.axis('off'); continue
+        nombre, conjunto_idx = top_sets[idx_plot]
+        indices = sorted(list(conjunto_idx))
+        df_conj = df_eval.loc[indices, cols_attrs]
+        if df_conj.empty:
+            valores = [0]*k; num_filas_df = 0
+        else:
+            valores = df_conj.iloc[0].tolist(); num_filas_df = len(df_conj)
+        valores_cerrados = list(valores) + [valores[0]]
+        color = determinar_color(valores)
+        ax.plot(angulos_cerrado, valores_cerrados, color=color)
+        ax.fill(angulos_cerrado, valores_cerrados, color=color, alpha=0.25)
+        ax.set_theta_offset(np.pi / 2); ax.set_theta_direction(-1)
+        ax.set_xticks(angulos); ax.set_xticklabels(cols_attrs, fontsize=10)
+        ax.yaxis.grid(True); ax.set_ylim(0, 2)
+        ax.set_yticks([0, 1, 2]); ax.set_yticklabels([0, 1, 2], fontsize=9)
+        pct = (num_filas_df / total_pacientes * 100) if total_pacientes else 0.0
+        ax.set_title(nombre, fontsize=12)
+        ax.text(0.5, -0.2, f"Filas: {num_filas_df} ({pct:.2f}%)",
+                transform=ax.transAxes, ha="center", va="center", fontsize=10)
+    st.pyplot(fig)
+
+    # --- Gráfico compuesto (pastel + radares incrustados) ---
+    candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
+    if candidatas_idx_nom_tam:
+        nombres_dataframes = [nom for _, nom, _ in candidatas_idx_nom_tam]
+        tamanios = [tam for _, _, tam in candidatas_idx_nom_tam]
+        total_incluido = sum(tamanios)
+        porcentajes = [(nom, (tam/total_incluido*100.0) if total_incluido else 0.0)
+                       for _, nom, tam in candidatas_idx_nom_tam]
+
+        valores_dataframes, colores_dataframes = [], []
+        for idx, _, _ in candidatas_idx_nom_tam:
+            indices = sorted(list(clases[idx]))
+            sub = df_eval.loc[indices, cols_attrs]
+            vals = sub.iloc[0].tolist() if not sub.empty else [0]*len(cols_attrs)
+            valores_dataframes.append(vals)
+            colores_dataframes.append(determinar_color(vals))
+
+        min_radio = 1.0; max_radio = 2.40
+        radar_size_min = 0.10; radar_size_max = 0.19
+        etiquetas_radar = [et.replace('_21','').replace('_18','') for et in cols_attrs]
+
+        fig_comp = plt.figure(figsize=(16, 16))
+        main_ax = plt.subplot(111); main_ax.set_position([0.1, 0.1, 0.8, 0.8])
+
+        if porcentajes:
+            _, valores_porcentajes = zip(*porcentajes)
+            valores_porcentajes = [float(p) for p in valores_porcentajes]
+        else:
+            valores_porcentajes = []
+
+        colores_ajustados = colores_dataframes[:len(valores_porcentajes)]
+        wedges, texts, autotexts = main_ax.pie(
+            valores_porcentajes, colors=colores_ajustados,
+            autopct='%1.1f%%', startangle=90,
+            textprops={'fontsize': 17}, labeldistance=1.1
+        )
+
+        if wedges:
+            angulos_pastel = [(w.theta1 + w.theta2)/2 for w in wedges]
+            anchos = [abs(w.theta2 - w.theta1) for w in wedges]
+            max_ancho = max(anchos) if anchos else 1
+            angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
+
+            radios_personalizados = [
+                min_radio + (1 - (log1p(a)/log1p(max_ancho))) * (max_radio - min_radio)
+                for a in anchos
+            ]
+            tamaños_radar = [
+                radar_size_min + (a/max_ancho) * (radar_size_max - radar_size_min)
+                for a in anchos
+            ]
+
+            angulos_rad_separados = angulos_rad.copy()
+            min_sep = np.deg2rad(7)
+            for i in range(1, len(angulos_rad_separados)):
+                while abs(angulos_rad_separados[i] - angulos_rad_separados[i-1]) < min_sep:
+                    angulos_rad_separados[i] += min_sep/2
+
+            for i, (nombre, vals, color, ang_rad, r_inset, tam_radar) in enumerate(
+                zip(nombres_dataframes, valores_dataframes, colores_dataframes,
+                    angulos_rad_separados, radios_personalizados, tamaños_radar)
+            ):
+                factor_alejamiento = 2.3
+                x = 0.5 + r_inset*np.cos(ang_rad)/factor_alejamiento
+                y = 0.5 + r_inset*np.sin(ang_rad)/factor_alejamiento
+                radar_ax = fig_comp.add_axes([x - tam_radar/2, y - tam_radar/2, tam_radar, tam_radar], polar=True)
+
+                vals = list(vals)[:len(cols_attrs)] or [0]*len(cols_attrs)
+                vals_c = vals + [vals[0]]
+                angs = np.linspace(0, 2*np.pi, len(cols_attrs), endpoint=False).tolist()
+                angs_c = angs + [angs[0]]
+
+                radar_ax.set_theta_offset(np.pi/2); radar_ax.set_theta_direction(-1)
+                radar_ax.plot(angs_c, vals_c, color=color)
+                radar_ax.fill(angs_c, vals_c, color=color, alpha=0.3)
+                radar_ax.set_xticks(angs); radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
+                radar_ax.set_yticks([0,1,2]); radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
+                radar_ax.set_ylim(0,2); radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
+
+                x0 = 0.5 + 0.3*np.cos(ang_rad); y0 = 0.5 + 0.3*np.sin(ang_rad)
+                con = ConnectionPatch(
+                    xyA=(x0, y0), coordsA=fig_comp.transFigure,
+                    xyB=(x, y), coordsB=fig_comp.transFigure,
+                    color='gray', lw=0.8, linestyle='--'
                 )
+                fig_comp.add_artist(con)
 
-                if wedges:
-                    angulos_pastel = [(w.theta1 + w.theta2)/2 for w in wedges]
-                    anchos = [abs(w.theta2 - w.theta1) for w in wedges]
-                    max_ancho = max(anchos) if anchos else 1
-                    angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
+        st.pyplot(fig_comp)
 
-                    radios_personalizados = [
-                        min_radio + (1 - (log1p(a)/log1p(max_ancho))) * (max_radio - min_radio)
-                        for a in anchos
-                    ]
-                    tamaños_radar = [
-                        radar_size_min + (a/max_ancho) * (radar_size_max - radar_size_min)
-                        for a in anchos
-                    ]
+# 👉 Llamada al renderer SIEMPRE, con o sin botón
+_render_ind_outputs_from_state()
 
-                    angulos_rad_separados = angulos_rad.copy()
-                    min_sep = np.deg2rad(7)
-                    for i in range(1, len(angulos_rad_separados)):
-                        while abs(angulos_rad_separados[i] - angulos_rad_separados[i-1]) < min_sep:
-                            angulos_rad_separados[i] += min_sep/2
 
-                    for i, (nombre, vals, color, ang_rad, r_inset, tam_radar) in enumerate(
-                        zip(nombres_dataframes, valores_dataframes, colores_dataframes,
-                            angulos_rad_separados, radios_personalizados, tamaños_radar)
-                    ):
-                        factor_alejamiento = 2.3
-                        x = 0.5 + r_inset*np.cos(ang_rad)/factor_alejamiento
-                        y = 0.5 + r_inset*np.sin(ang_rad)/factor_alejamiento
-                        radar_ax = fig_comp.add_axes([x - tam_radar/2, y - tam_radar/2, tam_radar, tam_radar], polar=True)
 
-                        vals = list(vals)[:len(cols_attrs)] or [0]*len(cols_attrs)
-                        vals_c = vals + [vals[0]]
-                        angs = np.linspace(0, 2*np.pi, len(cols_attrs), endpoint=False).tolist()
-                        angs_c = angs + [angs[0]]
 
-                        radar_ax.set_theta_offset(np.pi/2)
-                        radar_ax.set_theta_direction(-1)
-                        radar_ax.plot(angs_c, vals_c, color=color)
-                        radar_ax.fill(angs_c, vals_c, color=color, alpha=0.3)
-                        radar_ax.set_xticks(angs)
-                        radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
-                        radar_ax.set_yticks([0,1,2])
-                        radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
-                        radar_ax.set_ylim(0,2)
-                        radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
-
-                        x0 = 0.5 + 0.3*np.cos(ang_rad)
-                        y0 = 0.5 + 0.3*np.sin(ang_rad)
-                        con = ConnectionPatch(
-                            xyA=(x0, y0), coordsA=fig_comp.transFigure,
-                            xyB=(x, y), coordsB=fig_comp.transFigure,
-                            color='gray', lw=0.8, linestyle='--'
-                        )
-                        fig_comp.add_artist(con)
-
-                st.pyplot(fig_comp)
-                try:
-                    plt.savefig("radar_pastel_final.png", dpi=300, bbox_inches='tight', facecolor='white')
-                    st.download_button(
-                        "Descargar imagen (PNG)",
-                        data=open("radar_pastel_final.png", "rb").read(),
-                        file_name="radar_pastel_final.png",
-                        mime="image/png"
-                    )
-                except Exception:
-                    pass
 
 # ==================================================================== hasta aqui todo bien
 
