@@ -1655,6 +1655,48 @@ else:
         df_pred_all = df_all.copy()
         df_pred_all["nivel_riesgo_pred"] = "Sin datos"
         ss["df_pred_all_rf"] = df_pred_all
+    #else:
+    #    # usa el LE del modelo disponible (prefiere 4 vars)
+    #    le = ss["rf_best4_le"] if have4 else ss["rf_best3_le"]
+
+    #    # Serie donde iremos llenando las predicciones finales
+    #    pred_all = pd.Series(index=df_all.index, dtype="object")
+#
+#        # --- helper para predecir con un set de columnas ---
+#        def predict_with(cols, model, imputer=None, mask_limit=None):
+#            mask = df_all[cols].notna().all(axis=1)
+#            if mask_limit is not None:
+#                mask = mask & mask_limit
+#            if not mask.any():
+#                return pd.Index([]), None
+#            X = df_all.loc[mask, cols].apply(pd.to_numeric, errors="coerce")
+#            if imputer is not None:
+#                X = imputer.transform(X)
+#            y = model.predict(X)
+#            return df_all.index[mask], le.inverse_transform(y)
+
+#        # 1) Primero 4 variables
+#        if have4:
+#            idx4, lab4 = predict_with(ss["rf_best4_cols"], ss["rf_best4"], ss["rf_best4_imp"])
+#            if len(idx4) > 0:
+#                pred_all.loc[idx4] = lab4
+
+#        # 2) Luego 3 variables para las filas sin predicción aún
+#        if have3:
+#            restante = pred_all.isna()
+#            idx3, lab3 = predict_with(ss["rf_best3_cols"], ss["rf_best3"], ss["rf_best3_imp"], mask_limit=restante)
+#            if idx3 is not None and len(idx3) > 0:
+#                pred_all.loc[idx3] = lab3
+
+#        pred_all.fillna("Sin datos", inplace=True)
+#
+#        df_pred_all = df_all.copy()
+#        df_pred_all["nivel_riesgo_pred"] = pred_all
+#        ss["df_pred_all_rf"] = df_pred_all
+
+
+
+
     else:
         # usa el LE del modelo disponible (prefiere 4 vars)
         le = ss["rf_best4_le"] if have4 else ss["rf_best3_le"]
@@ -1662,38 +1704,59 @@ else:
         # Serie donde iremos llenando las predicciones finales
         pred_all = pd.Series(index=df_all.index, dtype="object")
 
-        # --- helper para predecir con un set de columnas ---
-        def predict_with(cols, model, imputer=None, mask_limit=None):
-            mask = df_all[cols].notna().all(axis=1)
-            if mask_limit is not None:
-                mask = mask & mask_limit
-            if not mask.any():
-                return pd.Index([]), None
-            X = df_all.loc[mask, cols].apply(pd.to_numeric, errors="coerce")
-            if imputer is not None:
-                X = imputer.transform(X)
-            y = model.predict(X)
-            return df_all.index[mask], le.inverse_transform(y)
+        # --- helper: predice imputando faltantes y permitiendo umbral de observados ---
+        def predict_with_impute(cols, model, imputer, rows_mask=None, min_obs=0):
+            # candidatos (todas las filas o solo las indicadas por rows_mask)
+            if rows_mask is None:
+                idx_cand = df_all.index
+            else:
+                idx_cand = df_all.index[rows_mask]
 
-        # 1) Primero 4 variables
+            if len(idx_cand) == 0:
+                return pd.Index([]), None
+
+            Xraw = df_all.loc[idx_cand, cols].apply(pd.to_numeric, errors="coerce")
+
+            # exigir un mínimo de features observadas (antes de imputar)
+            if min_obs and min_obs > 0:
+                obs = Xraw.notna().sum(axis=1)
+                Xraw = Xraw.loc[obs >= min_obs]
+                idx_cand = Xraw.index
+                if len(idx_cand) == 0:
+                    return pd.Index([]), None
+
+            # imputar como en el entrenamiento
+            Ximp = imputer.transform(Xraw)
+            yhat = model.predict(Ximp)
+            return idx_cand, le.inverse_transform(yhat)
+
+        # 1) Modelo de 4 variables (prioridad). Requiere ≥3 observadas para usarlo.
         if have4:
-            idx4, lab4 = predict_with(ss["rf_best4_cols"], ss["rf_best4"], ss["rf_best4_imp"])
-            if len(idx4) > 0:
+            idx4, lab4 = predict_with_impute(
+                ss["rf_best4_cols"], ss["rf_best4"], ss["rf_best4_imp"],
+                rows_mask=None, min_obs=3
+            )
+            if lab4 is not None and len(idx4) > 0:
                 pred_all.loc[idx4] = lab4
 
-        # 2) Luego 3 variables para las filas sin predicción aún
+        # 2) Modelo de 3 variables (respaldo) SOLO donde aún no hay predicción. Requiere ≥2 observadas.
         if have3:
-            restante = pred_all.isna()
-            idx3, lab3 = predict_with(ss["rf_best3_cols"], ss["rf_best3"], ss["rf_best3_imp"], mask_limit=restante)
-            if idx3 is not None and len(idx3) > 0:
+            restante_mask = pred_all.isna()
+            idx3, lab3 = predict_with_impute(
+                ss["rf_best3_cols"], ss["rf_best3"], ss["rf_best3_imp"],
+                rows_mask=restante_mask, min_obs=2
+            )
+            if lab3 is not None and len(idx3) > 0:
                 pred_all.loc[idx3] = lab3
 
+        # Etiquetar el resto
         pred_all.fillna("Sin datos", inplace=True)
 
         df_pred_all = df_all.copy()
         df_pred_all["nivel_riesgo_pred"] = pred_all
         ss["df_pred_all_rf"] = df_pred_all
 
+    
     # Muestra y descarga
     st.dataframe(df_pred_all.reset_index().head(50), use_container_width=True)
     st.download_button(
