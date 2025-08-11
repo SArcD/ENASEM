@@ -705,7 +705,7 @@ with st.sidebar:
 # Vista previa — Filtrado por SEX + EDAD + COMORBILIDADES
 # =========================
 if st.session_state["df_comorb"] is not None:
-    st.subheader("Tras filtrado por sexo + edad + comorbilidades)")
+    st.subheader("Tras filtrado por sexo + edad + comorbilidades")
     # Seleccionar base segura para longitud
     base_df_for_len = st.session_state.get("df_filtrado")
     if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
@@ -716,8 +716,8 @@ if st.session_state["df_comorb"] is not None:
     base_len = len(base_df_for_len)
 
     c1, c2 = st.columns(2)
-    c1.metric("Filas base para comorb.", base_len)
-    c2.metric("Filas tras comorb.", len(st.session_state["df_comorb"]))
+    c1.metric("Filas base para filtrar.", base_len)
+    c2.metric("Filas después del filtrado", len(st.session_state["df_comorb"]))
     st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
 
     # Resumen rápido (cuenta de 1 en cada comorbilidad seleccionada)
