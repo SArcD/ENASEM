@@ -86,7 +86,7 @@ import streamlit as st
 
 LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
 
-col_logo, col_title = st.columns([1, 3], gap="small")
+col_logo, col_title = st.columns([2, 3], gap="small")
 
 with col_logo:
     st.image(LOGO_URL, use_container_width=True)
