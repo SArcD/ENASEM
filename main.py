@@ -1404,167 +1404,212 @@ else:
 
 
 
+
+
+
 # =========================
-# Riesgo para TODAS las filas con reductos (RF + SMOTE)
+# Reductos + RF (rápido) + Predicción en todo el pastel + barras comparativas
 # =========================
 from itertools import combinations
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
-from imblearn.over_sampling import SMOTE
-from sklearn.metrics import classification_report
-import warnings
+from sklearn.preprocessing import LabelEncoder
+from sklearn.impute import SimpleImputer
 
 ss = st.session_state
-need = ("ind_cols", "df_eval_riesgo", "ind_df_reducido")
-if not all(k in ss for k in need):
-    st.info("Primero calcula indiscernibilidad y la columna 'nivel_riesgo' (df_eval_riesgo).")
+needed = ("ind_cols","ind_df","ind_classes","ind_lengths","ind_min_size")
+if not all(k in ss for k in needed):
+    st.info("⚠️ Calcula indiscernibilidad primero.")
 else:
-    st.subheader("Asignación de riesgo usando reductos (maneja NaN)")
+    # ---------- utilidades ligeras (sin sklearn para métricas de partición) ----------
+    def blocks_to_labels(blocks, universo):
+        lab = {}
+        for k, S in enumerate(blocks):
+            for i in S: lab[i] = k
+        return np.array([lab[i] for i in universo])
 
-    BASE5 = ss["ind_cols"]              # tus 5 ADL base (en el orden elegido)
-    df_train_full = ss["df_eval_riesgo"]  # SOLO filas sin NaN en las 5, ya trae 'nivel_riesgo'
-    df_base_pred  = ss["ind_df_reducido"].copy()
-    if "Indice" in df_base_pred.columns:
-        df_base_pred.set_index("Indice", inplace=True)
-    df_base_pred.index.name = "Indice"
+    def contingency_from_labels(y_true, y_pred):
+        s1 = pd.Series(y_true).astype("category")
+        s2 = pd.Series(y_pred).astype("category")
+        return pd.crosstab(s1, s2).values
 
-    # ---- función entrenar un RF para un subconjunto de columnas ----
-    def train_rf_for_cols(cols, seed=42):
-        cols = list(cols)
-        # X: solo esas columnas, Y: nivel_riesgo (de filas COMPLETAS)
-        df_tr = df_train_full.dropna(subset=BASE5)  # por seguridad
-        X = df_tr[cols].apply(pd.to_numeric, errors="coerce")
-        y = df_tr["nivel_riesgo"].astype(str)
+    def pairs_same(counts):
+        counts = np.asarray(counts, dtype=np.int64)
+        return (counts*(counts-1)//2).sum()
 
-        # checar tamaño/clases
-        if len(X) < 20 or y.nunique() < 2:
-            return None  # sin datos suficientes
+    def ari_from_contingency(C):
+        n = C.sum()
+        if n == 0: return 1.0
+        a = C.sum(axis=1); b = C.sum(axis=0)
+        sum_comb = (C*(C-1)//2).sum()
+        sum_a = (a*(a-1)//2).sum()
+        sum_b = (b*(b-1)//2).sum()
+        T = n*(n-1)//2
+        expected = (sum_a*sum_b)/T if T else 0.0
+        max_index = 0.5*(sum_a+sum_b)
+        denom = max_index - expected
+        return float((sum_comb - expected)/denom) if denom != 0 else 1.0
 
-        # encode
-        le = LabelEncoder()
-        y_enc = le.fit_transform(y)
+    # ---------- universo del pastel ----------
+    umbral = int(ss["ind_min_size"])
+    ids_pastel = [i for i, tam in ss["ind_lengths"] if tam >= umbral]
+    idxs_pastel = sorted(set().union(*[ss["ind_classes"][i] for i in ids_pastel])) if ids_pastel else []
 
-        # split
-        try:
-            Xtr, Xte, ytr, yte = train_test_split(
-                X, y_enc, test_size=0.25, random_state=seed, stratify=y_enc
+    if not idxs_pastel:
+        st.info("No hay filas en el pastel con el umbral actual.")
+    else:
+        df_full = ss["ind_df"]                       # ADL indexado por 'Indice' (puede tener NaN)
+        ind_cols = list(ss["ind_cols"])              # típicamente 5 columnas elegidas
+        df_pastel_full = df_full.loc[idxs_pastel].copy()
+
+        # ---------- entrenamiento SOLO con filas sin NaN en TODAS las ind_cols ----------
+        df_pastel_eval = df_pastel_full.dropna(subset=ind_cols).copy()
+        if df_pastel_eval.empty:
+            st.warning("No hay filas sin NaN en TODAS las columnas para entrenar.")
+            st.stop()
+
+        # Etiqueta por REGLA (nulo, leve, moderado, severo)
+        vals = df_pastel_eval[ind_cols].apply(pd.to_numeric, errors="coerce")
+        count_ones = (vals == 1).sum(axis=1)
+        all_twos   = (vals == 2).all(axis=1)
+        y_regla = np.where(
+            all_twos, "Riesgo nulo",
+            np.where(
+                count_ones <= 2,
+                np.where(count_ones >= 1, "Riesgo leve", "Riesgo leve"),
+                np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
             )
-        except ValueError:
-            # si alguna clase queda muy chica, sin estratificar
-            Xtr, Xte, ytr, yte = train_test_split(
-                X, y_enc, test_size=0.25, random_state=seed
+        )
+        df_pastel_eval = df_pastel_eval.copy()
+        df_pastel_eval["nivel_riesgo"] = y_regla
+
+        # ---------- mejor reducto de 4 y de 3 (rápido, con ARI en df_pastel_eval) ----------
+        # partición original (todas las ind_cols) y universo ordenado
+        universe = list(df_pastel_eval.index)
+        bloques_orig = indiscernibility(ind_cols, df_pastel_eval)
+        y_orig = blocks_to_labels(bloques_orig, universe)
+
+        def score_cols(cols):
+            bloques = indiscernibility(cols, df_pastel_eval)
+            y = blocks_to_labels(bloques, universe)
+            C = contingency_from_labels(y_orig, y)
+            return ari_from_contingency(C)
+
+        best4 = None; best4_score = -1
+        for comb in combinations(ind_cols, max(len(ind_cols)-1, 4)):  # típicamente 4 vars
+            ari = score_cols(list(comb))
+            if ari > best4_score:
+                best4_score, best4 = ari, list(comb)
+
+        best3 = None; best3_score = -1
+        if len(ind_cols) >= 5:  # si hay 5 originales
+            for comb in combinations(ind_cols, 3):
+                ari = score_cols(list(comb))
+                if ari > best3_score:
+                    best3_score, best3 = ari, list(comb)
+        else:
+            # si no hay 5 originales, intenta len(ind_cols)-2
+            k3 = max(3, len(ind_cols)-2)
+            for comb in combinations(ind_cols, k3):
+                ari = score_cols(list(comb))
+                if ari > best3_score:
+                    best3_score, best3 = ari, list(comb)
+
+        st.markdown(f"**Mejor reducto (4 vars)**: {best4} — ARI={best4_score:.3f}")
+        if best3 is not None:
+            st.markdown(f"**Mejor reducto (3 vars)**: {best3} — ARI={best3_score:.3f}")
+
+        # ---------- Entrenar RF(s) (rápido) ----------
+        # Usamos class_weight en lugar de SMOTE para acelerar. n_estimators ajustado.
+        def entrenar_rf(df_train, feat_cols, target_col="nivel_riesgo"):
+            X = df_train[feat_cols].apply(pd.to_numeric, errors="coerce")
+            y_raw = df_train[target_col].astype(str).values
+            le = LabelEncoder()
+            y = le.fit_transform(y_raw)
+            imp = SimpleImputer(strategy="median")
+            X_imp = imp.fit_transform(X)
+
+            rf = RandomForestClassifier(
+                n_estimators=200,  # rápido y decente
+                random_state=42,
+                n_jobs=-1,
+                class_weight="balanced_subsample",
+                oob_score=False
             )
+            rf.fit(X_imp, y)
+            return rf, le, imp
 
-        # SMOTE
-        try:
-            sm = SMOTE(random_state=seed)
-            Xtr_sm, ytr_sm = sm.fit_resample(Xtr, ytr)
-        except Exception:
-            # si SMOTE falla por poca muestra/clase, caemos a class_weight
-            Xtr_sm, ytr_sm = Xtr, ytr
+        rf4, le4, imp4 = entrenar_rf(df_pastel_eval, best4)
+        ss["rf_best4"] = rf4
+        ss["rf_best4_cols"] = best4
+        ss["rf_best4_le"] = le4
+        ss["rf_best4_imp"] = imp4
 
-        rf = RandomForestClassifier(
-            n_estimators=400,
-            max_depth=None,
-            random_state=seed,
-            n_jobs=-1,
-            class_weight=None  # lo dejamos None si SMOTE funcionó
+        if best3 is not None:
+            rf3, le3, imp3 = entrenar_rf(df_pastel_eval, best3)
+            ss["rf_best3"] = rf3
+            ss["rf_best3_cols"] = best3
+            ss["rf_best3_le"] = le3
+            ss["rf_best3_imp"] = imp3
+
+        st.success("Modelos RF entrenados (best4 y, si procede, best3).")
+
+        # ---------- Predicción en TODO el pastel (imputando) con el modelo best4 ----------
+        Xp = df_pastel_full.copy()
+        # asegurar columnas del modelo
+        for c in ss["rf_best4_cols"]:
+            if c not in Xp.columns:
+                Xp[c] = np.nan
+        Xp = Xp[ss["rf_best4_cols"]].apply(pd.to_numeric, errors="coerce")
+        Xp_imp = ss["rf_best4_imp"].transform(Xp)  # imputa NaN con medianas del train
+        ypred = ss["rf_best4"].predict(Xp_imp)
+        ypred_labels = ss["rf_best4_le"].inverse_transform(ypred)
+
+        df_pred_pastel = df_pastel_full.copy()
+        df_pred_pastel["nivel_riesgo_pred"] = ypred_labels
+        ss["df_pred_pastel_rf"] = df_pred_pastel
+
+        # ---------- Barras comparativas ----------
+        orden = ["Riesgo nulo","Riesgo leve","Riesgo moderado","Riesgo severo"]
+
+        # A) distribución "regla" (solo filas SIN NaN en las 5 originales dentro del pastel)
+        dist_regla = pd.Series(df_pastel_eval["nivel_riesgo"]).value_counts().reindex(orden, fill_value=0)
+
+        # B) distribución "RF" (predicho) sobre TODO el pastel
+        dist_rf = pd.Series(df_pred_pastel["nivel_riesgo_pred"]).value_counts().reindex(orden, fill_value=0)
+
+        x = np.arange(len(orden))
+        width = 0.38
+        figb, axb = plt.subplots(figsize=(8, 4.5))
+        b1 = axb.bar(x - width/2, dist_regla.values, width, label="Regla (sin NaN)")
+        b2 = axb.bar(x + width/2, dist_rf.values, width, label="RF (todo pastel)")
+
+        axb.set_xticks(x); axb.set_xticklabels(orden, rotation=0)
+        axb.set_ylabel("Conteos")
+        axb.set_title("Comparativa de niveles de riesgo")
+        axb.legend()
+        axb.grid(axis='y', linestyle='--', alpha=0.3)
+
+        # anotar valores
+        for bars in (b1, b2):
+            for r in bars:
+                h = r.get_height()
+                axb.text(r.get_x()+r.get_width()/2, h+0.01*max(dist_regla.max(), dist_rf.max()),
+                         f"{int(h)}", ha="center", va="bottom", fontsize=9)
+
+        st.pyplot(figb)
+
+        # Descargas útiles
+        st.download_button(
+            "Descargar predicciones RF (todo pastel) CSV",
+            data=df_pred_pastel.reset_index().to_csv(index=False).encode("utf-8"),
+            file_name="predicciones_pastel_rf.csv",
+            mime="text/csv",
+            key="dl_pred_pastel_rf"
         )
 
-        # si no hubo SMOTE (por excepción), usa balanced
-        if (Xtr_sm is Xtr) and (ytr_sm is ytr):
-            rf = RandomForestClassifier(
-                n_estimators=400,
-                max_depth=None,
-                random_state=seed,
-                n_jobs=-1,
-                class_weight="balanced"
-            )
-
-        rf.fit(Xtr_sm, ytr_sm)
-
-        # mini-eval (opcional, solo para log)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            ypred = rf.predict(Xte)
-            rep = classification_report(yte, ypred, target_names=le.classes_, zero_division=0, output_dict=False)
-        return {"model": rf, "encoder": le, "cols": tuple(cols), "report": rep}
-
-    # ---- entrenar modelos para 5, 4 y 3 columnas ----
-    # cache en sesión para no re-entrenar
-    if "rf_combo_models" not in ss:
-        ss["rf_combo_models"] = {}
-
-    models = ss["rf_combo_models"]
-    combos_to_train = []
-
-    # 5/5
-    combos_to_train.append(tuple(BASE5))
-    # 4/5 (falta una)
-    combos_to_train += list(combinations(BASE5, 4))
-    # 3/5 (faltan dos)
-    combos_to_train += list(combinations(BASE5, 3))
-
-    with st.spinner("Entrenando modelos (5, 4 y 3 variables)…"):
-        entrenados, omitidos = 0, 0
-        for cols in combos_to_train:
-            key = tuple(cols)
-            if key in models:
-                continue
-            res = train_rf_for_cols(cols)
-            if res is None:
-                omitidos += 1
-            else:
-                models[key] = res
-                entrenados += 1
-        ss["rf_combo_models"] = models
-    st.success(f"Listo: {entrenados} modelos entrenados, {omitidos} omitidos por falta de datos.")
-
-    # ---- función de predicción por fila: usa el mayor subconjunto disponible ----
-    def predict_row(series):
-        present = [c for c in BASE5 if pd.notna(series.get(c))]
-        # probar 5 -> 4 -> 3
-        for k in (5, 4, 3):
-            if len(present) < k:
-                continue
-            # conjunto exacto de tamaño k que coincide con columnas presentes
-            # (cuando len(present)==k, hay una sola opción)
-            for cols in combinations(present, k):
-                key = tuple(cols)
-                if key in models:
-                    info = models[key]
-                    X = pd.DataFrame([series[list(key)]], columns=list(key)).apply(pd.to_numeric, errors="coerce").fillna(0)
-                    yhat = info["model"].predict(X)[0]
-                    label = info["encoder"].inverse_transform([yhat])[0]
-                    return label, key
-        return None, None  # no hay suficientes columnas
-
-    # ---- aplicar a TODO el DF reducido ----
-    preds = []
-    used_cols = []
-    for idx, row in df_base_pred[BASE5].iterrows():
-        label, used = predict_row(row)
-        preds.append(label if label is not None else "No predicho")
-        used_cols.append(",".join(used) if used is not None else "")
-
-    df_pred = df_base_pred.copy()
-    df_pred["diagnostico_predicho"] = preds
-    df_pred["cols_usadas_modelo"] = used_cols
-
-    st.subheader("Diagnóstico predicho para todas las filas (usando reductos)")
-    st.dataframe(df_pred.reset_index().head(200), use_container_width=True)
-
-    st.download_button(
-        "Descargar con diagnóstico predicho (CSV)",
-        data=df_pred.reset_index().to_csv(index=False).encode("utf-8"),
-        file_name="df_riesgo_predicho_reductos.csv",
-        mime="text/csv",
-        key="dl_df_riesgo_predicho_reductos"
-    )
-
-    # guardar en sesión
-    ss["df_predicho_reductos"] = df_pred
 
 
 
