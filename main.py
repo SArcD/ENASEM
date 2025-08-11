@@ -92,7 +92,7 @@ st.markdown("""
 p, li, td { text-align: justify; }
 </style>
 """, unsafe_allow_html=True)
-st.markdown("""En esta sección se utilizan los datos disponibles de la Encuesta Nacional sobre Envejecimiento en México.""")
+st.markdown("""En esta sección se utilizan los datos disponibles de la Encuesta Nacional sobre Envejecimiento en México. Para comenzar, **utilice el botón de la barra laterar para cargar el archivo con datos del año que desee analizar** (normalmente el nombre es "conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_20XX.csv").""")
 
 # -----------------------------------------
 # Barra lateral: subir archivo
