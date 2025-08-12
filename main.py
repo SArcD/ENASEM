@@ -1573,7 +1573,7 @@ else:
 
                     nombres2, M2 = ari_matrix(parts_2)
                     #plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
-                    with st.expander("**Similitud entre particiones creadas por los reductos**"):
+                    with st.expander("ℹ️**Similitud entre particiones creadas por los reductos**"):
                         
                         plot_heatmap(nombres1, M1, "Similitud entre particiones (ARI) — quitar 1 variable")
                         plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
@@ -1865,9 +1865,9 @@ else:
                 if ari > best3_score:
                     best3_score, best3 = ari, list(comb)
 
-        st.markdown(f"**Mejor reducto (4 vars)**: {best4} — ARI={best4_score:.3f}")
-        if best3 is not None:
-            st.markdown(f"**Mejor reducto (3 vars)**: {best3} — ARI={best3_score:.3f}")
+        #st.markdown(f"**Mejor reducto (4 vars)**: {best4} — ARI={best4_score:.3f}")
+#        if best3 is not None:
+#            st.markdown(f"**Mejor reducto (3 vars)**: {best3} — ARI={best3_score:.3f}")
 
         # ---------- Entrenar RF(s) (rápido) ----------
         # Usamos class_weight en lugar de SMOTE para acelerar. n_estimators ajustado.
