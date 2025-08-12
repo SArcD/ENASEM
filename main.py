@@ -1005,7 +1005,7 @@ def _render_ind_outputs_from_state():
         )
         df_eval_riesgo = df_eval.copy()
         df_eval_riesgo["nivel_riesgo"] = nivel
-        st.subheader("Filas que se incluyen dentro de las **relaciones de indicernibilidad** (puede ajustarlo al definir el tamaño mínimo de participantes que debe tener una clase para incluirla y el número de conjuntos a considerar). **Solo se muestran las respuestas a las preguntas de las actividades de la vida diaría**. La última columna corresponde al nivel de riesgo de sarcopenia.")
+        st.markdown("Filas que se incluyen dentro de las **relaciones de indicernibilidad** (puede ajustarlo al definir el tamaño mínimo de participantes que debe tener una clase para incluirla y el número de conjuntos a considerar). **Solo se muestran las respuestas a las preguntas de las actividades de la vida diaría**. La última columna corresponde al nivel de riesgo de sarcopenia.")
         st.dataframe(df_eval_riesgo.reset_index(), use_container_width=True)
         st.download_button(
             "Descargar filas del pastel con nivel_riesgo (CSV)",
