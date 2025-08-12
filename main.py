@@ -1016,7 +1016,7 @@ def _render_ind_outputs_from_state():
         )
         ss["df_eval_riesgo"] = df_eval_riesgo.copy()
 
-    with st.expander("ℹ️ ¿Cómo se define el nivel de riesgo?", expanded=False):
+    with st.expander("**¿Cómo se define el nivel de riesgo?**", expanded=False):
         st.markdown(
             """
     <div style="text-align: justify">
