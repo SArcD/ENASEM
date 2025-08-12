@@ -1509,6 +1509,76 @@ else:
                             f"Pres. distintos={r['Preservación distintos (%)']}%"
                         )
 
+
+
+                    # =========================
+                    #  Heatmaps ARI: quitar 1 variable y quitar 2 variables
+                    # =========================
+
+                    def labels_from_cols(cols):
+                        bloques = indiscernibility(cols, df_eval_sub)
+                        return blocks_to_labels(bloques, universo_sel)
+
+                    def ari_matrix(partitions):
+                        """partitions: dict nombre -> lista_de_columnas"""
+                        nombres = list(partitions.keys())
+                        Y = [labels_from_cols(partitions[n]) for n in nombres]
+                        k = len(nombres)
+                        M = np.eye(k, dtype=float)
+                        for i in range(k):
+                            for j in range(i+1, k):
+                                C = contingency_from_labels(Y[i], Y[j])
+                                M[i, j] = M[j, i] = ari_from_contingency(C)
+                        return nombres, M
+
+                    def plot_heatmap(nombres, M, titulo):
+                        fig, ax = plt.subplots(figsize=(min(16, 2+0.9*len(nombres)), min(16, 2+0.9*len(nombres))))
+                        im = ax.imshow(M, vmin=0, vmax=1, cmap="YlGnBu")
+                        for i in range(M.shape[0]):
+                            for j in range(M.shape[1]):
+                                ax.text(j, i, f"{M[i,j]:.3f}", ha="center", va="center", fontsize=8)
+                        ax.set_xticks(range(len(nombres))); ax.set_xticklabels(nombres, rotation=90)
+                        ax.set_yticks(range(len(nombres))); ax.set_yticklabels(nombres)
+                        ax.set_title(titulo)
+                        cbar = fig.colorbar(im, ax=ax)
+                        cbar.set_label("ARI")
+                        fig.tight_layout()
+                        st.pyplot(fig)
+
+                    # ---- Partición original + quitar 1 variable
+                    parts_1 = {"Original": cols_all}
+                    for c in cols_all:
+                        parts_1[f"Sin {c}"] = [x for x in cols_all if x != c]
+
+                    nombres1, M1 = ari_matrix(parts_1)
+                    plot_heatmap(nombres1, M1, "Similitud entre particiones (ARI) — quitar 1 variable")
+
+                    # ---- Partición original + quitar 2 variables
+                    parts_2 = {"Original": cols_all}
+                    for a, b in combinations(cols_all, 2):
+                        parts_2[f"Sin {a} y {b}"] = [x for x in cols_all if x not in (a, b)]
+
+                    nombres2, M2 = ari_matrix(parts_2)
+                    plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
+
+                    # (Opcional) botón de descarga para cada matriz
+                    st.download_button(
+                        "⬇️ Descargar ARI (quitar 1 var) CSV",
+                        data=pd.DataFrame(M1, index=nombres1, columns=nombres1).to_csv().encode("utf-8"),
+                        file_name="ari_quitar_1_variable.csv",
+                        mime="text/csv",
+                        key="dl_ari_1"
+                    )
+                    st.download_button(
+                        "⬇️ Descargar ARI (quitar 2 var) CSV",
+                        data=pd.DataFrame(M2, index=nombres2, columns=nombres2).to_csv().encode("utf-8"),
+                        file_name="ari_quitar_2_variables.csv",
+                        mime="text/csv",
+                        key="dl_ari_2"
+                    )
+
+
+                    
                     # ---------- Expander con gráficos opcionales ----------
                     with st.expander("Gráficos: Boxplot de tamaños y Heatmap del mejor reducto", expanded=False):
                         # Boxplot: Original vs top-K (mezcla de 4 y 3)
