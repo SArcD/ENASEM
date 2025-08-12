@@ -1021,14 +1021,13 @@ def _render_ind_outputs_from_state():
             """
     <div style="text-align: justify">
 
-    Usamos **solo** las ADL seleccionadas para la indiscernibilidad (las que eliges en la barra lateral).  
+    Usamos **solo** las ADL seleccionadas para la indiscernibilidad (las que se elijen en la barra lateral).  
     Antes de calcular el riesgo **excluimos** las filas que tengan valores faltantes (**NaN**) en cualquiera de esas ADL.
 
     **Interpretación de valores por ADL**
     - **2** → sin dificultad (estado óptimo).
     - **1** → con dificultad.
-    - **0** → no se considera “óptimo”; ver nota.
-
+    
     ### Regla de clasificación
     Contamos cuántas ADL valen **1** (“dificultad”) y verificamos si **todas** valen **2** (“sin dificultad”):
 
@@ -1038,8 +1037,6 @@ def _render_ind_outputs_from_state():
     | **1 o 2** valen **1** | **Riesgo leve** |
     | **Exactamente 3** valen **1** | **Riesgo moderado** |
     | **4 o más** valen **1** | **Riesgo severo** |
-
-    **Nota:** si no hay valores 1 pero **no** todas las ADL valen 2 (p. ej., aparece algún 0), se clasifica como **Riesgo leve**. Esto evita asumir “óptimo” cuando el registro no es inequívoco.
 
     </div>
             """,
@@ -1216,7 +1213,7 @@ else:
         labels_map = {f"{nombres[i]} — {tam} filas": i for i, tam in candidatos}
 
         sel_label = st.selectbox(
-            "Elige un subconjunto del pastel para visualizar y correlacionar",
+            "**Elige un subconjunto del pastel para visualizar y correlacionar**",
             options=list(labels_map.keys()),
             index=0,
             key="sel_subconjunto_pastel"
@@ -1307,6 +1304,27 @@ else:
 
         figc.tight_layout()
         st.pyplot(figc)
+
+        with st.expander("ℹ️ ¿Qué estoy viendo en la matriz de correlación?"):
+            st.markdown("""
+    Esta matriz muestra cómo **se relacionan entre sí** las respuestas de las distintas 
+    **Actividades de la Vida Diaria (ADL)** en el subconjunto seleccionado.
+
+    **Cómo leerla:**
+    - Cada fila y columna representa una ADL.
+    - El valor dentro de la celda indica el **coeficiente de correlación de Pearson** entre las dos ADL correspondientes.
+        - **Cercano a +1**: cuando una actividad es difícil para una persona, la otra también tiende a serlo.
+        - **Cercano a -1**: cuando una es difícil, la otra suele ser fácil (relación inversa).
+        - **Cercano a 0**: no hay una relación lineal clara.
+    - El color de la celda refleja la fuerza y dirección de la correlación:
+        - **Rojo/azul intenso** → correlación fuerte positiva/negativa.
+        - **Tonos claros o gris** → correlación débil o sin datos suficientes.
+    - Las celdas grises indican que **no había datos suficientes** para calcular la correlación.
+
+    **Importante:**  
+    Antes de construir la matriz se eliminan columnas con poca variación o con demasiados valores faltantes para asegurar que los coeficientes sean confiables.
+    """)
+
 
 
 # =========================
