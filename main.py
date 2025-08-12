@@ -832,13 +832,26 @@ def upper_approximation(R, X):
     return u_approx
 
 # --- DataFrame base: usa el más filtrado disponible ---
+#df_base_ind = st.session_state.get("df_comorb")
+#if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
+#    df_base_ind = st.session_state.get("df_filtrado")
+#if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
+#    df_base_ind = st.session_state.get("df_sexo")
+#if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
+#    df_base_ind = datos_seleccionados.copy()
+
 df_base_ind = st.session_state.get("df_comorb")
 if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
     df_base_ind = st.session_state.get("df_filtrado")
 if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
     df_base_ind = st.session_state.get("df_sexo")
 if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
-    df_base_ind = datos_seleccionados.copy()
+    df_base_ind = st.session_state.get("datos_seleccionados")  # <- en sesión
+if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
+    st.warning("No hay DataFrame base disponible aún.")
+    st.stop()  # o return si envuelves esta sección en una función
+
+
 
 # --- Asegurar columna de índice visible ---
 if isinstance(df_base_ind, pd.DataFrame):
@@ -904,7 +917,6 @@ with st.sidebar:
     # ✅ guarda el valor para re-render fuera del botón
     st.session_state["top_n_radar_value"] = int(top_n_radar)
     generar = st.button("Calcular indiscernibilidad")
-    st.stop()  # <-- evita que el resto corra
 
 # --- Cálculo ---
 if generar:
@@ -1781,6 +1793,8 @@ else:
 
         # ---------- entrenamiento SOLO con filas sin NaN en TODAS las ind_cols ----------
         df_pastel_eval = df_pastel_full.dropna(subset=ind_cols).copy()
+        st.session_state["df_pastel_eval"] = df_pastel_eval.copy()
+
         if df_pastel_eval.empty:
             st.warning("No hay filas sin NaN en TODAS las columnas para entrenar.")
             st.stop()
@@ -1880,22 +1894,45 @@ from sklearn.preprocessing import LabelEncoder
 # Usa el mismo dataset del pastel con la etiqueta 'nivel_riesgo'
 # (si en tu código se llama distinto, cambia df_pastel_eval por el correcto,
 # por ejemplo: st.session_state["df_eval_riesgo"])
-df_fb = df_pastel_eval.copy()
 
-Xfb = df_fb[st.session_state["ind_cols"]].apply(pd.to_numeric, errors="coerce")
-yfb_raw = df_fb["nivel_riesgo"].astype(str)
+#df_fb = df_pastel_eval.copy()
 
-le_fb = LabelEncoder()
-yfb = le_fb.fit_transform(yfb_raw.values)
+#Xfb = df_fb[st.session_state["ind_cols"]].apply(pd.to_numeric, errors="coerce")
+#yfb_raw = df_fb["nivel_riesgo"].astype(str)
 
-hgb = HistGradientBoostingClassifier(max_iter=300, learning_rate=0.1, random_state=42)
-hgb.fit(Xfb, yfb)
+#le_fb = LabelEncoder()
+#yfb = le_fb.fit_transform(yfb_raw.values)
 
-st.session_state["fb_hgb_model"] = hgb
-st.session_state["fb_hgb_cols"]  = st.session_state["ind_cols"]
-st.session_state["fb_hgb_le"]    = le_fb
+#hgb = HistGradientBoostingClassifier(max_iter=300, learning_rate=0.1, random_state=42)
+#hgb.fit(Xfb, yfb)
 
-st.info("Modelo fallback (HGB) entrenado.")
+#st.session_state["fb_hgb_model"] = hgb
+#st.session_state["fb_hgb_cols"]  = st.session_state["ind_cols"]
+#st.session_state["fb_hgb_le"]    = le_fb
+
+#st.info("Modelo fallback (HGB) entrenado.")
+# === Fallback que acepta NaN en predicción: HistGradientBoosting ===
+ss = st.session_state
+
+df_fb = ss.get("df_pastel_eval") or ss.get("df_eval_riesgo")
+if df_fb is None or len(df_fb) == 0:
+    st.info("Primero calcula indiscernibilidad y entrena (o muestra el pastel) para habilitar el fallback.")
+else:
+    Xfb = df_fb[ss["ind_cols"]].apply(pd.to_numeric, errors="coerce")
+    yfb_raw = df_fb["nivel_riesgo"].astype(str) if "nivel_riesgo" in df_fb.columns else None
+    if yfb_raw is None:
+        st.info("No encuentro la columna 'nivel_riesgo' para el fallback.")
+    else:
+        from sklearn.ensemble import HistGradientBoostingClassifier
+        from sklearn.preprocessing import LabelEncoder
+        le_fb = LabelEncoder(); yfb = le_fb.fit_transform(yfb_raw.values)
+        hgb = HistGradientBoostingClassifier(max_iter=300, learning_rate=0.1, random_state=42)
+        hgb.fit(Xfb, yfb)
+        ss["fb_hgb_model"] = hgb
+        ss["fb_hgb_cols"]  = ss["ind_cols"]
+        ss["fb_hgb_le"]    = le_fb
+        st.info("Modelo fallback (HGB) entrenado.")
+
 
 
 
