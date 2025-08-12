@@ -1505,22 +1505,22 @@ else:
                     best4 = df_closeness[df_closeness["#vars"] == 4].head(1)
                     best3 = df_closeness[df_closeness["#vars"] == 3].head(1)
 
-                    if not best4.empty:
-                        r = best4.iloc[0]
-                        st.success(
-                            f"🟩 Mejor reducto de 4 variables: **{r['Reducto']}** — "
-                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
-                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
-                            f"Pres. distintos={r['Preservación distintos (%)']}%"
-                        )
-                    if not best3.empty:
-                        r = best3.iloc[0]
-                        st.success(
-                            f"🟨 Mejor reducto de 3 variables: **{r['Reducto']}** — "
-                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
-                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
-                            f"Pres. distintos={r['Preservación distintos (%)']}%"
-                        )
+#                    if not best4.empty:
+#                        r = best4.iloc[0]
+#                        st.success(
+#                            f"🟩 Mejor reducto de 4 variables: **{r['Reducto']}** — "
+#                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
+#                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
+#                            f"Pres. distintos={r['Preservación distintos (%)']}%"
+#                        )
+#                    if not best3.empty:
+#                       r = best3.iloc[0]
+#                        st.success(
+#                            f"🟨 Mejor reducto de 3 variables: **{r['Reducto']}** — "
+#                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
+#                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
+#                            f"Pres. distintos={r['Preservación distintos (%)']}%"
+#                        )
 
 
 
@@ -1710,6 +1710,25 @@ else:
 > Si tu prioridad es **no perder resolución**, prefiere reductos que **no fusionen** (evitar columnas con contribuciones de muchas filas originales).  
 > Si tu prioridad es **simplificar**, tolera algo de fusión pero evita **excesiva fragmentación** (muchas celdas pequeñas en una misma fila).
     """)
+
+
+                    if not best4.empty:
+                        r = best4.iloc[0]
+                        st.success(
+                            f"🟩 Mejor reducto de 4 variables: **{r['Reducto']}** — "
+                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
+                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
+                            f"Pres. distintos={r['Preservación distintos (%)']}%"
+                        )
+                    if not best3.empty:
+                        r = best3.iloc[0]
+                        st.success(
+                            f"🟨 Mejor reducto de 3 variables: **{r['Reducto']}** — "
+                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
+                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
+                            f"Pres. distintos={r['Preservación distintos (%)']}%"
+                        )
+                    
                     with st.expander("ℹ️ ¿Qué hace esta sección? (Resumen rápido)", expanded=False):
                         st.markdown("""
                     - **Objetivo:** buscar combinaciones de **4** y **3** ADL (reductos) que repliquen lo mejor posible la **partición original** hecha con todas las ADL elegidas.
