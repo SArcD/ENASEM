@@ -1571,6 +1571,34 @@ else:
                                 for j in range(M.shape[1]):
                                     ax_hm.text(j, i, str(M[i, j]), ha="center", va="center", fontsize=8)
                         st.pyplot(fig_hm)
+                        st.markdown("""
+**Boxplot de tamaños de bloque**
+- **Qué muestra:** la distribución del **tamaño de los bloques** (nº de filas por bloque) para la partición **Original** y para cada **reducto** seleccionado.
+- **Cómo leerlo:**
+  - **Línea central** = mediana; **caja** = Q1–Q3 (50% central); **bigotes** = rango hasta 1.5×IQR; **puntos** = atípicos.
+  - **Mediana más baja** → bloques más pequeños (más **fragmentación**).
+  - **Mediana más alta** → bloques más grandes (más **fusión** de clases).
+  - **Caja ancha** → mucha **heterogeneidad** en tamaños de bloque.
+- **Interpretación práctica:** si las cajas del reducto se parecen a la original (mediana y rango), el reducto **conserva bien la granularidad** de la partición.
+
+**Heatmap de correspondencia**
+- **Qué muestra:** filas = bloques **Originales**, columnas = bloques del **Reducto**; cada celda = **cuántas filas** comparten ambos bloques.
+- **Señales clave:**
+  - **Manchas intensas en diagonal** → mapeo 1-a-1 (el reducto replica bien esos bloques).
+  - **Una fila original repartida en varias columnas** → el reducto **divide** ese bloque (fragmentación).
+  - **Una columna del reducto que recibe de muchas filas** → el reducto **fusiona** varios bloques originales.
+- **Tips de lectura:**
+  - Etiquetas: `Orig_i` (original) vs `Red_j` (reducto); están ordenados por tamaño de bloque.
+  - El heatmap usa **conteos** (no proporciones); conviene mirar también el **ARI/NMI** arriba para tener una métrica global.
+
+**Checklist para elegir reducto**
+- **ARI** y **NMI** altos ✅.
+- Boxplot con **mediana y rango** similares a la original ✅.
+- Heatmap con **poca dispersión** fuera de la diagonal (pocas fusiones/divisiones) ✅.
+
+> Si tu prioridad es **no perder resolución**, prefiere reductos que **no fusionen** (evitar columnas con contribuciones de muchas filas originales).  
+> Si tu prioridad es **simplificar**, tolera algo de fusión pero evita **excesiva fragmentación** (muchas celdas pequeñas en una misma fila).
+    """)
                     with st.expander("ℹ️ ¿Qué hace esta sección? (Resumen rápido)", expanded=False):
                         st.markdown("""
                     - **Objetivo:** buscar combinaciones de **4** y **3** ADL (reductos) que repliquen lo mejor posible la **partición original** hecha con todas las ADL elegidas.
