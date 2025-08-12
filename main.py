@@ -1571,6 +1571,24 @@ else:
                                 for j in range(M.shape[1]):
                                     ax_hm.text(j, i, str(M[i, j]), ha="center", va="center", fontsize=8)
                         st.pyplot(fig_hm)
+                    with st.expander("ℹ️ ¿Qué hace esta sección? (Resumen rápido)", expanded=False):
+                        st.markdown("""
+                    - **Objetivo:** buscar combinaciones de **4** y **3** ADL (reductos) que repliquen lo mejor posible la **partición original** hecha con todas las ADL elegidas.
+                    - **Dónde se evalúa:** solo en el **subconjunto del pastel** (clases con tamaño ≥ umbral) y **sin NaN** en esas ADL.
+                    - **Cómo se compara:** cada reducto genera su partición y se compara contra la original con estas métricas:
+                      - **ARI** (Adjusted Rand Index): 1.0 = particiones idénticas; mayor es mejor.
+                      - **NMI** (Normalized Mutual Information): 1.0 = información equivalente; mayor es mejor.
+                      - **Pres. iguales / distintos**: porcentaje de pares de filas que el reducto mantiene juntos / separados igual que la partición original.
+                        - **Qué se muestra:**
+                      - Una **tabla** ordenada por desempeño (ARI, preservaciones).
+                      - Los **mejores** reductos de **4** y **3** variables.
+                      - (Opcional) **Boxplot** de tamaños de bloque y **heatmap** de correspondencia.
+                    - **Notas:**
+                      - Solo se consideran filas **sin NaN** en las ADL evaluadas.
+                      - Si hay demasiadas combinaciones, se limita el número para evitar tiempos largos.
+                      - Puedes usar las columnas del mejor reducto para entrenar modelos posteriores.
+                        """)
+
 
 
 
