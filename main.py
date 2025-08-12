@@ -1747,12 +1747,6 @@ else:
                       - Puedes usar las columnas del mejor reducto para entrenar modelos posteriores.
                         """)
 
-
-
-
-
-
-
 # =========================
 # Reductos + RF (rápido) + Predicción en todo el pastel + barras comparativas
 # =========================
@@ -1866,10 +1860,6 @@ else:
                 if ari > best3_score:
                     best3_score, best3 = ari, list(comb)
 
-        #st.markdown(f"**Mejor reducto (4 vars)**: {best4} — ARI={best4_score:.3f}")
-#        if best3 is not None:
-#            st.markdown(f"**Mejor reducto (3 vars)**: {best3} — ARI={best3_score:.3f}")
-
         # ---------- Entrenar RF(s) (rápido) ----------
         # Usamos class_weight en lugar de SMOTE para acelerar. n_estimators ajustado.
         def entrenar_rf(df_train, feat_cols, target_col="nivel_riesgo"):
@@ -1904,6 +1894,13 @@ else:
             ss["rf_best3_imp"] = imp3
 
         st.success("Modelos RF entrenados (best4 y, si procede, best3).")
+        with st.expander("🌲 ¿Qué hace el Random Forest aquí?", expanded=False):
+            st.markdown("""
+        - Entrenamos **RF** sobre `nivel_riesgo` generado por la **regla**, usando el mejor reducto.
+        - **Imputación**: medianas (evita perder filas).
+        - **class_weight='balanced_subsample'** para clases desbalanceadas.
+        - Resultado: modelos **rápidos** que generalizan fuera del conjunto sin NaN.
+        """)
 
 
 ####FALLBACK
@@ -1911,87 +1908,6 @@ else:
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder
 
-# Usa el mismo dataset del pastel con la etiqueta 'nivel_riesgo'
-# (si en tu código se llama distinto, cambia df_pastel_eval por el correcto,
-# por ejemplo: st.session_state["df_eval_riesgo"])
-
-#df_fb = df_pastel_eval.copy()
-
-#Xfb = df_fb[st.session_state["ind_cols"]].apply(pd.to_numeric, errors="coerce")
-#yfb_raw = df_fb["nivel_riesgo"].astype(str)
-
-#le_fb = LabelEncoder()
-#yfb = le_fb.fit_transform(yfb_raw.values)
-
-#hgb = HistGradientBoostingClassifier(max_iter=300, learning_rate=0.1, random_state=42)
-#hgb.fit(Xfb, yfb)
-
-#st.session_state["fb_hgb_model"] = hgb
-#st.session_state["fb_hgb_cols"]  = st.session_state["ind_cols"]
-#st.session_state["fb_hgb_le"]    = le_fb
-
-#st.info("Modelo fallback (HGB) entrenado.")
-# === Fallback que acepta NaN en predicción: HistGradientBoosting ===
-#ss = st.session_state
-
-#df_fb = ss.get("df_pastel_eval") or ss.get("df_eval_riesgo")
-#if df_fb is None or len(df_fb) == 0:
-#    st.info("Primero calcula indiscernibilidad y entrena (o muestra el pastel) para habilitar el fallback.")
-#else:
-#    Xfb = df_fb[ss["ind_cols"]].apply(pd.to_numeric, errors="coerce")
-#    yfb_raw = df_fb["nivel_riesgo"].astype(str) if "nivel_riesgo" in df_fb.columns else None
-#    if yfb_raw is None:
-#        st.info("No encuentro la columna 'nivel_riesgo' para el fallback.")
-#    else:
-#        from sklearn.ensemble import HistGradientBoostingClassifier
-#        from sklearn.preprocessing import LabelEncoder
-#        le_fb = LabelEncoder(); yfb = le_fb.fit_transform(yfb_raw.values)
-#        hgb = HistGradientBoostingClassifier(max_iter=300, learning_rate=0.1, random_state=42)
-#        hgb.fit(Xfb, yfb)
-#        ss["fb_hgb_model"] = hgb
-#        ss["fb_hgb_cols"]  = ss["ind_cols"]
-#        ss["fb_hgb_le"]    = le_fb
-#        st.info("Modelo fallback (HGB) entrenado.")
-
-
-## === Fallback que acepta NaN en predicción: HistGradientBoosting ===
-#ss = st.session_state
-
-## Elegir explícitamente el primer DF válido/no vacío
-#df_fb = ss.get("df_pastel_eval")
-#if not isinstance(df_fb, pd.DataFrame) or df_fb.empty:
-#    df_fb = ss.get("df_eval_riesgo")
-
-#if not isinstance(df_fb, pd.DataFrame) or df_fb.empty:
-#    st.info("Primero calcula indiscernibilidad y entrena (o muestra el pastel) para habilitar el fallback.")
-#else:
-#    ind_cols = ss.get("ind_cols", [])
-#    if not ind_cols:
-#        st.info("No encuentro 'ind_cols' para el fallback.")
-#    elif "nivel_riesgo" not in df_fb.columns:
-#        st.info("No encuentro la columna 'nivel_riesgo' para el fallback.")
-#    else:
-#        # Verifica que las columnas existan en df_fb
-#        faltan = [c for c in ind_cols if c not in df_fb.columns]
-#        if faltan:
-#            st.info(f"Faltan columnas en el DF para el fallback: {faltan}")
-#        else:
-#            from sklearn.ensemble import HistGradientBoostingClassifier
-#            from sklearn.preprocessing import LabelEncoder
-#            Xfb = df_fb[ind_cols].apply(pd.to_numeric, errors="coerce")
-#            yfb_raw = df_fb["nivel_riesgo"].astype(str)
-
-#            le_fb = LabelEncoder()
-#            yfb = le_fb.fit_transform(yfb_raw.values)
-
-#            hgb = HistGradientBoostingClassifier(max_iter=300, learning_rate=0.1, random_state=42)
-#            hgb.fit(Xfb, yfb)
-
-#            ss["fb_hgb_model"] = hgb
-#            ss["fb_hgb_cols"]  = ind_cols
-#            ss["fb_hgb_le"]    = le_fb
-#            st.info("Modelo fallback (HGB) entrenado.")
-# === Fallback que acepta NaN en predicción: HistGradientBoosting ===
 ss = st.session_state
 
 # 1) Elegir DF preferido: df_eval_riesgo -> df_pastel_eval
@@ -2053,6 +1969,12 @@ else:
                 ss["fb_hgb_le"]    = le_fb
                 st.info("Modelo fallback (HGB) entrenado.")
 
+with st.expander("🛟 Fallback HGB: ¿cuándo se usa y por qué?", expanded=False):
+    st.markdown("""
+- Si RF no puede predecir (faltan demasiadas ADL), usamos **HistGradientBoosting**.
+- Requiere tener **`nivel_riesgo`** en el DF de entrenamiento (lo tomamos de `df_eval_riesgo` o lo **reconstruimos** con la regla).
+- Ventaja: tolera **NaN** durante **predicción** a través del pipeline (cuando imputamos/aceptamos menos observadas).
+""")
 
 
 
