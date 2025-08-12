@@ -1016,7 +1016,7 @@ def _render_ind_outputs_from_state():
         )
         ss["df_eval_riesgo"] = df_eval_riesgo.copy()
 
-    with st.expander("**¿Cómo se define el nivel de riesgo?**", expanded=False):
+    with st.expander("**ℹ️¿Cómo se define el nivel de riesgo?**", expanded=False):
         st.markdown(
             """
     <div style="text-align: justify">
@@ -1305,7 +1305,7 @@ else:
         figc.tight_layout()
         st.pyplot(figc)
 
-        with st.expander("ℹ️ ¿Qué estoy viendo en la matriz de correlación?"):
+        with st.expander("**ℹ️ ¿Qué estoy viendo en la matriz de correlación?**"):
             st.markdown("""
     Esta matriz muestra cómo **se relacionan entre sí** las respuestas de las distintas 
     **Actividades de la Vida Diaria (ADL)** en el subconjunto seleccionado.
