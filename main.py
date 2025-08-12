@@ -777,8 +777,6 @@ if st.session_state["df_comorb"] is not None:
                     st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
 
 
-st.markdown("""En la siguiente sección se utiliza la teoría de conjuntos rugosos para calcular las relaciones de indicernibilidad (subconjuntos de pacientes que contestaron de forma idéntica a una cierta lista de preguntas de interés). Una vez formadas, las relaciones de indiscernibiliad permiten comparar los perfiles de respuesta de cada subconjuntoy, con esto, darnos una idea de cual es el perfil de dificultad en actividades de la vida diaría en la muestra de participantes""")
-
 st.markdown("""
 ### Análisis por teoría de Rough Sets para la búsqueda de similitud entre los pacientes
 
@@ -886,21 +884,21 @@ st.session_state["ind_adl_cols"]   = cols_norm             # Nombres normalizado
 
 # --- Controles en barra lateral ---
 with st.sidebar:
-    st.subheader("Indiscernibilidad")
+    st.subheader("Relaciones de Indiscernibilidad")
     adl_opts = st.session_state.get("ind_adl_cols", [])
     sugeridas = [c for c in ["C37","H11","H15A","H5","H6"] if c in adl_opts]
     cols_attrs = st.multiselect(
-        "Atributos (ADL) para agrupar",
+        "Atributos para agrupar (solo actividades de la vida diaria).",
         options=adl_opts,
         default=sugeridas or adl_opts[:5],
-        help="Se forman clases con la combinación exacta de estas ADL."
+        help="Se forman clases con la combinación exacta de estas actividades."
     )
     min_size_for_pie = st.number_input(
-        "Tamaño mínimo de clase para incluir en el pastel",
+        "Tamaño mínimo integrantes para que el subconjunto sea incluido en el gráfico de pastel",
         min_value=1, max_value=100000, value=30, step=1
     )
     top_n_radar = st.number_input(
-        "N conjuntos más numerosos para radar",
+        "Número máximo de conjuntos para mostrar",
         min_value=1, max_value=100, value=15, step=1
     )
     # ✅ guarda el valor para re-render fuera del botón
@@ -1007,7 +1005,7 @@ def _render_ind_outputs_from_state():
         )
         df_eval_riesgo = df_eval.copy()
         df_eval_riesgo["nivel_riesgo"] = nivel
-        st.subheader("Filas usadas en el pastel (sin NaN) + nivel_riesgo")
+        st.subheader("Filas que se incluyen dentro de las **relaciones de indicernibilidad** (puede ajustarlo al definir el tamaño mínimo de participantes que debe tener una clase para incluirla y el número de conjuntos a considerar). **Solo se muestran las respuestas a las preguntas de las actividades de la vida diaría**. La última columna corresponde al nivel de riesgo de sarcopenia.")
         st.dataframe(df_eval_riesgo.reset_index(), use_container_width=True)
         st.download_button(
             "Descargar filas del pastel con nivel_riesgo (CSV)",
