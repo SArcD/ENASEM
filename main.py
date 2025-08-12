@@ -1016,11 +1016,10 @@ def _render_ind_outputs_from_state():
         )
         ss["df_eval_riesgo"] = df_eval_riesgo.copy()
 
+    with st.expander("ℹ️ ¿Cómo se define el nivel de riesgo?", expanded=False):
         st.markdown(
-        """
+            """
     <div style="text-align: justify">
-
-    # ¿Cómo se define el nivel de riesgo?
 
     Usamos **solo** las ADL seleccionadas para la indiscernibilidad (las que eliges en la barra lateral).  
     Antes de calcular el riesgo **excluimos** las filas que tengan valores faltantes (**NaN**) en cualquiera de esas ADL.
@@ -1030,7 +1029,7 @@ def _render_ind_outputs_from_state():
     - **1** → con dificultad.
     - **0** → no se considera “óptimo”; ver nota.
 
-    ## Regla de clasificación
+    ### Regla de clasificación
     Contamos cuántas ADL valen **1** (“dificultad”) y verificamos si **todas** valen **2** (“sin dificultad”):
 
     | Condición en las ADL seleccionadas | Nivel de riesgo |
@@ -1040,12 +1039,12 @@ def _render_ind_outputs_from_state():
     | **Exactamente 3** valen **1** | **Riesgo moderado** |
     | **4 o más** valen **1** | **Riesgo severo** |
 
-    **Nota:** si no hay valores 1 pero **no** todas las ADL valen 2 (p. ej., aparece algún 0), se clasifica como **Riesgo leve**. Esto evita asumir “óptimo” cuando el registro no es     inequívoco.
+    **Nota:** si no hay valores 1 pero **no** todas las ADL valen 2 (p. ej., aparece algún 0), se clasifica como **Riesgo leve**. Esto evita asumir “óptimo” cuando el registro no es inequívoco.
 
     </div>
-        """,
-        unsafe_allow_html=True
-    )
+            """,
+            unsafe_allow_html=True
+        )
 
 
 
