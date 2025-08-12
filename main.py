@@ -904,6 +904,7 @@ with st.sidebar:
     # ✅ guarda el valor para re-render fuera del botón
     st.session_state["top_n_radar_value"] = int(top_n_radar)
     generar = st.button("Calcular indiscernibilidad")
+    st.stop()  # <-- evita que el resto corra
 
 # --- Cálculo ---
 if generar:
