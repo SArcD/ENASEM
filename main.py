@@ -1551,7 +1551,7 @@ else:
                         parts_1[f"Sin {c}"] = [x for x in cols_all if x != c]
 
                     nombres1, M1 = ari_matrix(parts_1)
-                    plot_heatmap(nombres1, M1, "Similitud entre particiones (ARI) — quitar 1 variable")
+                    #plot_heatmap(nombres1, M1, "Similitud entre particiones (ARI) — quitar 1 variable")
 
                     # ---- Partición original + quitar 2 variables
                     parts_2 = {"Original": cols_all}
@@ -1559,7 +1559,10 @@ else:
                         parts_2[f"Sin {a} y {b}"] = [x for x in cols_all if x not in (a, b)]
 
                     nombres2, M2 = ari_matrix(parts_2)
-                    plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
+                    #plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
+                    with st.expander("Similitud entre particiones"):
+                        plot_heatmap(nombres1, M1, "Similitud entre particiones (ARI) — quitar 1 variable")
+                        plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
 
                     # (Opcional) botón de descarga para cada matriz
                     st.download_button(
