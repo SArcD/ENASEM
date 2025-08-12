@@ -777,6 +777,23 @@ if st.session_state["df_comorb"] is not None:
                     st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
 
 
+st.markdown("""En la siguiente sección se utiliza la teoría de conjuntos rugosos para calcular las relaciones de indicernibilidad (subconjuntos de pacientes que contestaron de forma idéntica a una cierta lista de preguntas de interés). Una vez formadas, las relaciones de indiscernibiliad permiten comparar los perfiles de respuesta de cada subconjuntoy, con esto, darnos una idea de cual es el perfil de dificultad en actividades de la vida diaría en la muestra de participantes""")
+
+st.markdown("""
+### Análisis por teoría de Rough Sets para la búsqueda de similitud entre los pacientes
+
+Usaremos la **teoría de conjuntos rugosos** para encontrar **grupos de pacientes** que respondieron exactamente igual 
+a un conjunto específico de preguntas.
+
+A estos grupos se les llama **relaciones de indiscernibilidad**, y nos permiten:
+
+- Comparar cómo responden distintos grupos de pacientes.
+- Detectar patrones comunes en sus respuestas.
+- Identificar el **nivel de dificultad en actividades de la vida diaria** dentro de la muestra.
+
+En pocas palabras: aquí agrupamos respuestas similares para entender mejor los perfiles y retos que enfrentan los participantes.
+""")
+
 
 # HAsta aqui el filtrado
 # =========================
