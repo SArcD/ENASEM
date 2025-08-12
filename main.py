@@ -1019,31 +1019,31 @@ def _render_ind_outputs_from_state():
 def mostrar_explicacion_riesgo():
     st.markdown(
         """
-<div style="text-align: justify">
+    <div style="text-align: justify">
 
-# ¿Cómo se define el nivel de riesgo?
+    # ¿Cómo se define el nivel de riesgo?
 
-Usamos **solo** las variables seleccionadas para la indiscernibilidad (las ADL que eliges en la barra lateral).  
-Antes de calcular el riesgo **excluimos** las filas que tengan valores faltantes en cualquiera de esas variables.
+    Usamos **solo** las variables seleccionadas para la indiscernibilidad (las ADL que eliges en la barra lateral).  
+    Antes de calcular el riesgo **excluimos** las filas que tengan valores faltantes en cualquiera de esas variables.
 
-- **Interpretación de valores en cada ADL:**
-  - **2** → sin dificultad (estado “óptimo”).
-  - **1** → presenta dificultad.
-  - (Si aparece **0**, no cuenta como “óptimo” ni como “dificultad” para el conteo; ver nota).
+    - **Interpretación de valores en cada ADL:**
+      - **2** → sin dificultad (estado “óptimo”).
+      - **1** → presenta dificultad.
+      - (Si aparece **0**, no cuenta como “óptimo” ni como “dificultad” para el conteo; ver nota).
 
-## Regla de clasificación
-Contamos cuántas de las ADL seleccionadas valen **1** (“dificultad”) y verificamos si **todas** valen **2** (“sin dificultad”):
+    ## Regla de clasificación
+    Contamos cuántas de las ADL seleccionadas valen **1** (“dificultad”) y verificamos si **todas** valen **2** (“sin dificultad”):
 
-| Condición en las ADL seleccionadas | Nivel de riesgo |
-|---|---|
-| **Todas** valen **2** | **Riesgo nulo** |
-| **1 o 2** valen **1** | **Riesgo leve** |
-| **Exactamente 3** valen **1** | **Riesgo moderado** |
-| **4 o más** valen **1** | **Riesgo severo** |
+    | Condición en las ADL seleccionadas | Nivel de riesgo |
+    |---|---|
+    | **Todas** valen **2** | **Riesgo nulo** |
+    | **1 o 2** valen **1** | **Riesgo leve** |
+    | **Exactamente 3** valen **1** | **Riesgo moderado** |
+    | **4 o más** valen **1** | **Riesgo severo** |
 
-**Nota:** Si no hay valores 1 pero **no** todas las ADL valen 2 (por ejemplo, aparece algún 0), por política conservadora el caso se clasifica como **Riesgo leve**. Esto evita sobreestimar el estado “óptimo” cuando los registros no son inequívocos.
+    **Nota:** Si no hay valores 1 pero **no** todas las ADL valen 2 (por ejemplo, aparece algún 0), por política conservadora el caso se clasifica como **Riesgo leve**. Esto evita sobreestimar el estado “óptimo” cuando los registros no son inequívocos.
 
-</div>
+    </div>
         """,
         unsafe_allow_html=True
     )
