@@ -1561,6 +1561,9 @@ else:
                     nombres2, M2 = ari_matrix(parts_2)
                     #plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
                     with st.expander("**Similitud entre particiones creadas por los reductos**"):
+                        
+                        plot_heatmap(nombres1, M1, "Similitud entre particiones (ARI) — quitar 1 variable")
+                        plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
                         st.markdown("""
                         ### Interpretación de la matriz de coincidencias (heatmap)
 
@@ -1584,8 +1587,7 @@ else:
                         - **Más claro** → menos similitud y mayor impacto de la(s) variable(s) eliminada(s) en la formación de los subconjuntos.
                         """)
 
-                        plot_heatmap(nombres1, M1, "Similitud entre particiones (ARI) — quitar 1 variable")
-                        plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
+
 
                     # (Opcional) botón de descarga para cada matriz
                     #st.download_button(
@@ -1625,6 +1627,15 @@ else:
                         ax_box.set_title("Distribución de tamaños de bloques — Original vs. mejores reductos")
                         ax_box.grid(axis='y', linestyle='--', alpha=0.4)
                         st.pyplot(fig_box)
+                        st.markdown("""
+**Boxplot de tamaños de bloque**
+- **Qué muestra:** la distribución del **tamaño de los bloques** (nº de filas por bloque) para la partición **Original** y para cada **reducto** seleccionado.
+- **Cómo leerlo:**
+  - **Línea central** = mediana; **caja** = Q1–Q3 (50% central); **bigotes** = rango hasta 1.5×IQR; **puntos** = atípicos.
+  - **Mediana más baja** → bloques más pequeños (más **fragmentación**).
+  - **Mediana más alta** → bloques más grandes (más **fusión** de clases).
+  - **Caja ancha** → mucha **heterogeneidad** en tamaños de bloque.
+- **Interpretación práctica:** si las cajas del reducto se parecen a la original (mediana y rango), el reducto **conserva bien la granularidad** de la partición.""")
 
                         # Heatmap del mejor global (máximo ARI)
                         best_name = df_closeness.iloc[0]["Reducto"]
@@ -1668,15 +1679,6 @@ else:
                                     ax_hm.text(j, i, str(M[i, j]), ha="center", va="center", fontsize=8)
                         st.pyplot(fig_hm)
                         st.markdown("""
-**Boxplot de tamaños de bloque**
-- **Qué muestra:** la distribución del **tamaño de los bloques** (nº de filas por bloque) para la partición **Original** y para cada **reducto** seleccionado.
-- **Cómo leerlo:**
-  - **Línea central** = mediana; **caja** = Q1–Q3 (50% central); **bigotes** = rango hasta 1.5×IQR; **puntos** = atípicos.
-  - **Mediana más baja** → bloques más pequeños (más **fragmentación**).
-  - **Mediana más alta** → bloques más grandes (más **fusión** de clases).
-  - **Caja ancha** → mucha **heterogeneidad** en tamaños de bloque.
-- **Interpretación práctica:** si las cajas del reducto se parecen a la original (mediana y rango), el reducto **conserva bien la granularidad** de la partición.
-
 **Heatmap de correspondencia**
 - **Qué muestra:** filas = bloques **Originales**, columnas = bloques del **Reducto**; cada celda = **cuántas filas** comparten ambos bloques.
 - **Señales clave:**
