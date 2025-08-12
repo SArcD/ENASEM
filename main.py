@@ -1560,30 +1560,53 @@ else:
 
                     nombres2, M2 = ari_matrix(parts_2)
                     #plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
-                    with st.expander("Similitud entre particiones"):
+                    with st.expander("**Similitud entre particiones creadas por los reductos**"):
+                        st.markdown("""
+                        ### Interpretación de la matriz de coincidencias (heatmap)
+
+                        Esta matriz muestra el **índice de similitud** (por ejemplo, *Adjusted Rand Index*) entre las agrupaciones generadas:
+
+                        1. **Diagonal principal** (valor = 1.00):  
+                           Coincidencia perfecta de cada partición consigo misma. Es la línea base.
+
+                        2. **Cruces con la columna/fila "Original"**:  
+                           Comparan cada agrupación reducida (sin una o más variables) contra la agrupación generada con **todas las variables**.  
+                           - Valores **altos** (cercanos a 1) → la variable eliminada no cambia mucho las agrupaciones.  
+                           - Valores **bajos** → esa variable aportaba información importante para diferenciar a los participantes.
+
+                        3. **Cruces entre reductos** (no involucrando el "Original"):  
+                           Comparan dos particiones reducidas entre sí.  
+                           - Valores **altos** → quitar esas variables produce agrupaciones muy similares, indicando posible **redundancia**.  
+                           - Valores **medios o bajos** → las variables influyen de forma diferente y generan cambios notables en la estructura de los grupos.
+
+                        Sobre los tonos de color:  
+                        - **Más oscuro** → más similitud entre agrupaciones.  
+                        - **Más claro** → menos similitud y mayor impacto de la(s) variable(s) eliminada(s) en la formación de los subconjuntos.
+                        """)
+
                         plot_heatmap(nombres1, M1, "Similitud entre particiones (ARI) — quitar 1 variable")
                         plot_heatmap(nombres2, M2, "Similitud entre particiones (ARI) — quitar 2 variables")
 
                     # (Opcional) botón de descarga para cada matriz
-                    st.download_button(
-                        "⬇️ Descargar ARI (quitar 1 var) CSV",
-                        data=pd.DataFrame(M1, index=nombres1, columns=nombres1).to_csv().encode("utf-8"),
-                        file_name="ari_quitar_1_variable.csv",
-                        mime="text/csv",
-                        key="dl_ari_1"
-                    )
-                    st.download_button(
-                        "⬇️ Descargar ARI (quitar 2 var) CSV",
-                        data=pd.DataFrame(M2, index=nombres2, columns=nombres2).to_csv().encode("utf-8"),
-                        file_name="ari_quitar_2_variables.csv",
-                        mime="text/csv",
-                        key="dl_ari_2"
-                    )
+                    #st.download_button(
+                    #    "⬇️ Descargar ARI (quitar 1 var) CSV",
+                    #    data=pd.DataFrame(M1, index=nombres1, columns=nombres1).to_csv().encode("utf-8"),
+                    #    file_name="ari_quitar_1_variable.csv",
+                    #    mime="text/csv",
+                    #    key="dl_ari_1"
+                    #)
+                    #st.download_button(
+                    #    "⬇️ Descargar ARI (quitar 2 var) CSV",
+                    #    data=pd.DataFrame(M2, index=nombres2, columns=nombres2).to_csv().encode("utf-8"),
+                    #    file_name="ari_quitar_2_variables.csv",
+                    #    mime="text/csv",
+                    #    key="dl_ari_2"
+                    #)
 
 
                     
                     # ---------- Expander con gráficos opcionales ----------
-                    with st.expander("Gráficos: Boxplot de tamaños y Heatmap del mejor reducto", expanded=False):
+                    #with st.expander("Gráficos: Boxplot de tamaños y Heatmap del mejor reducto", expanded=False):
                         # Boxplot: Original vs top-K (mezcla de 4 y 3)
                         K = min(10, len(df_closeness))
                         top_names = ["Original"] + df_closeness.loc[:K-1, "Reducto"].tolist()
