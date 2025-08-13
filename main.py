@@ -1034,17 +1034,17 @@ def _render_ind_outputs_from_state():
             """
     <div style="text-align: justify">
 
-    Usamos **solo** las ADL seleccionadas para la indiscernibilidad (las que se elijen en la barra lateral).  
-    Antes de calcular el riesgo **excluimos** las filas que tengan valores faltantes (**NaN**) en cualquiera de esas ADL.
+    Usamos **solo las Actividades de la vida diaria (AVD) seleccionadas** para la indiscernibilidad (las que se elijen en la barra lateral).  
+    Antes de calcular el riesgo **excluimos** las filas que tengan valores faltantes (**NaN**) en cualquiera de esas AVD.
 
-    **Interpretación de valores por ADL**
+    **Interpretación de valores por AVD**
     - **2** → sin dificultad (estado óptimo).
     - **1** → con dificultad.
     
     ### Regla de clasificación
-    Contamos cuántas ADL valen **1** (“dificultad”) y verificamos si **todas** valen **2** (“sin dificultad”):
+    Contamos cuántas AVD valen **1** (“dificultad”) y verificamos si **todas** valen **2** (“sin dificultad”):
 
-    | Condición en las ADL seleccionadas | Nivel de riesgo |
+    | Condición en las AVD seleccionadas | Nivel de riesgo |
     |---|---|
     | **Todas** valen **2** | **Riesgo nulo** |
     | **1 o 2** valen **1** | **Riesgo leve** |
@@ -1200,8 +1200,8 @@ def _render_ind_outputs_from_state():
 #        st.pyplot(fig_comp)
 
     # --- Gráfico compuesto DOBLE: (A) Top-K + Otros  y  (B) Desglose de "Otros" ---
-    K_MAIN  = st.sidebar.number_input("Rebanadas en pastel principal (Top-K)", 3, 20, value=12, step=1)
-    K_OTROS = st.sidebar.number_input("Rebanadas máximas en pastel 'Otros'", 5, 30, value=16, step=1)
+    K_MAIN  = st.sidebar.number_input("Rebanadas en pastel principal (subconjuntos mas numerosos)", 3, 20, value=12, step=1)
+    K_OTROS = st.sidebar.number_input("Rebanadas máximas en pastel 'Otros' (subconjuntos minoritarios)", 5, 30, value=16, step=1)
     min_pct = st.sidebar.slider(
         "Umbral mínimo (%) para aparecer en el pastel principal",
         0.0, 10.0, value=1.0, step=0.1
@@ -1329,7 +1329,7 @@ def _render_ind_outputs_from_state():
         # (A) Pastel principal: Top-K (≥ umbral %) + rebanada "Otros"
         pie_con_radares(
             principales,
-            "Participación por clase — Top-K (≥ umbral %) + 'Otros'",
+            "Participación por clase — Subconjuntos principales + 'Otros'",
             agregar_otros_total=tam_otros
         )
 
@@ -1341,7 +1341,7 @@ def _render_ind_outputs_from_state():
                     f"Mostrando {len(resto_view)} de {len(resto)} clases en 'Otros'. "
                     f"Ajusta K o el umbral % en la barra lateral."
                 )
-            pie_con_radares(resto_view, "Desglose de 'Otros' (con radares)", agregar_otros_total=0)
+            pie_con_radares(resto_view, "Desglose de 'Otros' (subconjuntos minoritarios)", agregar_otros_total=0)
 
 
 
@@ -1412,16 +1412,16 @@ else:
         st.subheader(f"Vista del {nombres[sel_i]} — {len(df_sub_disp):,} filas")
         st.dataframe(df_sub_disp.reset_index(), use_container_width=True)
         st.download_button(
-            "Descargar subconjunto ADL (CSV)",
+            "Descargar subconjunto AVD (CSV)",
             data=df_sub_disp.reset_index().to_csv(index=False).encode("utf-8"),
-            file_name=f"{nombres[sel_i]}_ADL.csv",
+            file_name=f"{nombres[sel_i]}_AVD.csv",
             mime="text/csv",
             key=f"dl_{sel_i}_adl"
         )
 
 
         # ---- Matriz de correlación (todas las ADL del subconjunto), sin NaN en el gráfico ----
-        st.subheader("Matriz de correlación (todas las ADL del subconjunto)")
+        st.subheader("Matriz de correlación (todas las AVD del subconjunto)")
 
         # 1) Limpieza: quedarnos solo con columnas con suficientes datos y variación
         num_all = df_sub.apply(pd.to_numeric, errors="coerce")
@@ -1467,10 +1467,10 @@ else:
         with st.expander("**ℹ️ ¿Qué estoy viendo en la matriz de correlación?**"):
             st.markdown("""
     Esta matriz muestra cómo **se relacionan entre sí** las respuestas de las distintas 
-    **Actividades de la Vida Diaria (ADL)** en el subconjunto seleccionado.
+    **Actividades de la Vida Diaria (AVD)** en el subconjunto seleccionado.
 
     **Cómo leerla:**
-    - Cada fila y columna representa una ADL.
+    - Cada fila y columna representa una AVD.
     - El valor dentro de la celda indica el **coeficiente de correlación de Pearson** entre las dos ADL correspondientes.
         - **Cercano a +1**: cuando una actividad es difícil para una persona, la otra también tiende a serlo.
         - **Cercano a -1**: cuando una es difícil, la otra suele ser fácil (relación inversa).
