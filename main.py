@@ -2115,12 +2115,12 @@ else:
                 ss["fb_hgb_le"]    = le_fb
                 st.info("Modelo fallback (HGB) entrenado.")
 
-with st.expander("🛟 Fallback HGB: ¿cuándo se usa y por qué?", expanded=False):
-    st.markdown("""
-- Si RF no puede predecir (faltan demasiadas ADL), usamos **HistGradientBoosting**.
-- Requiere tener **`nivel_riesgo`** en el DF de entrenamiento (lo tomamos de `df_eval_riesgo` o lo **reconstruimos** con la regla).
-- Ventaja: tolera **NaN** durante **predicción** a través del pipeline (cuando imputamos/aceptamos menos observadas).
-""")
+#with st.expander("🛟 Fallback HGB: ¿cuándo se usa y por qué?", expanded=False):
+#    st.markdown("""
+#- Si RF no puede predecir (faltan demasiadas ADL), usamos **HistGradientBoosting**.
+#- Requiere tener **`nivel_riesgo`** en el DF de entrenamiento (lo tomamos de `df_eval_riesgo` o lo **reconstruimos** con la regla).
+#- Ventaja: tolera **NaN** durante **predicción** a través del pipeline (cuando imputamos/aceptamos menos observadas).
+#""")
 
 
 
