@@ -1635,7 +1635,8 @@ else:
                         ascending=False
                     ).reset_index(drop=True)
 
-                    st.subheader("Reductos de 4 y 3 variables — Métricas (subconjunto del pastel)")
+                    st.subheader("Reductos: como predecir el nivel de riesgo con menos datos de los necesarios")
+                    st.markdown("""Reductos (explicación breve): buscamos una lista reducida de ADL que clasifique el nivel de riesgo igual que la lista completa; para hallarla aplicamos pruebas quita-1 y quita-2 (eliminamos una o dos ADL y verificamos si las agrupaciones de pacientes se mantienen idénticas: si no cambian, se preservan las relaciones de indiscernibilidad y esa lista reducida es válida). La app usa una jerarquía de ADL (de mayor a menor utilidad) para estimar el riesgo con datos incompletos y, si la decisión queda indeterminada, sugiere qué ADL medir a continuación. Ventajas: menos tiempo y costo, tolerancia a faltantes y guía clara de recolección; límites: depende de la población de datos (conviene recalibrar) y es un apoyo clínico, no reemplaza el juicio profesional.""")
                     st.caption(f"Filas en evaluación: {len(universo_sel):,} | Variables originales: {m}")
                     st.dataframe(df_closeness, use_container_width=True)
 
