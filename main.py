@@ -789,7 +789,7 @@ A estos grupos se les llama **relaciones de indiscernibilidad**, y nos permiten:
 - Detectar patrones comunes en sus respuestas.
 - Identificar el **nivel de dificultad en actividades de la vida diaria** dentro de la muestra.
 
-En pocas palabras: aquí agrupamos respuestas similares para entender mejor los perfiles y retos que enfrentan los participantes.
+En pocas palabras: **agrupamos respuestas similares para entender mejor los perfiles y retos que enfrentan los participantes.**
 """)
 
 
@@ -1497,7 +1497,7 @@ from itertools import combinations
 ss = st.session_state
 need = ("ind_df_eval", "ind_cols", "ind_classes", "ind_lengths", "ind_min_size")
 if not all(k in ss for k in need) or not isinstance(ss["ind_df_eval"], pd.DataFrame):
-    st.info("👉 Calcula indiscernibilidad primero (se necesitan ind_df_eval, ind_cols, ind_classes...).")
+    st.info(" ")
 else:
     # ---------- utilidades (locales) ----------
     def blocks_to_labels(blocks, universo):
@@ -1907,7 +1907,7 @@ from sklearn.impute import SimpleImputer
 ss = st.session_state
 needed = ("ind_cols","ind_df","ind_classes","ind_lengths","ind_min_size")
 if not all(k in ss for k in needed):
-    st.info("⚠️ Calcula indiscernibilidad primero.")
+    st.info(" ")
 else:
     # ---------- utilidades ligeras (sin sklearn para métricas de partición) ----------
     def blocks_to_labels(blocks, universo):
@@ -2135,7 +2135,7 @@ have4 = all(k in ss for k in ("rf_best4","rf_best4_cols","rf_best4_imp","rf_best
 have3 = all(k in ss for k in ("rf_best3","rf_best3_cols","rf_best3_imp","rf_best3_le"))
 
 if "ind_df" not in ss:
-    st.info("Calcula indiscernibilidad primero (para disponer de ind_df).")
+    st.info(" ")
 else:
     st.subheader("Predicción en todo el DataFrame (indiscernible)")
 
