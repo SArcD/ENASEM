@@ -1199,131 +1199,150 @@ def _render_ind_outputs_from_state():
 
 #        st.pyplot(fig_comp)
 
+    # --- Gráfico compuesto DOBLE: (A) Top-K + Otros  y  (B) Desglose de "Otros" ---
+    K_MAIN  = st.sidebar.number_input("Rebanadas en pastel principal (Top-K)", 3, 20, value=12, step=1)
+    K_OTROS = st.sidebar.number_input("Rebanadas máximas en pastel 'Otros'", 5, 30, value=16, step=1)
+    min_pct = st.sidebar.slider(
+        "Umbral mínimo (%) para aparecer en el pastel principal",
+        0.0, 10.0, value=1.0, step=0.1
+    )
 
-# --- Controles en sidebar ---
-K_MAIN  = st.sidebar.number_input("Rebanadas en pastel principal (Top-K)", 3, 20, value=12, step=1)
-K_OTROS = st.sidebar.number_input("Rebanadas máximas en pastel 'Otros'", 5, 30, value=16, step=1)
-min_pct = st.sidebar.slider("Umbral mínimo (%) para aparecer en el pastel principal",
-                            0.0, 10.0, value=1.0, step=0.1)
+    # Clases candidatas para pastel (≥ umbral de tamaño)
+    candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
+    if not candidatas_idx_nom_tam:
+        st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el pastel.")
+    else:
+        total_incluido = sum(tam for _, _, tam in candidatas_idx_nom_tam) or 1
 
-# --- Construir candidatas (≥ umbral de tamaño) con valores para radar/color ---
-candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
-if not candidatas_idx_nom_tam:
-    st.info(f"No hay clases con tamaño ≥ {min_size_for_pie} para el pastel.")
-else:
-    total_incluido = sum(tam for _, _, tam in candidatas_idx_nom_tam) or 1
-    candidatas = []
-    for idx, nom, tam in sorted(candidatas_idx_nom_tam, key=lambda x: x[2], reverse=True):
-        indices = sorted(list(clases[idx]))
-        sub = df_eval.loc[indices, cols_attrs]
-        vals = sub.iloc[0].tolist() if not sub.empty else [0]*len(cols_attrs)
-        col  = determinar_color(vals)
-        pct  = 100.0 * tam / total_incluido
-        candidatas.append({"nombre": nom, "tam": tam, "pct": pct, "vals": vals, "color": col})
+        # Armar estructura: nombre, tamaño, %, vals radar y color
+        candidatas = []
+        for idx, nom, tam in sorted(candidatas_idx_nom_tam, key=lambda x: x[2], reverse=True):
+            indices = sorted(list(clases[idx]))
+            sub = df_eval.loc[indices, cols_attrs]
+            vals = sub.iloc[0].tolist() if not sub.empty else [0]*len(cols_attrs)
+            col  = determinar_color(vals)
+            pct  = 100.0 * tam / total_incluido
+            candidatas.append({"nombre": nom, "tam": tam, "pct": pct, "vals": vals, "color": col})
 
-    # --- Selección para el pastel principal: respeta umbral % y Top-K ---
-    principales = [s for s in candidatas if s["pct"] >= min_pct][:int(K_MAIN)]
-    # Si el umbral deja vacío, fuerza al menos la más grande
-    if not principales and candidatas:
-        principales = candidatas[:1]
+        # Selección para el pastel principal: respeta umbral % y Top-K
+        principales = [s for s in candidatas if s["pct"] >= min_pct][:int(K_MAIN)]
+        # Si el umbral deja vacío, forzar al menos la clase más grande
+        if not principales and candidatas:
+            principales = candidatas[:1]
 
-    # Resto → "Otros"
-    nombres_principales = {s["nombre"] for s in principales}
-    resto = [s for s in candidatas if s["nombre"] not in nombres_principales]
+        # Resto → "Otros"
+        nombres_principales = {s["nombre"] for s in principales}
+        resto = [s for s in candidatas if s["nombre"] not in nombres_principales]
+        tam_otros = sum(s["tam"] for s in resto)
 
-    # ========= helper: pastel con radares alrededor =========
-    def pie_con_radares(slices, titulo, agregar_otros_total=0):
-        """
-        slices: lista de dicts {nombre, tam, color, vals}
-        agregar_otros_total: si >0, añade rebanada 'Otros' sin radar con ese tamaño
-        """
-        etiquetas = [s["nombre"] for s in slices]
-        valores   = [s["tam"]   for s in slices]
-        colores   = [s["color"] for s in slices]
-        if agregar_otros_total > 0:
-            etiquetas += ["Otros"]
-            valores   += [agregar_otros_total]
-            colores   += ["lightgray"]
+        # ========= helper: pastel con radares alrededor =========
+        def pie_con_radares(slices, titulo, agregar_otros_total=0):
+            """
+            slices: lista de dicts {nombre, tam, pct, vals, color}
+            agregar_otros_total: si >0, añade rebanada 'Otros' sin radar con ese tamaño
+            """
+            etiquetas = [s["nombre"] for s in slices]
+            valores   = [s["tam"]   for s in slices]
+            colores   = [s["color"] for s in slices]
+            if agregar_otros_total > 0:
+                etiquetas += ["Otros"]
+                valores   += [agregar_otros_total]
+                colores   += ["lightgray"]
 
-        fig = plt.figure(figsize=(16, 16))
-        main_ax = plt.subplot(111); main_ax.set_position([0.1, 0.1, 0.8, 0.8])
+            fig = plt.figure(figsize=(16, 16))
+            main_ax = plt.subplot(111)
+            main_ax.set_position([0.1, 0.1, 0.8, 0.8])
 
-        if sum(valores) == 0:
-            main_ax.axis("off"); st.pyplot(fig); return
+            if sum(valores) == 0:
+                main_ax.axis("off")
+                st.pyplot(fig)
+                return
 
-        wedges, _, _ = main_ax.pie(
-            valores, labels=etiquetas, colors=colores,
-            autopct='%1.1f%%', startangle=90,
-            textprops={'fontsize': 17}, labeldistance=1.1
+            wedges, _, _ = main_ax.pie(
+                valores, labels=etiquetas, colors=colores,
+                autopct='%1.1f%%', startangle=90,
+                textprops={'fontsize': 17}, labeldistance=1.1
+            )
+            main_ax.set_title(titulo)
+
+            # Radares solo para 'slices' (no para 'Otros')
+            if not slices:
+                st.pyplot(fig)
+                return
+
+            # Geometría y tamaños relativos
+            angulos_pastel = [(w.theta1 + w.theta2)/2 for w in wedges[:len(slices)]]
+            anchos = [abs(w.theta2 - w.theta1) for w in wedges[:len(slices)]]
+            max_ancho = max(anchos) if anchos else 1
+            angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
+
+            min_radio, max_radio = 1.0, 2.40
+            radar_size_min, radar_size_max = 0.10, 0.19
+            etiquetas_radar = [et.replace('_21','').replace('_18','') for et in cols_attrs]
+
+            radios_personalizados = [
+                min_radio + (1 - (log1p(a)/log1p(max_ancho))) * (max_radio - min_radio)
+                for a in anchos
+            ]
+            tamaños_radar = [
+                radar_size_min + (a/max_ancho) * (radar_size_max - radar_size_min)
+                for a in anchos
+            ]
+
+            # Separación angular para evitar solapes
+            ang_sep = angulos_rad.copy()
+            min_sep = np.deg2rad(7)
+            for i in range(1, len(ang_sep)):
+                while abs(ang_sep[i] - ang_sep[i-1]) < min_sep:
+                    ang_sep[i] += min_sep/2
+
+            # Dibujar radares
+            k = len(cols_attrs)
+            for s, ang_rad, r_inset, tam_radar in zip(slices, ang_sep, radios_personalizados, tamaños_radar):
+                x = 0.5 + r_inset*np.cos(ang_rad)/2.3
+                y = 0.5 + r_inset*np.sin(ang_rad)/2.3
+                radar_ax = fig.add_axes([x - tam_radar/2, y - tam_radar/2, tam_radar, tam_radar], polar=True)
+
+                vals = (s["vals"][:k] if len(s["vals"]) >= k else s["vals"] + [0]*(k-len(s["vals"])))
+                angs = np.linspace(0, 2*np.pi, k, endpoint=False).tolist()
+                vals_c = vals + [vals[0]]
+                angs_c = angs + [angs[0]]
+
+                radar_ax.set_theta_offset(np.pi/2); radar_ax.set_theta_direction(-1)
+                radar_ax.plot(angs_c, vals_c, color=s["color"])
+                radar_ax.fill(angs_c, vals_c, color=s["color"], alpha=0.3)
+                radar_ax.set_xticks(angs); radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
+                radar_ax.set_yticks([0,1,2]); radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
+                radar_ax.set_ylim(0,2); radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
+
+                # Conexión pastel ↔ radar
+                x0 = 0.5 + 0.3*np.cos(ang_rad)
+                y0 = 0.5 + 0.3*np.sin(ang_rad)
+                fig.add_artist(ConnectionPatch(
+                    xyA=(x0, y0), coordsA=fig.transFigure,
+                    xyB=(x, y),  coordsB=fig.transFigure,
+                    color='gray', lw=0.8, linestyle='--'
+                ))
+
+            st.pyplot(fig)
+
+        # (A) Pastel principal: Top-K (≥ umbral %) + rebanada "Otros"
+        pie_con_radares(
+            principales,
+            "Participación por clase — Top-K (≥ umbral %) + 'Otros'",
+            agregar_otros_total=tam_otros
         )
-        main_ax.set_title(titulo)
 
-        # Radares solo para 'slices' (no para 'Otros')
-        if not slices:
-            st.pyplot(fig); return
+        # (B) Pastel secundario: desglose de "Otros" (limitado por K_OTROS)
+        if tam_otros > 0:
+            resto_view = sorted(resto, key=lambda s: s["tam"], reverse=True)[:int(K_OTROS)]
+            if len(resto) > len(resto_view):
+                st.caption(
+                    f"Mostrando {len(resto_view)} de {len(resto)} clases en 'Otros'. "
+                    f"Ajusta K o el umbral % en la barra lateral."
+                )
+            pie_con_radares(resto_view, "Desglose de 'Otros' (con radares)", agregar_otros_total=0)
 
-        # Geometría y tamaños
-        angulos_pastel = [(w.theta1 + w.theta2)/2 for w in wedges[:len(slices)]]
-        anchos = [abs(w.theta2 - w.theta1) for w in wedges[:len(slices)]]
-        max_ancho = max(anchos) if anchos else 1
-        angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
-
-        min_radio, max_radio = 1.0, 2.40
-        radar_size_min, radar_size_max = 0.10, 0.19
-        etiquetas_radar = [et.replace('_21','').replace('_18','') for et in cols_attrs]
-
-        radios_personalizados = [
-            min_radio + (1 - (log1p(a)/log1p(max_ancho))) * (max_radio - min_radio)
-            for a in anchos
-        ]
-        tamaños_radar = [
-            radar_size_min + (a/max_ancho) * (radar_size_max - radar_size_min)
-            for a in anchos
-        ]
-
-        # Separación angular para evitar solapes
-        ang_sep = angulos_rad.copy()
-        min_sep = np.deg2rad(7)
-        for i in range(1, len(ang_sep)):
-            while abs(ang_sep[i] - ang_sep[i-1]) < min_sep:
-                ang_sep[i] += min_sep/2
-
-        k = len(cols_attrs)
-        for s, ang_rad, r_inset, tam_radar in zip(slices, ang_sep, radios_personalizados, tamaños_radar):
-            x = 0.5 + r_inset*np.cos(ang_rad)/2.3
-            y = 0.5 + r_inset*np.sin(ang_rad)/2.3
-            radar_ax = fig.add_axes([x - tam_radar/2, y - tam_radar/2, tam_radar, tam_radar], polar=True)
-
-            vals = (s["vals"][:k] if len(s["vals"]) >= k else s["vals"] + [0]*(k-len(s["vals"])))
-            angs = np.linspace(0, 2*np.pi, k, endpoint=False).tolist()
-            vals_c = vals + [vals[0]]; angs_c = angs + [angs[0]]
-
-            radar_ax.set_theta_offset(np.pi/2); radar_ax.set_theta_direction(-1)
-            radar_ax.plot(angs_c, vals_c, color=s["color"])
-            radar_ax.fill(angs_c, vals_c, color=s["color"], alpha=0.3)
-            radar_ax.set_xticks(angs); radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
-            radar_ax.set_yticks([0,1,2]); radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
-            radar_ax.set_ylim(0,2); radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
-
-            # Conexión
-            x0 = 0.5 + 0.3*np.cos(ang_rad); y0 = 0.5 + 0.3*np.sin(ang_rad)
-            fig.add_artist(ConnectionPatch(xyA=(x0, y0), coordsA=fig.transFigure,
-                                           xyB=(x, y),  coordsB=fig.transFigure,
-                                           color='gray', lw=0.8, linestyle='--'))
-        st.pyplot(fig)
-
-    # (A) Pastel principal: Top-K que superan el % mínimo + rebanada "Otros"
-    tam_otros = sum(s["tam"] for s in resto)
-    pie_con_radares(principales, "Participación por clase — Top-K (≥ umbral %) + 'Otros'",
-                    agregar_otros_total=tam_otros)
-
-    # (B) Pastel secundario: desglose de "Otros" (si los hay), con límite de K_OTROS
-    if tam_otros > 0:
-        resto_view = resto[:int(K_OTROS)]
-        if len(resto) > len(resto_view):
-            st.caption(f"Mostrando {len(resto_view)} de {len(resto)} clases en 'Otros'. "
-                       f"Ajusta 'Rebanadas máximas en pastel \"Otros\"' o sube el umbral %.")
-        pie_con_radares(resto_view, "Desglose de 'Otros' (con radares)", agregar_otros_total=0)
 
 
 # 👉 Llamada al renderer SIEMPRE, con o sin botón
