@@ -2062,7 +2062,7 @@ if not isinstance(df_fb, pd.DataFrame) or df_fb.empty:
     df_fb = ss.get("df_pastel_eval")
 
 if not isinstance(df_fb, pd.DataFrame) or df_fb.empty:
-    st.info("Primero calcula indiscernibilidad/entrenamiento para habilitar el fallback.")
+    st.info(" ")
 else:
     ind_cols = ss.get("ind_cols") or ss.get("ind_adl_cols") or []
     if not ind_cols:
