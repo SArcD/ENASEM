@@ -1,4 +1,31 @@
 import streamlit as st
+
+LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
+
+col_logo, col_title = st.columns([2, 3], gap="small")
+
+with col_logo:
+    st.image(LOGO_URL, use_container_width=True)
+
+with col_title:
+    st.markdown(
+        """
+        <div style="display:inline-block; text-align:left;">
+            <h1 style="margin-bottom:6px; display:inline-block;">
+                RS²: Rough Sets para Riesgo de Sarcopenia
+            </h1>
+            <div style="font-size:1.05rem; color:#444; max-width: 40ch;">
+                Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+
+
+import streamlit as st
 import pandas as pd
 import gdown
 import io  # Asegúrate de importar el módulo io
@@ -487,31 +514,6 @@ elif option == "Relaciones de Indiscernibilidad":
             diff_to_same = same_red - same_both
             pres_diff = (diff_orig - diff_to_same) / diff_orig if diff_orig > 0 else 1.0
             return pres_same, pres_diff
-
-    import streamlit as st
-
-    LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-
-    col_logo, col_title = st.columns([2, 3], gap="small")
-
-    with col_logo:
-        st.image(LOGO_URL, use_container_width=True)
-
-    with col_title:
-        st.markdown(
-            """
-            <div style="display:inline-block; text-align:left;">
-                <h1 style="margin-bottom:6px; display:inline-block;">
-                    RS²: Rough Sets para Riesgo de Sarcopenia
-                </h1>
-                <div style="font-size:1.05rem; color:#444; max-width: 40ch;">
-                    Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
 
 
 
