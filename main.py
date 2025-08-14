@@ -2507,14 +2507,6 @@ if st.session_state["df_comorb"] is not None:
                 ss["rf_best3_imp"] = imp3
 
             #st.success("Modelos RF entrenados (best4 y, si procede, best3).")
-            with st.expander("🌲 ¿Qué hace el Random Forest aquí?", expanded=False):
-                st.markdown("""
-            - Entrenamos **RF** sobre `nivel_riesgo` generado por la **regla**, usando el mejor reducto.
-            - **Imputación**: medianas (evita perder filas).
-            - **class_weight='balanced_subsample'** para clases desbalanceadas.
-            - Resultado: modelos **rápidos** que generalizan fuera del conjunto sin NaN.
-            """)
-
 
     ####FALLBACK
     # === Fallback que acepta NaN en predicción: HistGradientBoosting ===
@@ -2607,10 +2599,7 @@ if st.session_state["df_comorb"] is not None:
       - con la **regla fija** (solo en quienes **no** tienen faltantes), y  
       - con la **predicción del modelo** en **toda** la base.  
     - **Pasteles:** muestran el mismo contraste pero en formato circular.
-
-    **Notas clínicas**  
-    - Esta herramienta **no reemplaza** el juicio clínico; sirve como **apoyo** para priorizar y orientar.  
-    - Si no hay modelos cargados, todos los casos aparecerán como **“Sin datos”** hasta que se carguen/entrenen.
+    
     """)
 
 
@@ -2749,11 +2738,11 @@ if st.session_state["df_comorb"] is not None:
         ymax = max(dist_regla.max(), dist_rf_bar.max(), 1)
 
         fig_b, ax_b = plt.subplots(figsize=(9, 4.8))
-        b1 = ax_b.bar(x - width/2, dist_regla.values, width, label="Regla (sin NaN)")
-        b2 = ax_b.bar(x + width/2, dist_rf_bar.values,  width, label="RF (todo ind_df)")
+        b1 = ax_b.bar(x - width/2, dist_regla.values, width, label="Sin datos faltantes")
+        b2 = ax_b.bar(x + width/2, dist_rf_bar.values,  width, label="Predicción de Random Forest")
         ax_b.set_xticks(x); ax_b.set_xticklabels(orden)
         ax_b.set_ylabel("Participantes")
-        ax_b.set_title("Niveles de riesgo: Regla vs RF")
+        ax_b.set_title("Niveles de riesgo (comparación entre filas sin datos faltantes y predicción usando RF)")
         ax_b.legend(); ax_b.grid(axis='y', linestyle='--', alpha=0.3)
         for bars in (b1, b2):
             for r in bars:
@@ -2773,7 +2762,7 @@ if st.session_state["df_comorb"] is not None:
             ax1.axis("off")
         else:
             ax1.pie(v1, labels=dist_regla.index, autopct=lambda p: f"{p:.1f}%", startangle=120)
-            ax1.axis('equal'); ax1.set_title("Riesgo — solo filas sin NaN (regla)")
+            ax1.axis('equal'); ax1.set_title("Proporción de participantes y su nivel de riesgo (usando solo filas sin datos faltantes)")
         st.pyplot(fig1)
 
         fig2, ax2 = plt.subplots(figsize=(6.5, 6.5))
@@ -2784,7 +2773,7 @@ if st.session_state["df_comorb"] is not None:
             ax2.axis("off")
         else:
             ax2.pie(v2, labels=dist_rf_all.index, autopct=lambda p: f"{p:.1f}%", startangle=120)
-            ax2.axis('equal'); ax2.set_title("Riesgo — todo ind_df (RF 4→3 vars)")
+            ax2.axis('equal'); ax2.set_title("Proporción de participantes y su nivel de riesgo (con datos imputados usando Random Forest)")
         st.pyplot(fig2)
 
 
