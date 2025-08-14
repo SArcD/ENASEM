@@ -574,19 +574,63 @@ elif option == "Relaciones de Indiscernibilidad":
         "H13","H15A","H15B","H15D","H16A","H16D","H17A","H17D","H18A","H18D","H19A","H19D"
     ]
 
-    # Detectar columnas faltantes
-    faltantes = [col for col in nuevo_dataframe.columns if col not in columnas_deseadas_base]
+    import re
 
-    # Crear lista final unificada
-    columnas_completas = columnas_deseadas_base + faltantes
-    
-    # Seleccionar solo las columnas deseadas que existan
-    presentes = [c for c in columnas_completas if c in df.columns]
-    faltantes = sorted(set(columnas_completas) - set(presentes))
-    if faltantes:
-        st.warning("Columnas no encontradas (se omiten): " + ", ".join(faltantes))
+    # --- DataFrame de trabajo ---
+    # Asumo que tu DataFrame ya está en la variable df
+    # y que ya eliminaste "Unnamed: x" antes de esto, si aplica.
 
-    datos_seleccionados = df[presentes].copy()
+    # --- Lista base (tu orden y selección original) ---
+    columnas_deseadas_base = [
+        "AGE","SEX","C4","C6","C12","C19","C22A","C26","C32","C37",
+        "C49_1","C49_2","C49_8","C64","C66","C67_1","C67_2","C68E","C68G","C68H",
+        "C69A","C69B","C71A","C76","H1","H4","H5","H6","H8","H9","H10","H11","H12",
+        "H13","H15A","H15B","H15D","H16A","H16D","H17A","H17D","H18A","H18D","H19A","H19D"
+    ]
+
+    # --- 1) Función: obtener "base" quitando solo el último sufijo numérico (p. ej. _18, _21) ---
+    def base_code(col: str) -> str:
+        # quita _<n> solo si está al final (ej: C14_01_18 -> C14_01 ; C49_1_18 -> C49_1)
+        return re.sub(r"_(\d+)$", "", col)
+
+    # --- 2) Conjuntos de bases presentes en df y bases de tu lista ---
+    bases_en_df = { base_code(c) for c in df.columns }
+    bases_lista = set(columnas_deseadas_base)
+
+    # --- 3) Bases faltantes (están en df, no en tu lista) ---
+    bases_faltantes = sorted(bases_en_df - bases_lista)
+
+    # --- 4) Lista extendida de bases: primero faltantes, luego tus bases (manteniendo tu orden) ---
+    columnas_deseadas_base_ext = bases_faltantes + [b for b in columnas_deseadas_base]
+
+    # --- 5) Expandir bases a columnas concretas para un año objetivo ---
+    anio_objetivo = "18"   # cámbialo a "21" si quieres 2021
+
+    columnas_finales = []
+    for base in columnas_deseadas_base_ext:
+        candidato_con_anio = f"{base}_{anio_objetivo}"
+        if candidato_con_anio in df.columns:
+            columnas_finales.append(candidato_con_anio)
+        elif base in df.columns:
+            # columnas sin sufijo (por ejemplo, EST_DIS, UPM_DIS) o cualquier base exacta presente
+            columnas_finales.append(base)
+        else:
+            # Si ni la versión con año ni la base exacta existen, la omitimos silenciosamente
+            pass
+
+    # (Opcional) Añadir al final columnas “sueltas” que no entraron por base pero te interesa no perder
+    # resto_no_incluidas = [c for c in df.columns if c not in columnas_finales]
+    # columnas_finales += resto_no_incluidas
+
+    # --- 6) Seleccionar del DataFrame ---
+    datos_seleccionados = df[columnas_finales].copy()
+
+## --- 7) Reporte rápido en consola ---
+#print(f"Total columnas en df: {len(df.columns)}")
+#print(f"Bases en df: {len(bases_en_df)}")
+#print(f"Bases faltantes añadidas al inicio: {len(bases_faltantes)}")
+#print(f"Columnas finales seleccionadas (año {anio_objetivo}): {len(columnas_finales)}")
+
 
     # -----------------------------------------
     # Combinar estatura: C67_1 (m) + C67_2 (cm) → C67 (m)
