@@ -1,31 +1,3 @@
-import streamlit as st
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-
-box_css = (
-    "background:#EAF3FF;border:1px solid #D2E6FF;border-radius:16px;"
-    "padding:14px 18px;display:flex;align-items:center;gap:16px;"
-)
-img_css = "height:250px;width:auto;border-radius:8px;"
-h1_css  = "margin:0 0 4px 0;font-size:1.6rem;line-height:1.2;"
-sub_css = "font-size:1.02rem;color:#334155;max-width:50ch;"
-
-st.markdown(
-    f"""
-    <div style="{box_css}">
-      <img src="{LOGO_URL}" alt="Logo RS²" style="{img_css}" />
-      <div>
-        <h1 style="{h1_css}">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="{sub_css}">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-
 
 
 
@@ -1198,21 +1170,32 @@ elif option == "Relaciones de Indiscernibilidad":
 
     # === Resumen compacto de filtros y base actual (en un solo expander) ===
     ss = st.session_state
-    df_sexo      = ss.get("df_sexo")
-    df_filtrado  = ss.get("df_filtrado")
-    df_comorb    = ss.get("df_comorb")
-    age_min      = ss.get("age_min")
-    age_max      = ss.get("age_max")
-    sel_comorb   = ss.get("comorb_selection", [])
+    df_sexo     = ss.get("df_sexo")
+    df_filtrado = ss.get("df_filtrado")
+    df_comorb   = ss.get("df_comorb")
+    age_min     = ss.get("age_min")
+    age_max     = ss.get("age_max")
+    sel_comorb  = ss.get("comorb_selection", [])
 
-    # (opcional) para métricas de referencia:
-    base_df_ref = locals().get("base_df", None) or ss.get("df_sexo") or ss.get("df_filtrado")
-    base_len    = len(locals().get("base_df", base_df_ref)) if (locals().get("base_df", None) or base_df_ref is not None) else 0
-    datos_sel   = locals().get("datos_seleccionados", None)
-    if datos_sel is not None and isinstance(datos_sel, pd.DataFrame):
-        total_sexo_ref = len(datos_sel)
+    # Helper: devuelve el primer DataFrame no vacío de la lista
+    def pick_first_df(*objs):
+        for o in objs:
+            if isinstance(o, pd.DataFrame):
+                return o
+        return None
+
+    # intenta usar base_df si existe; si no, cae a df_sexo, df_filtrado, df_comorb
+    base_df_ref = pick_first_df(locals().get("base_df"), df_sexo, df_filtrado, df_comorb)
+    base_len = len(base_df_ref) if isinstance(base_df_ref, pd.DataFrame) else 0
+
+    # referencia para "Filas totales" en la sección de sexo
+    datos_sel_df = locals().get("datos_seleccionados")
+    if isinstance(datos_sel_df, pd.DataFrame):
+        total_sexo_ref = len(datos_sel_df)
+    elif isinstance(df_sexo, pd.DataFrame):
+        total_sexo_ref = len(df_sexo)
     else:
-        total_sexo_ref = len(df_sexo) if isinstance(df_sexo, pd.DataFrame) else 0
+        total_sexo_ref = 0
 
     with st.expander("📊 Resumen de filtros aplicados y muestra activa", expanded=False):
 
@@ -1227,7 +1210,7 @@ elif option == "Relaciones de Indiscernibilidad":
         if isinstance(df_filtrado, pd.DataFrame):
             st.subheader("Filtrado por sexo + edad")
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Filas base", f"{(len(base_df_ref) if base_df_ref is not None else 0):,}")
+            c1.metric("Filas base", f"{(len(base_df_ref) if isinstance(base_df_ref, pd.DataFrame) else 0):,}")
             c2.metric("Edad mínima", age_min if age_min is not None else "-")
             c3.metric("Edad máxima", age_max if age_max is not None else "-")
             c4.metric("Filas después de filtrado", f"{len(df_filtrado):,}")
@@ -1250,9 +1233,6 @@ elif option == "Relaciones de Indiscernibilidad":
                         if col in df_show.columns:
                             cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
                             st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
-
-
-
 
     
 
