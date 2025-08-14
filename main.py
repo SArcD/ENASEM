@@ -532,6 +532,14 @@ elif option == "Relaciones de Indiscernibilidad":
     # -----------------------------------------
     # Barra lateral: subir archivo
     # -----------------------------------------
+
+
+
+
+    import re
+    import pandas as pd
+    import streamlit as st
+
     with st.sidebar:
         st.header("Cargar datos")
         archivo = st.file_uploader("Sube un CSV o Excel (ENASEM 2018/2021)", type=["csv", "xlsx"])
@@ -540,9 +548,7 @@ elif option == "Relaciones de Indiscernibilidad":
         st.info("Sube un archivo en la barra lateral para comenzar.")
         st.stop()
 
-    # -----------------------------------------
-    # Leer archivo (CSV o Excel)
-    # -----------------------------------------
+    # --- Leer archivo (CSV o Excel) ---
     try:
         if archivo.name.lower().endswith(".csv"):
             df = pd.read_csv(archivo)
@@ -552,119 +558,57 @@ elif option == "Relaciones de Indiscernibilidad":
         st.error(f"No se pudo leer el archivo: {e}")
         st.stop()
 
-    # -----------------------------------------
-    # Normalizar nombres de columnas
-    # - quitar espacios repetidos
-    # - quitar sufijos _18 o _21 al final
-    # -----------------------------------------
+    # --- Guardar snapshot crudo por si se necesita ---
+    st.session_state["df_raw"] = df.copy()
+
+    # --- Normalizar nombres de columnas ---
+    # 1) quitar espacios repetidos / bordes
     cols = [re.sub(r"\s+", " ", str(c)).strip() for c in df.columns]
+    # 2) quitar sufijos _18 o _21 AL FINAL (p.ej., C49_1_18 -> C49_1)
     cols = [re.sub(r"_(18|21)$", "", c) for c in cols]
     df.columns = cols
 
-    # Eliminar posibles columnas "Unnamed: x" (índices exportados)
-    df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+")]
+    # --- Quitar columnas 'Unnamed: x' (índices exportados) ---
+    df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+$")]
+
+    # --- Resolver posibles duplicados de nombre tras normalizar ---
+    def dedup_columns(columns):
+        seen = {}
+        out = []
+        for c in columns:
+            if c not in seen:
+                seen[c] = 1
+                out.append(c)
+            else:
+                seen[c] += 1
+                out.append(f"{c}__dup{seen[c]}")  # renombra duplicados
+        return out
+
+    if df.columns.duplicated().any():
+        df.columns = dedup_columns(list(df.columns))
+        st.info("Se detectaron columnas duplicadas tras normalizar; se renombraron con sufijo __dupN.")
+
+    # --- Columna derivada: C67 = C67_1 (m) + C67_2 (cm/100). NO se borran las originales ---
+    if {"C67_1", "C67_2"}.issubset(df.columns):
+        c1 = pd.to_numeric(df["C67_1"], errors="coerce")
+        c2 = pd.to_numeric(df["C67_2"], errors="coerce")
+        df["C67"] = c1 + (c2 / 100.0)
+
+    # --- Agregar columna 'Indice' al inicio ---
+    df.insert(0, "Indice", df.index)
+
+    # --- Mostrar y persistir en sesión ---
     st.dataframe(df)
-    # -----------------------------------------
-    # Definir columnas deseadas (base, sin sufijo)
-    # -----------------------------------------
-    columnas_deseadas_base = [
-        "AGE","SEX","C4","C6","C12","C19","C22A","C26","C32","C37",
-        "C49_1","C49_2","C49_8","C64","C66","C67_1","C67_2","C68E","C68G","C68H",
-        "C69A","C69B","C71A","C76","H1","H4","H5","H6","H8","H9","H10","H11","H12",
-        "H13","H15A","H15B","H15D","H16A","H16D","H17A","H17D","H18A","H18D","H19A","H19D"
-    ]
+    st.session_state["df_original_norm"] = df.copy()
+    st.session_state["df_original_cols"] = list(df.columns)
 
-    import re
-
-    # --- DataFrame de trabajo ---
-    # Asumo que tu DataFrame ya está en la variable df
-    # y que ya eliminaste "Unnamed: x" antes de esto, si aplica.
-
-    # --- Lista base (tu orden y selección original) ---
-    columnas_deseadas_base = [
-        "AGE","SEX","C4","C6","C12","C19","C22A","C26","C32","C37",
-        "C49_1","C49_2","C49_8","C64","C66","C67_1","C67_2","C68E","C68G","C68H",
-        "C69A","C69B","C71A","C76","H1","H4","H5","H6","H8","H9","H10","H11","H12",
-        "H13","H15A","H15B","H15D","H16A","H16D","H17A","H17D","H18A","H18D","H19A","H19D"
-    ]
-
-    # --- 1) Función: obtener "base" quitando solo el último sufijo numérico (p. ej. _18, _21) ---
-    def base_code(col: str) -> str:
-        # quita _<n> solo si está al final (ej: C14_01_18 -> C14_01 ; C49_1_18 -> C49_1)
-        return re.sub(r"_(\d+)$", "", col)
-
-    # --- 2) Conjuntos de bases presentes en df y bases de tu lista ---
-    bases_en_df = { base_code(c) for c in df.columns }
-    bases_lista = set(columnas_deseadas_base)
-
-    # --- 3) Bases faltantes (están en df, no en tu lista) ---
-    bases_faltantes = sorted(bases_en_df - bases_lista)
-
-    # --- 4) Lista extendida de bases: primero faltantes, luego tus bases (manteniendo tu orden) ---
-    columnas_deseadas_base_ext = bases_faltantes + [b for b in columnas_deseadas_base]
-
-    # --- 5) Expandir bases a columnas concretas para un año objetivo ---
-    anio_objetivo = "18"   # cámbialo a "21" si quieres 2021
-
-    columnas_finales = []
-    for base in columnas_deseadas_base_ext:
-        candidato_con_anio = f"{base}_{anio_objetivo}"
-        if candidato_con_anio in df.columns:
-            columnas_finales.append(candidato_con_anio)
-        elif base in df.columns:
-            # columnas sin sufijo (por ejemplo, EST_DIS, UPM_DIS) o cualquier base exacta presente
-            columnas_finales.append(base)
-        else:
-            # Si ni la versión con año ni la base exacta existen, la omitimos silenciosamente
-            pass
-
-    # (Opcional) Añadir al final columnas “sueltas” que no entraron por base pero te interesa no perder
-    # resto_no_incluidas = [c for c in df.columns if c not in columnas_finales]
-    # columnas_finales += resto_no_incluidas
-
-    # --- 6) Seleccionar del DataFrame ---
-    datos_seleccionados = df[columnas_finales].copy()
-
-## --- 7) Reporte rápido en consola ---
-#print(f"Total columnas en df: {len(df.columns)}")
-#print(f"Bases en df: {len(bases_en_df)}")
-#print(f"Bases faltantes añadidas al inicio: {len(bases_faltantes)}")
-#print(f"Columnas finales seleccionadas (año {anio_objetivo}): {len(columnas_finales)}")
-
-
-    # -----------------------------------------
-    # Combinar estatura: C67_1 (m) + C67_2 (cm) → C67 (m)
-    # (solo si existen ambas; si falta alguna, se omite sin error)
-    # -----------------------------------------
-    if {"C67_1", "C67_2"}.issubset(datos_seleccionados.columns):
-        datos_seleccionados["C67_1"] = pd.to_numeric(datos_seleccionados["C67_1"], errors="coerce")
-        datos_seleccionados["C67_2"] = pd.to_numeric(datos_seleccionados["C67_2"], errors="coerce")
-        datos_seleccionados["C67"] = datos_seleccionados["C67_1"] + (datos_seleccionados["C67_2"] / 100.0)
-        datos_seleccionados = datos_seleccionados.drop(columns=["C67_1","C67_2"])
-
-    # Agregar columna Indice (índice actual)
-    datos_seleccionados["Indice"] = datos_seleccionados.index
-
-    # Reordenar columnas (usando las que existan)
-    columnas_finales = (
-        ["Indice","AGE","SEX","C4","C6","C12","C19","C22A","C26","C32","C37",
-         "C49_1","C49_2","C49_8","C64","C66","C67","C68E","C68G","C68H","C69A","C69B",
-         "C71A","C76","H1","H4","H5","H6","H8","H9","H10","H11","H12",
-         "H13","H15A","H15B","H15D","H16A","H16D","H17A","H17D","H18A","H18D","H19A","H19D"]
-    )
-    columnas_finales_presentes = [c for c in columnas_finales if c in datos_seleccionados.columns]
-    datos_seleccionados = datos_seleccionados[columnas_finales_presentes]
-
-# --- Snapshot del original normalizado (para joins posteriores) ---
-    # Guarda SIEMPRE la versión original lista (con 'Indice') para poder mapear luego.
-    st.session_state["df_original_norm"] = datos_seleccionados.copy()
-    st.session_state["df_original_cols"] = list(datos_seleccionados.columns)
-
-    # (opcional) chequeo de unicidad del identificador
-    if datos_seleccionados["Indice"].duplicated().any():
+    # (Opcional) advertir si 'Indice' no es único
+    if df["Indice"].duplicated().any():
         st.warning("⚠️ 'Indice' no es único en el archivo cargado. Considera crear un ID único.")
 
 
+
+    
     
     # -----------------------------------------
     # Mostrar resultados
