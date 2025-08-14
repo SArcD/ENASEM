@@ -1097,7 +1097,7 @@ elif option == "Relaciones de Indiscernibilidad":
 # Vista previa — Filtrado por SEX + EDAD + COMORBILIDADES
 # =========================
 if st.session_state["df_comorb"] is not None:
-    st.subheader("Tras filtrado por sexo + edad + comorbilidades")
+    #st.subheader("Tras filtrado por sexo + edad + comorbilidades")
     # Seleccionar base segura para longitud
     base_df_for_len = st.session_state.get("df_filtrado")
     if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
@@ -1142,7 +1142,7 @@ if st.session_state["df_comorb"] is not None:
                 .replace({6: 1, 7: 1, 8: np.nan})
             )
 
-        st.subheader("Tras filtrado por sexo + edad + comorbilidades")
+        #st.subheader("Tras filtrado por sexo + edad + comorbilidades")
         # Seleccionar base segura para longitud
         base_df_for_len = st.session_state.get("df_filtrado")
         if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
