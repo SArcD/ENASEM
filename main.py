@@ -607,6 +607,8 @@ elif option == "Relaciones de Indiscernibilidad":
         st.warning("⚠️ 'Indice' no es único en el archivo cargado. Considera crear un ID único.")
 
 
+    datos_seleccionados = df.copy()
+    st.dataframe(datos_seleccionados, use_container_width=True)
 
     
     
