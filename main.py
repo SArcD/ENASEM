@@ -3067,7 +3067,7 @@ else:
        # Mostrar información de cada miembro del equipo
        for miembro in equipo:
            st.subheader(miembro["nombre"])
-           img = st.image(miembro["foto"], caption=f"Foto de {miembro['nombre']}", use_column_width=False, width=altura_imagen)
+           img = st.image(miembro["foto"], caption=f"Foto de {miembro['nombre']}", use_container_width=False, width=altura_imagen)
            st.write(f"Correo electrónico: {miembro['contacto']}")
            st.write(f"Reseña profesional: {miembro['reseña']}")
            st.write(f"CV: {miembro['CV']}")
