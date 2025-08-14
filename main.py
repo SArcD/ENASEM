@@ -1,5 +1,6 @@
 import streamlit as st
 
+
 LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
 
 box_css = (
@@ -27,7 +28,7 @@ st.markdown(
 
 
 
-import streamlit as st
+
 import pandas as pd
 import gdown
 import io
@@ -529,7 +530,7 @@ elif option == "Relaciones de Indiscernibilidad":
 
 
     st.set_page_config(page_title="ENASEM — Carga y preparación", layout="wide")
-    st.title("Predictor de riesgo de sarcopenia (a partir de la Encuesta Nacional Sobre Envejecimiento en México 2018/2021)")
+    st.title("Predictor de riesgo de sarcopenia")
     st.markdown("""
     <style>
     /* Justificar todo el texto de párrafos, listas y tablas */
@@ -541,7 +542,7 @@ elif option == "Relaciones de Indiscernibilidad":
     En esta sección se usan datos de la **Encuesta Nacional sobre Envejecimiento en México**.
 
     1. **Cargue el archivo** del año que desee analizar desde el botón en la barra lateral  
-       (ejemplo: `conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_20XX.csv`).  
+       (trabajar con el archivo csv que contiene las secciones: `conjunto_de_datos_sect_a_c_d_f_e_pc_h_i_enasem_20XX.csv`).  
     2. Puede **seleccionar el sexo** de los participantes o incluir a ambos.  
     3. Use las **casillas de la barra lateral** para definir rangos de edad específicos.  
     4. En comorbilidades:  
