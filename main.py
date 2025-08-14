@@ -1,6 +1,4 @@
 import streamlit as st
-
-
 LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
 
 box_css = (
@@ -25,6 +23,8 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+
 
 
 
@@ -1195,6 +1195,66 @@ elif option == "Relaciones de Indiscernibilidad":
                         cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
                         st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
 
+
+    # === Resumen compacto de filtros y base actual (en un solo expander) ===
+    ss = st.session_state
+    df_sexo      = ss.get("df_sexo")
+    df_filtrado  = ss.get("df_filtrado")
+    df_comorb    = ss.get("df_comorb")
+    age_min      = ss.get("age_min")
+    age_max      = ss.get("age_max")
+    sel_comorb   = ss.get("comorb_selection", [])
+
+    # (opcional) para métricas de referencia:
+    base_df_ref = locals().get("base_df", None) or ss.get("df_sexo") or ss.get("df_filtrado")
+    base_len    = len(locals().get("base_df", base_df_ref)) if (locals().get("base_df", None) or base_df_ref is not None) else 0
+    datos_sel   = locals().get("datos_seleccionados", None)
+    if datos_sel is not None and isinstance(datos_sel, pd.DataFrame):
+        total_sexo_ref = len(datos_sel)
+    else:
+        total_sexo_ref = len(df_sexo) if isinstance(df_sexo, pd.DataFrame) else 0
+
+    with st.expander("📊 Resumen de filtros aplicados y muestra activa", expanded=False):
+
+        # --- Filtrado por sexo ---
+        if isinstance(df_sexo, pd.DataFrame):
+            st.subheader("Filtrado por sexo")
+            c1, c2 = st.columns(2)
+            c1.metric("Filas totales", f"{total_sexo_ref:,}")
+            c2.metric("Filas después de filtrar por sexo", f"{len(df_sexo):,}")
+
+        # --- Filtrado por sexo + edad ---
+        if isinstance(df_filtrado, pd.DataFrame):
+            st.subheader("Filtrado por sexo + edad")
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Filas base", f"{(len(base_df_ref) if base_df_ref is not None else 0):,}")
+            c2.metric("Edad mínima", age_min if age_min is not None else "-")
+            c3.metric("Edad máxima", age_max if age_max is not None else "-")
+            c4.metric("Filas después de filtrado", f"{len(df_filtrado):,}")
+
+        # --- Muestra que se usará en el análisis (tras comorbilidades) ---
+        if isinstance(df_comorb, pd.DataFrame):
+            st.subheader("Base final para el análisis")
+            c1, c2 = st.columns(2)
+            c1.metric("Filas base para filtrar", f"{base_len:,}")
+            c2.metric("Filas después del filtrado", f"{len(df_comorb):,}")
+            st.markdown("**A continuación se muestra la base de datos que se utilizará en el análisis.**")
+            st.dataframe(df_comorb.head(30), use_container_width=True)
+
+            # Resumen rápido de comorbilidades seleccionadas (conteos de 1)
+            if sel_comorb and "Sin comorbilidades" not in sel_comorb:
+                with st.expander("Resumen de comorbilidades seleccionadas (conteos de 1)", expanded=False):
+                    df_show = df_comorb
+                    for lbl in sel_comorb:
+                        col = comorb_map.get(lbl)
+                        if col in df_show.columns:
+                            cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
+                            st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
+
+
+
+
+    
 
     st.markdown("""
     ### Análisis por teoría de Rough Sets para la búsqueda de similitud entre los pacientes
