@@ -1,29 +1,5 @@
 import streamlit as st
 
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-
-box_css = (
-    "background:#EAF3FF;border:1px solid #D2E6FF;border-radius:16px;"
-    "padding:14px 18px;display:flex;align-items:center;gap:16px;"
-)
-img_css = "height:250px;width:auto;border-radius:8px;"
-h1_css  = "margin:0 0 4px 0;font-size:1.6rem;line-height:1.2;"
-sub_css = "font-size:1.02rem;color:#334155;max-width:50ch;"
-
-st.markdown(
-    f"""
-    <div style="{box_css}">
-      <img src="{LOGO_URL}" alt="Logo RS²" style="{img_css}" />
-      <div>
-        <h1 style="{h1_css}">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="{sub_css}">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 
 import pandas as pd
@@ -686,12 +662,12 @@ elif option == "Relaciones de Indiscernibilidad":
     # =========================
     # Vista previa del filtrado por SEX
     # =========================
-    if st.session_state["df_sexo"] is not None:
-        st.subheader("Filtrado por sexo")
-        c1, c2 = st.columns(2)
-        c1.metric("Filas totales", len(datos_seleccionados))
-        c2.metric("Filas después de filtrar por sexo", len(st.session_state["df_sexo"]))
-        #st.dataframe(st.session_state["df_sexo"].head(30), use_container_width=True)
+    #if st.session_state["df_sexo"] is not None:
+    #    st.subheader("Filtrado por sexo")
+    #    c1, c2 = st.columns(2)
+    #    c1.metric("Filas totales", len(datos_seleccionados))
+    #    c2.metric("Filas después de filtrar por sexo", len(st.session_state["df_sexo"]))
+    #    #st.dataframe(st.session_state["df_sexo"].head(30), use_container_width=True)
 
 
     # =========================
@@ -763,14 +739,14 @@ elif option == "Relaciones de Indiscernibilidad":
     # =========================
     # Vista previa del filtrado por SEX + EDAD
     # =========================
-    if st.session_state["df_filtrado"] is not None:
-        st.subheader("Filtrado por sexo + edad")
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Filas base", len(base_df))
-        c2.metric("Edad mínima", st.session_state["age_min"] if st.session_state["age_min"] is not None else "-")
-        c3.metric("Edad máxima", st.session_state["age_max"] if st.session_state["age_max"] is not None else "-")
-        #c4.metric("Filas después de filtrado", len(base_df))
-        c4.metric("Filas después de filtrado",         len(st.session_state["df_filtrado"]))
+    #if st.session_state["df_filtrado"] is not None:
+    #    st.subheader("Filtrado por sexo + edad")
+    #    c1, c2, c3, c4 = st.columns(4)
+    #    c1.metric("Filas base", len(base_df))
+    #    c2.metric("Edad mínima", st.session_state["age_min"] if st.session_state["age_min"] is not None else "-")
+    #    c3.metric("Edad máxima", st.session_state["age_max"] if st.session_state["age_max"] is not None else "-")
+    #    #c4.metric("Filas después de filtrado", len(base_df))
+    #    c4.metric("Filas después de filtrado",         len(st.session_state["df_filtrado"]))
 
 
     #st.dataframe(st.session_state["df_filtrado"].head(30), use_container_width=True)
@@ -1120,16 +1096,16 @@ elif option == "Relaciones de Indiscernibilidad":
 # =========================
 # Vista previa — Filtrado por SEX + EDAD + COMORBILIDADES
 # =========================
-#if st.session_state["df_comorb"] is not None:
-#    st.subheader("Tras filtrado por sexo + edad + comorbilidades")
-#    # Seleccionar base segura para longitud
-#    base_df_for_len = st.session_state.get("df_filtrado")
-#    if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
-#        base_df_for_len = st.session_state.get("df_sexo")
-#    if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
-#        base_df_for_len = datos_seleccionados
+if st.session_state["df_comorb"] is not None:
+    st.subheader("Tras filtrado por sexo + edad + comorbilidades")
+    # Seleccionar base segura para longitud
+    base_df_for_len = st.session_state.get("df_filtrado")
+    if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
+        base_df_for_len = st.session_state.get("df_sexo")
+    if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
+        base_df_for_len = datos_seleccionados
 
-#    base_len = len(base_df_for_len)
+    base_len = len(base_df_for_len)
 
 #    c1, c2 = st.columns(2)
 #    c1.metric("Filas base para filtrar.", base_len)
@@ -1176,21 +1152,21 @@ elif option == "Relaciones de Indiscernibilidad":
 
         base_len = len(base_df_for_len)
 
-        c1, c2 = st.columns(2)
-        c1.metric("Filas base para filtrar.", base_len)
-        c2.metric("Filas después del filtrado", len(st.session_state["df_comorb"]))
-        st.markdown("""**A continuación se muestra la base de datos que se utilizará en el análisis.**""")
-        st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
+   #     c1, c2 = st.columns(2)
+   #     c1.metric("Filas base para filtrar.", base_len)
+   #     c2.metric("Filas después del filtrado", len(st.session_state["df_comorb"]))
+   #     st.markdown("""**A continuación se muestra la base de datos que se utilizará en el análisis.**""")
+   #     st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
 
-        # Resumen rápido (cuenta de 1 en cada comorbilidad seleccionada)
-        if st.session_state["comorb_selection"] and "Sin comorbilidades" not in st.session_state["comorb_selection"]:
-            with st.expander("Resumen de comorbilidades seleccionadas (conteos de 1)"):
-                df_show = st.session_state["df_comorb"]
-                for lbl in st.session_state["comorb_selection"]:
-                    col = comorb_map[lbl]
-                    if col in df_show.columns:
-                        cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
-                        st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
+   #     # Resumen rápido (cuenta de 1 en cada comorbilidad seleccionada)
+   #     if st.session_state["comorb_selection"] and "Sin comorbilidades" not in st.session_state["comorb_selection"]:
+   #         with st.expander("Resumen de comorbilidades seleccionadas (conteos de 1)"):
+   #             df_show = st.session_state["df_comorb"]
+   #             for lbl in st.session_state["comorb_selection"]:
+   #                 col = comorb_map[lbl]
+   #                 if col in df_show.columns:
+   #                     cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
+   #                     st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
 
 
     # === Resumen compacto de filtros y base actual (en un solo expander) ===
