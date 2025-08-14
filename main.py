@@ -1,26 +1,78 @@
+#import streamlit as st
+
+#LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
+
+#col_logo, col_title = st.columns([2, 3], gap="small")
+
+#with col_logo:
+#    st.image(LOGO_URL, use_container_width=True)
+
+#with col_title:
+#    st.markdown(
+#        """
+#        <div style="display:inline-block; text-align:left;">
+#            <h1 style="margin-bottom:6px; display:inline-block;">
+#                RS²: Rough Sets para Riesgo de Sarcopenia
+#            </h1>
+#            <div style="font-size:1.05rem; color:#444; max-width: 40ch;">
+#                Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
+#            </div>
+#        </div>
+#        """,
+#        unsafe_allow_html=True
+#    )
+
+
 import streamlit as st
 
 LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
 
-col_logo, col_title = st.columns([2, 3], gap="small")
+st.markdown(
+    f"""
+    <style>
+      .hero-box {{
+        background: #EAF3FF;                     /* azul claro */
+        border: 1px solid #D2E6FF;
+        border-radius: 16px;                     /* esquinas redondeadas */
+        padding: 14px 18px;
+        display: flex;                           /* alinear logo y texto en fila */
+        align-items: center;                     /* centrado vertical */
+        gap: 16px;                               /* espacio entre logo y texto */
+      }}
+      .hero-box img {{
+        height: 72px;                            /* tamaño del logo */
+        width: auto;
+        border-radius: 8px;
+      }}
+      .hero-text h1 {{
+        margin: 0 0 4px 0;
+        font-size: 1.6rem;
+        line-height: 1.2;
+      }}
+      .hero-text .sub {{
+        font-size: 1.02rem;
+        color: #334155;
+        max-width: 50ch;
+      }}
+      /* Responsive: apilar en pantallas angostas */
+      @media (max-width: 680px) {{
+        .hero-box {{ flex-direction: column; text-align: center; }}
+        .hero-text .sub {{ max-width: none; }}
+      }}
+    </style>
 
-with col_logo:
-    st.image(LOGO_URL, use_container_width=True)
-
-with col_title:
-    st.markdown(
-        """
-        <div style="display:inline-block; text-align:left;">
-            <h1 style="margin-bottom:6px; display:inline-block;">
-                RS²: Rough Sets para Riesgo de Sarcopenia
-            </h1>
-            <div style="font-size:1.05rem; color:#444; max-width: 40ch;">
-                Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-            </div>
+    <div class="hero-box">
+      <img src="{LOGO_URL}" alt="Logo RS²" />
+      <div class="hero-text">
+        <h1>RS²: Rough Sets para Riesgo de Sarcopenia</h1>
+        <div class="sub">
+          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 
 
