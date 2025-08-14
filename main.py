@@ -1,58 +1,20 @@
 import streamlit as st
 import pandas as pd
 import gdown
-import io  
+import io
+import re
+import numpy as np    
+import matplotlib.pyplot as plt
+from matplotlib.patches import ConnectionPatch
+from math import log1p
+from itertools import combinations
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.preprocessing import LabelEncoder
 
 
-
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-
-st.markdown(
-    f"""
-    <style>
-      .hero-box {{
-        background: #EAF3FF;                     /* azul claro */
-        border: 1px solid #D2E6FF;
-        border-radius: 16px;                     /* esquinas redondeadas */
-        padding: 14px 18px;
-        display: flex;                           /* alinear logo y texto en fila */
-        align-items: center;                     /* centrado vertical */
-        gap: 16px;                               /* espacio entre logo y texto */
-      }}
-      .hero-box img {{
-        height: 250px;                            /* tamaño del logo */
-        width: auto;
-        border-radius: 8px;
-      }}
-      .hero-text h1 {{
-        margin: 0 0 4px 0;
-        font-size: 1.6rem;
-        line-height: 1.2;
-      }}
-      .hero-text .sub {{
-        font-size: 1.02rem;
-        color: #334155;
-        max-width: 50ch;
-      }}
-      /* Responsive: apilar en pantallas angostas */
-      @media (max-width: 680px) {{
-        .hero-box {{ flex-direction: column; text-align: center; }}
-        .hero-text .sub {{ max-width: none; }}
-      }}
-    </style>
-
-    <div class="hero-box">
-      <img src="{LOGO_URL}" alt="Logo RS²" />
-      <div class="hero-text">
-        <h1>RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div class="sub">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 
 
@@ -191,8 +153,7 @@ Se ha propuesto que la sarcopenia y la diabetes se pueden relacionar mediante m�
                     
     with tab2:
             st.header("Hipertensión arterial")
-#            st.markdown(""" <div style="text-align: justify;"> La hipertensión arterial, definida como presión arterial sistólica igual o superior a 140 mmHg o presión arterial diastólica igual o superior a 90 mmHg, es uno de los factores de riesgo más importantes para las enfermedades cardiovasculares y la enfermedad renal crónica. La presión arterial es un rasgo multifacético, afectado por la nutrición, el medio ambiente y el comportamiento a lo largo del curso de la vida, incluida la nutrición y el crecimiento fetal y la infancia, la adiposidad, los componentes específicos de la dieta, especialmente la ingesta de sodio y potasio, el consumo de alcohol, el tabaquismo y la actividad física, la contaminación del aire, el plomo, el ruido, el estrés psicosocial y el uso de medicamentos para bajar la presión arterial.""",  unsafe_allow_html=True)
-
+        
             st.markdown("""
 <div style="text-align: justify;">
 
@@ -204,6 +165,7 @@ La <a href="https://doi.org/10.1016/j.jacc.2017.11.006" target="_blank"><strong>
 
             
             st.subheader("Impacto en la salud")
+        
             st.markdown(""" <div style="text-align: justify;">
             La hipertensión es un trastorno médico grave que puede incrementar el riesgo de enfermedades cardiovasculares, cerebrales, renales y otras. Esta importante causa de defunción prematura en todo el mundo afecta a más de uno de cada cuatro hombres y una de cada cinco mujeres, o sea, más de 1000 millones de personas. La carga de morbilidad por hipertensión es desproporcionadamente alta en los países de ingresos bajos y medianos, en los que se registran dos terceras partes de los casos, debido en gran medida al aumento de los factores de riesgo entre esas poblaciones en los últimos decenios. 
             https://www.paho.org/es/enlace/hipertension
@@ -454,9 +416,6 @@ elif option == "Buscador de variables":
 
 elif option == "Relaciones de Indiscernibilidad":
 
-    import re
-    import pandas as pd
-    import streamlit as st
     def determinar_color(valores):
         count_ones = sum(1 for v in valores if pd.to_numeric(v, errors="coerce") == 1)
         if count_ones == 0:   return 'blue'
@@ -1227,11 +1186,7 @@ elif option == "Relaciones de Indiscernibilidad":
 # =========================
 # Indiscernibilidad + resumen + pastel + radar (con exclusión de NaN)
 # =========================
-    import numpy as np    
-    import matplotlib.pyplot as plt
-    from matplotlib.patches import ConnectionPatch
-    from math import log1p
-    import re
+
 
     # --- Funciones ---
     def indiscernibility(attr, table: pd.DataFrame):
@@ -1916,11 +1871,6 @@ elif option == "Relaciones de Indiscernibilidad":
 # =========================
 # Reductos de 4 y 3 variables (evaluación vs. partición original en el subconjunto del pastel)
 # =========================
-    import numpy as np
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    from itertools import combinations
-
     ss = st.session_state
     need = ("ind_df_eval", "ind_cols", "ind_classes", "ind_lengths", "ind_min_size")
     if not all(k in ss for k in need) or not isinstance(ss["ind_df_eval"], pd.DataFrame):
@@ -2324,14 +2274,6 @@ elif option == "Relaciones de Indiscernibilidad":
     # =========================
     # Reductos + RF (rápido) + Predicción en todo el pastel + barras comparativas
     # =========================
-    from itertools import combinations
-    import numpy as np
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.preprocessing import LabelEncoder
-    from sklearn.impute import SimpleImputer
-
     ss = st.session_state
     needed = ("ind_cols","ind_df","ind_classes","ind_lengths","ind_min_size")
     if not all(k in ss for k in needed):
@@ -2479,8 +2421,6 @@ elif option == "Relaciones de Indiscernibilidad":
 
     ####FALLBACK
     # === Fallback que acepta NaN en predicción: HistGradientBoosting ===
-    from sklearn.ensemble import HistGradientBoostingClassifier
-    from sklearn.preprocessing import LabelEncoder
 
     ss = st.session_state
 
