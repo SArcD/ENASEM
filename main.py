@@ -1,28 +1,5 @@
 import streamlit as st
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
 
-box_css = (
-    "background:#EAF3FF;border:1px solid #D2E6FF;border-radius:16px;"
-    "padding:14px 18px;display:flex;align-items:center;gap:16px;"
-)
-img_css = "height:250px;width:auto;border-radius:8px;"
-h1_css  = "margin:0 0 4px 0;font-size:1.6rem;line-height:1.2;"
-sub_css = "font-size:1.02rem;color:#334155;max-width:50ch;"
-
-st.markdown(
-    f"""
-    <div style="{box_css}">
-      <img src="{LOGO_URL}" alt="Logo RS²" style="{img_css}" />
-      <div>
-        <h1 style="{h1_css}">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="{sub_css}">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 
 import pandas as pd
@@ -1119,16 +1096,16 @@ elif option == "Relaciones de Indiscernibilidad":
 # =========================
 # Vista previa — Filtrado por SEX + EDAD + COMORBILIDADES
 # =========================
-if st.session_state["df_comorb"] is not None:
-    #st.subheader("Tras filtrado por sexo + edad + comorbilidades")
-    # Seleccionar base segura para longitud
-    base_df_for_len = st.session_state.get("df_filtrado")
-    if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
-        base_df_for_len = st.session_state.get("df_sexo")
-    if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
-        base_df_for_len = datos_seleccionados
+    if st.session_state["df_comorb"] is not None:
+        #st.subheader("Tras filtrado por sexo + edad + comorbilidades")
+        # Seleccionar base segura para longitud
+        base_df_for_len = st.session_state.get("df_filtrado")
+        if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
+            base_df_for_len = st.session_state.get("df_sexo")
+        if not isinstance(base_df_for_len, pd.DataFrame) or base_df_for_len.empty:
+            base_df_for_len = datos_seleccionados
 
-    base_len = len(base_df_for_len)
+        base_len = len(base_df_for_len)
 
 #    c1, c2 = st.columns(2)
 #    c1.metric("Filas base para filtrar.", base_len)
