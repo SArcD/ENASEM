@@ -67,7 +67,7 @@ option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filt
 
 if option == "Introducción":
     #
-    st.title("Analizador ENASEM-RS")
+    #st.title("Analizador ENASEM-RS")
     st.header("Sobre el envejecimiento en México")
 
     st.markdown("""
