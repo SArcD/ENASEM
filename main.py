@@ -2085,7 +2085,7 @@ if st.session_state["df_comorb"] is not None:
 
                         st.subheader("Reductos: como predecir el nivel de riesgo con menos datos de los necesarios")
                         #st.markdown("""Buscamos una lista reducida de AVD que clasifique el nivel de riesgo igual que la lista completa; para hallarla aplicamos pruebas quita-1 y quita-2 (eliminamos una o dos AVD y verificamos si las agrupaciones de pacientes se mantienen idénticas: si no cambian, se preservan las relaciones de indiscernibilidad y esa lista reducida es válida). La app usa una jerarquía de AVD (de mayor a menor utilidad) para estimar el riesgo con datos incompletos y, si la decisión queda indeterminada, sugiere qué AVD medir a continuación. Ventajas: menos tiempo y costo, tolerancia a faltantes y guía clara de recolección; límites: depende de la población de datos (conviene recalibrar) y es un apoyo clínico, no reemplaza el juicio profesional.""")
-                         st.markdown("""
+                        st.markdown("""
                         - **Objetivo:** buscar combinaciones reducidas de **4** y **3** AVD/ADL (**reductos**) que repliquen lo mejor posible la **partición original** formada con todas las AVD/ADL elegidas.
                         - **Dónde se evalúa:** solo en el **subconjunto del pastel** (clases con tamaño ≥ umbral) y **sobre filas sin NaN** en esas AVD/ADL.
 
