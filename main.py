@@ -63,7 +63,7 @@ def convert_df_to_xlsx(df):
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
 #option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de variables", "Buscador de datos", "Relaciones de Indiscernibilidad 2018", "Relaciones de Indiscernibilidad 2021", "Equipo de trabajo"])
-option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de variables", "Relaciones de Indiscernibilidad", "Equipo de trabajo"])
+option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Buscador de variables", "Relaciones de Indiscernibilidad", "Equipo de trabajo"])
 
 if option == "Introducción":
     #
@@ -198,159 +198,159 @@ Un estudio observacional en adultos mayores encontró que quienes usaban IECA o 
 """, unsafe_allow_html=True)
 
 
-elif option == "Filtrar datos":
-    st.header("Extracción de datos a partir de la ENASEM")
-    st.markdown(""" En esta sección puede cargar algunos de los conjuntos de datos de la ENASEM (ya sea de las ediciones de 2018 o de 2021). En el menú desplegable puede seleccionar el archivo a cargar. </div> """,  unsafe_allow_html=True)
-    st.write("")  # Esto agrega un espacio en blanco
+#elif option == "Filtrar datos":
+#    st.header("Extracción de datos a partir de la ENASEM")
+#    st.markdown(""" En esta sección puede cargar algunos de los conjuntos de datos de la ENASEM (ya sea de las ediciones de 2018 o de 2021). En el menú desplegable puede seleccionar el archivo a cargar. </div> """,  unsafe_allow_html=True)
+#    st.write("")  # Esto agrega un espacio en blanco
 
-    # Menú desplegable para elegir el archivo
-    selected_file = st.selectbox("**Selecciona un archivo CSV**", list(file_urls.keys()))
+#    # Menú desplegable para elegir el archivo
+#    selected_file = st.selectbox("**Selecciona un archivo CSV**", list(file_urls.keys()))
 
-    if selected_file:
-        # Cargar el archivo seleccionado
-        data = load_csv_from_drive(file_urls[selected_file])
+#    if selected_file:
+#        # Cargar el archivo seleccionado
+#        data = load_csv_from_drive(file_urls[selected_file])
         
-        st.write(f"**Archivo seleccionado:** {selected_file}")
-        st.write(data)
+#        st.write(f"**Archivo seleccionado:** {selected_file}")
+#        st.write(data)
         
-        # Lista de verificación para seleccionar columnas
-        st.markdown(""" <div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
-        st.write("")  # Esto agrega un espacio en blanco
-        selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", data.columns.tolist())
+#        # Lista de verificación para seleccionar columnas
+#        st.markdown(""" <div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
+#        st.write("")  # Esto agrega un espacio en blanco
+#        selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", data.columns.tolist())
         
-        if selected_columns:
-            # Crear dataframe reducido
-            reduced_data = data[selected_columns]
-            st.write("")  # Esto agrega un espacio en blanco
-            st.write("**Base de datos con las columnas seleccionadas:**")
-            st.dataframe(reduced_data, use_container_width=True)
+#        if selected_columns:
+#            # Crear dataframe reducido
+#            reduced_data = data[selected_columns]
+#            st.write("")  # Esto agrega un espacio en blanco
+#            st.write("**Base de datos con las columnas seleccionadas:**")
+#            st.dataframe(reduced_data, use_container_width=True)
 
-            with st.expander("**Información adicional**"):
-                # Mostrar información del dataframe reducido
-                num_rows, num_cols = reduced_data.shape
-                st.write(f"**Número de filas**: {num_rows}")
-                st.write(f"**Número de columnas**: {num_cols}")
+#            with st.expander("**Información adicional**"):
+#                # Mostrar información del dataframe reducido
+#                num_rows, num_cols = reduced_data.shape
+#                st.write(f"**Número de filas**: {num_rows}")
+#                st.write(f"**Número de columnas**: {num_cols}")
             
-                # Contar valores NaN por columna
-                nan_counts = reduced_data.isna().sum().reset_index()
-                nan_counts.columns = ["Clave", "Conteo"]
+#                # Contar valores NaN por columna
+#                nan_counts = reduced_data.isna().sum().reset_index()
+#                nan_counts.columns = ["Clave", "Conteo"]
             
-                st.write("**Conteo de valores NaN por columna:**")
-                st.write(nan_counts)
+#                st.write("**Conteo de valores NaN por columna:**")
+#                st.write(nan_counts)
 
-            # Botón para descargar el dataframe reducido en formato csv
-            csv_data = convert_df_to_csv(reduced_data)
-            st.download_button(
-                label="**Descargar Dataframe en formato CSV**",
-                data=csv_data,
-                file_name="dataframe_reducido.csv",
-                mime="text/csv"
-            )
+#            # Botón para descargar el dataframe reducido en formato csv
+#            csv_data = convert_df_to_csv(reduced_data)
+#            st.download_button(
+#                label="**Descargar Dataframe en formato CSV**",
+#                data=csv_data,
+#                file_name="dataframe_reducido.csv",
+#                mime="text/csv"
+#            )
 
-            xlsx_data = convert_df_to_xlsx(reduced_data)
-            st.download_button(
-                label="**Descargar Dataframe en formato XLSX**",
-                data=xlsx_data,
-                file_name="dataframe_reducido.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+#            xlsx_data = convert_df_to_xlsx(reduced_data)
+#            st.download_button(
+#                label="**Descargar Dataframe en formato XLSX**",
+#                data=xlsx_data,
+#                file_name="dataframe_reducido.xlsx",
+#                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+#            )
 
 
-    st.subheader("Unir dataframes")
+#    st.subheader("Unir dataframes")
 
-    st.markdown("""<div style="text-align: justify;"> En esta sección puede unir dos archivos .csv para formar una base de datos mas grande (recuerde seleccionar archivos que correspondan al mismo año). La base de datos se mostrará abajo, así como información sobre el conteo de filas con columnas vacías </div> """,  unsafe_allow_html=True)
-    st.write("")  # Esto agrega un espacio en blanco
-    # Seleccionar dos archivos CSV para unir
-    selected_files = st.multiselect("**Selecciona dos archivos CSV para unir**", list(file_urls.keys()), default=None, max_selections=2)
+#    st.markdown("""<div style="text-align: justify;"> En esta sección puede unir dos archivos .csv para formar una base de datos mas grande (recuerde seleccionar archivos que correspondan al mismo año). La base de datos se mostrará abajo, así como información sobre el conteo de filas con columnas vacías </div> """,  unsafe_allow_html=True)
+#    st.write("")  # Esto agrega un espacio en blanco
+#    # Seleccionar dos archivos CSV para unir
+#    selected_files = st.multiselect("**Selecciona dos archivos CSV para unir**", list(file_urls.keys()), default=None, max_selections=2)
 
-    if len(selected_files) == 2:
-        # Cargar los dos archivos seleccionados
-        df1 = load_csv_from_drive(file_urls[selected_files[0]])
-        df2 = load_csv_from_drive(file_urls[selected_files[1]])
+#    if len(selected_files) == 2:
+#        # Cargar los dos archivos seleccionados
+#        df1 = load_csv_from_drive(file_urls[selected_files[0]])
+ #       df2 = load_csv_from_drive(file_urls[selected_files[1]])
         
-        if df1 is not None and df2 is not None:
-            # Unir los dataframes usando la columna 'CUNICAH'
-            merged_data = pd.merge(df1, df2, on='CUNICAH', how='inner')
+#        if df1 is not None and df2 is not None:
+#            # Unir los dataframes usando la columna 'CUNICAH'
+#            merged_data = pd.merge(df1, df2, on='CUNICAH', how='inner')
             
-            st.write("**Base de datos unida**:")
-            st.dataframe(merged_data, use_container_width=True)
+#            st.write("**Base de datos unida**:")
+#            st.dataframe(merged_data, use_container_width=True)
 
-            with st.expander("**Información adicional**"):
-                # Mostrar información del dataframe reducido
-                num_rows, num_cols = merged_data.shape
-                st.write(f"**Número de filas**: {num_rows}")
-                st.write(f"**Número de columnas**: {num_cols}")
+#            with st.expander("**Información adicional**"):
+#                # Mostrar información del dataframe reducido
+#                num_rows, num_cols = merged_data.shape
+#                st.write(f"**Número de filas**: {num_rows}")
+#                st.write(f"**Número de columnas**: {num_cols}")
             
-                # Contar valores NaN por columna
-                nan_counts = merged_data.isna().sum().reset_index()
-                nan_counts.columns = ["Clave", "Conteo"]
-            
-                st.write("**Conteo de valores NaN por columna:**")
-                st.write(nan_counts)
+#                # Contar valores NaN por columna
+#                nan_counts = merged_data.isna().sum().reset_index()
+#                nan_counts.columns = ["Clave", "Conteo"]
+#            
+#                st.write("**Conteo de valores NaN por columna:**")
+#                st.write(nan_counts)
             
 
-            # Botón para descargar el dataframe reducido en formato csv
-            csv_data = convert_df_to_csv(merged_data)
-            st.download_button(
-                label="**Descargar Dataframe en formato CSV**",
-                data=csv_data,
-                file_name="dataframe_unificado.csv",
-                mime="text/csv"
-            )
+#            # Botón para descargar el dataframe reducido en formato csv
+#            csv_data = convert_df_to_csv(merged_data)
+#            st.download_button(
+#                label="**Descargar Dataframe en formato CSV**",
+#                data=csv_data,
+#                file_name="dataframe_unificado.csv",
+#                mime="text/csv"
+#            )
             
-            # Botón para descargar el dataframe unido en formato CSV
-            csv_data = convert_df_to_csv(merged_data)
-            st.download_button(
-                label="**Descargar Dataframe unido en formato CSV**",
-                data=csv_data,
-                file_name="dataframe_unido.csv",
-                mime="text/csv"
-            )
+#            # Botón para descargar el dataframe unido en formato CSV
+#            csv_data = convert_df_to_csv(merged_data)
+#            st.download_button(
+#                label="**Descargar Dataframe unido en formato CSV**",
+#                data=csv_data,
+#                file_name="dataframe_unido.csv",
+#                mime="text/csv"
+#            )
 
-        st.subheader("Selección de columnas")
-        st.markdown("""<div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
-    # Seleccionar dos archivos CSV para unir
-        # Lista de verificación para seleccionar columnas
-        st.write("")  # Esto agrega un espacio en blanco
-        selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", merged_data.columns.tolist())
+#        st.subheader("Selección de columnas")
+#        st.markdown("""<div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
+#    # Seleccionar dos archivos CSV para unir
+#        # Lista de verificación para seleccionar columnas
+#        st.write("")  # Esto agrega un espacio en blanco
+#        selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", merged_data.columns.tolist())
         
-        if selected_columns:
-            # Crear dataframe reducido
-            reduced_merged_data = merged_data[selected_columns]
+#        if selected_columns:
+#            # Crear dataframe reducido
+#            reduced_merged_data = merged_data[selected_columns]
             
-            st.write("**Base de datos:**")
-            st.dataframe(reduced_merged_data, use_container_width=True)
+#            st.write("**Base de datos:**")
+#            st.dataframe(reduced_merged_data, use_container_width=True)
 
-            with st.expander("**Información adicional**"):
-                # Mostrar información del dataframe reducido
-                num_rows, num_cols = reduced_merged_data.shape
-                st.write(f"**Número de filas**: {num_rows}")
-                st.write(f"**Número de columnas**: {num_cols}")
+#            with st.expander("**Información adicional**"):
+#                # Mostrar información del dataframe reducido
+#                num_rows, num_cols = reduced_merged_data.shape
+#                st.write(f"**Número de filas**: {num_rows}")
+#                st.write(f"**Número de columnas**: {num_cols}")
             
-                # Contar valores NaN por columna
-                nan_counts = reduced_merged_data.isna().sum().reset_index()
-                nan_counts.columns = ["Clave", "Conteo"]
+#                # Contar valores NaN por columna
+#                nan_counts = reduced_merged_data.isna().sum().reset_index()
+ #               nan_counts.columns = ["Clave", "Conteo"]
             
-                st.write("**Conteo de valores NaN por columna:**")
-                st.write(nan_counts)
+#                st.write("**Conteo de valores NaN por columna:**")
+#                st.write(nan_counts)
 
             
-            # Botón para descargar el dataframe reducido en formato csv
-            csv_data = convert_df_to_csv(reduced_merged_data)
-            st.download_button(
-                label="**Descargar Dataframe en formato CSV**",
-                data=csv_data,
-                file_name="dataframe_unificado_reducido.csv",
-                mime="text/csv"
-            )
+ #           # Botón para descargar el dataframe reducido en formato csv
+ #           csv_data = convert_df_to_csv(reduced_merged_data)
+ #           st.download_button(
+ #               label="**Descargar Dataframe en formato CSV**",
+ #               data=csv_data,
+ #               file_name="dataframe_unificado_reducido.csv",
+ #               mime="text/csv"
+ #           )
 
-            xlsx_data = convert_df_to_xlsx(reduced_merged_data)
-            st.download_button(
-                label="**Descargar Dataframe en formato XLSX**",
-                data=xlsx_data,
-                file_name="dataframe_unificado_reducido.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+ #           xlsx_data = convert_df_to_xlsx(reduced_merged_data)
+ #           st.download_button(
+ #               label="**Descargar Dataframe en formato XLSX**",
+ #               data=xlsx_data,
+ #               file_name="dataframe_unificado_reducido.xlsx",
+ #               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+ #           )
 elif option == "Buscador de variables":
 
 
