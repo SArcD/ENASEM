@@ -2084,17 +2084,44 @@ if st.session_state["df_comorb"] is not None:
                         ).reset_index(drop=True)
 
                         st.subheader("Reductos: como predecir el nivel de riesgo con menos datos de los necesarios")
-                        st.markdown("""Reductos (explicación breve): buscamos una lista reducida de ADL que clasifique el nivel de riesgo igual que la lista completa; para hallarla aplicamos pruebas quita-1 y quita-2 (eliminamos una o dos ADL y verificamos si las agrupaciones de pacientes se mantienen idénticas: si no cambian, se preservan las relaciones de indiscernibilidad y esa lista reducida es válida). La app usa una jerarquía de ADL (de mayor a menor utilidad) para estimar el riesgo con datos incompletos y, si la decisión queda indeterminada, sugiere qué ADL medir a continuación. Ventajas: menos tiempo y costo, tolerancia a faltantes y guía clara de recolección; límites: depende de la población de datos (conviene recalibrar) y es un apoyo clínico, no reemplaza el juicio profesional.""")
+                        #st.markdown("""Buscamos una lista reducida de AVD que clasifique el nivel de riesgo igual que la lista completa; para hallarla aplicamos pruebas quita-1 y quita-2 (eliminamos una o dos AVD y verificamos si las agrupaciones de pacientes se mantienen idénticas: si no cambian, se preservan las relaciones de indiscernibilidad y esa lista reducida es válida). La app usa una jerarquía de AVD (de mayor a menor utilidad) para estimar el riesgo con datos incompletos y, si la decisión queda indeterminada, sugiere qué AVD medir a continuación. Ventajas: menos tiempo y costo, tolerancia a faltantes y guía clara de recolección; límites: depende de la población de datos (conviene recalibrar) y es un apoyo clínico, no reemplaza el juicio profesional.""")
+                         st.markdown("""
+                        - **Objetivo:** buscar combinaciones reducidas de **4** y **3** AVD/ADL (**reductos**) que repliquen lo mejor posible la **partición original** formada con todas las AVD/ADL elegidas.
+                        - **Dónde se evalúa:** solo en el **subconjunto del pastel** (clases con tamaño ≥ umbral) y **sobre filas sin NaN** en esas AVD/ADL.
+
+                        - **Cómo se construyen y comparan:**
+                          - **Estrategia quita-1 y quita-2:** eliminamos 1 o 2 AVD de la lista completa y verificamos si las **agrupaciones de pacientes** (relaciones de                 indiscernibilidad) se preservan.
+                          - Cada reducto genera su partición y se compara contra la original con:
+                            - **ARI** (Adjusted Rand Index) → **1.0** = particiones idénticas; mayor es mejor.
+                            - **NMI** (Normalized Mutual Information) → **1.0** = información equivalente; mayor es mejor.
+                            - **Preservación de pares**: porcentaje de pares de filas que el reducto **mantiene juntos / separados** igual que la partición original.
+
+                        - **Qué se muestra:**
+                          - **Tabla** ordenada por desempeño (ARI y preservaciones).
+                          - Los **mejores reductos** de **4** y **3** variables.
+                          - (Opcional) **Boxplot** de tamaños de bloque y **heatmap** de correspondencia.
+
+                        - **Uso posterior (datos incompletos):**
+                          - La app aplica una **jerarquía de AVD (de mayor a menor utilidad)** para **estimar el riesgo** cuando faltan datos.
+                          - Si la decisión queda **indeterminada**, sugiere **qué AVD medir a continuación**.
+
+                        - **Ventajas:** menos tiempo y costo, **tolerancia a faltantes** y **guía** clara de recolección.
+                        - **Límites:** depende de la **población de datos** (conviene **recalibrar**) y es **apoyo clínico**, **no** reemplaza el juicio profesional.
+                        - **Notas:** si hay demasiadas combinaciones se **limitan** para evitar tiempos largos; puedes **usar las columnas del mejor reducto** para entrenar modelos     posteriores.    
+                        """)
+
+
+                        
                         st.caption(f"Filas en evaluación: {len(universo_sel):,} | Variables originales: {m}")
                         st.dataframe(df_closeness, use_container_width=True)
 
-                        st.download_button(
-                            "Descargar métricas de reductos (CSV)",
-                            data=df_closeness.to_csv(index=False).encode("utf-8"),
-                            file_name="reductos_4y3_metricas.csv",
-                            mime="text/csv",
-                            key="dl_reductos_4y3"
-                        )
+                        #st.download_button(
+                        #    "Descargar métricas de reductos (CSV)",
+                        #    data=df_closeness.to_csv(index=False).encode("utf-8"),
+                        #    file_name="reductos_4y3_metricas.csv",
+                        #    mime="text/csv",
+                        #    key="dl_reductos_4y3"
+                        #)
 
                         # ---------- mejores reductos de 4 y 3 ----------
                         best4 = df_closeness[df_closeness["#vars"] == 4].head(1)
@@ -2324,23 +2351,23 @@ if st.session_state["df_comorb"] is not None:
                                 f"Pres. distintos={r['Preservación distintos (%)']}%"
                             )
                     
-                        with st.expander("ℹ️ ¿Qué hace esta sección? (Resumen rápido)", expanded=False):
-                            st.markdown("""
-                        - **Objetivo:** buscar combinaciones de **4** y **3** ADL (reductos) que repliquen lo mejor posible la **partición original** hecha con todas las ADL elegidas.
-                        - **Dónde se evalúa:** solo en el **subconjunto del pastel** (clases con tamaño ≥ umbral) y **sin NaN** en esas ADL.
-                        - **Cómo se compara:** cada reducto genera su partición y se compara contra la original con estas métricas:
-                          - **ARI** (Adjusted Rand Index): 1.0 = particiones idénticas; mayor es mejor.
-                          - **NMI** (Normalized Mutual Information): 1.0 = información equivalente; mayor es mejor.
-                          - **Pres. iguales / distintos**: porcentaje de pares de filas que el reducto mantiene juntos / separados igual que la partición original.
-                            - **Qué se muestra:**
-                          - Una **tabla** ordenada por desempeño (ARI, preservaciones).
-                          - Los **mejores** reductos de **4** y **3** variables.
-                          - (Opcional) **Boxplot** de tamaños de bloque y **heatmap** de correspondencia.
-                        - **Notas:**
-                          - Solo se consideran filas **sin NaN** en las ADL evaluadas.
-                          - Si hay demasiadas combinaciones, se limita el número para evitar tiempos largos.
-                          - Puedes usar las columnas del mejor reducto para entrenar modelos posteriores.
-                            """)
+        #                with st.expander("ℹ️ ¿Qué hace esta sección? (Resumen rápido)", expanded=False):
+        #                    st.markdown("""
+        #                - **Objetivo:** buscar combinaciones de **4** y **3** ADL (reductos) que repliquen lo mejor posible la **partición original** hecha con todas las ADL elegidas.
+        #                - **Dónde se evalúa:** solo en el **subconjunto del pastel** (clases con tamaño ≥ umbral) y **sin NaN** en esas ADL.
+        #                - **Cómo se compara:** cada reducto genera su partición y se compara contra la original con estas métricas:
+        #                  - **ARI** (Adjusted Rand Index): 1.0 = particiones idénticas; mayor es mejor.
+        #                  - **NMI** (Normalized Mutual Information): 1.0 = información equivalente; mayor es mejor.
+        #                  - **Pres. iguales / distintos**: porcentaje de pares de filas que el reducto mantiene juntos / separados igual que la partición original.
+        #                    - **Qué se muestra:**
+        #                  - Una **tabla** ordenada por desempeño (ARI, preservaciones).
+        #                  - Los **mejores** reductos de **4** y **3** variables.
+        #                  - (Opcional) **Boxplot** de tamaños de bloque y **heatmap** de correspondencia.
+        #                - **Notas:**
+        #                  - Solo se consideran filas **sin NaN** en las ADL evaluadas.
+        #                  - Si hay demasiadas combinaciones, se limita el número para evitar tiempos largos.
+        #                  - Puedes usar las columnas del mejor reducto para entrenar modelos posteriores.
+        #                    """)
 
     # =========================
     # Reductos + RF (rápido) + Predicción en todo el pastel + barras comparativas
