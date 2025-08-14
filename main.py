@@ -2086,7 +2086,7 @@ if st.session_state["df_comorb"] is not None:
                         st.subheader("Reductos: como predecir el nivel de riesgo con menos datos de los necesarios")
                         #st.markdown("""Buscamos una lista reducida de AVD que clasifique el nivel de riesgo igual que la lista completa; para hallarla aplicamos pruebas quita-1 y quita-2 (eliminamos una o dos AVD y verificamos si las agrupaciones de pacientes se mantienen idénticas: si no cambian, se preservan las relaciones de indiscernibilidad y esa lista reducida es válida). La app usa una jerarquía de AVD (de mayor a menor utilidad) para estimar el riesgo con datos incompletos y, si la decisión queda indeterminada, sugiere qué AVD medir a continuación. Ventajas: menos tiempo y costo, tolerancia a faltantes y guía clara de recolección; límites: depende de la población de datos (conviene recalibrar) y es un apoyo clínico, no reemplaza el juicio profesional.""")
                         st.markdown("""
-                        - **Objetivo:** buscar combinaciones reducidas de **4** y **3** AVD/ADL (**reductos**) que repliquen lo mejor posible la **partición original** formada con todas las AVD/ADL elegidas.
+                        - **Objetivo:** buscar combinaciones reducidas de **4** y **3** AVD (**reductos**) que repliquen lo mejor posible la **partición original** formada con todas las AVD elegidas.
                         - **Dónde se evalúa:** solo en el **subconjunto del pastel** (clases con tamaño ≥ umbral) y **sobre filas sin NaN** en esas AVD/ADL.
 
                         - **Cómo se construyen y comparan:**
@@ -2107,7 +2107,6 @@ if st.session_state["df_comorb"] is not None:
 
                         - **Ventajas:** menos tiempo y costo, **tolerancia a faltantes** y **guía** clara de recolección.
                         - **Límites:** depende de la **población de datos** (conviene **recalibrar**) y es **apoyo clínico**, **no** reemplaza el juicio profesional.
-                        - **Notas:** si hay demasiadas combinaciones se **limitan** para evitar tiempos largos; puedes **usar las columnas del mejor reducto** para entrenar modelos     posteriores.    
                         """)
 
 
@@ -2507,7 +2506,7 @@ if st.session_state["df_comorb"] is not None:
                 ss["rf_best3_le"] = le3
                 ss["rf_best3_imp"] = imp3
 
-            st.success("Modelos RF entrenados (best4 y, si procede, best3).")
+            #st.success("Modelos RF entrenados (best4 y, si procede, best3).")
             with st.expander("🌲 ¿Qué hace el Random Forest aquí?", expanded=False):
                 st.markdown("""
             - Entrenamos **RF** sobre `nivel_riesgo` generado por la **regla**, usando el mejor reducto.
@@ -2579,7 +2578,7 @@ if st.session_state["df_comorb"] is not None:
                     ss["fb_hgb_model"] = hgb
                     ss["fb_hgb_cols"]  = ind_cols
                     ss["fb_hgb_le"]    = le_fb
-                    st.info("Modelo fallback (HGB) entrenado.")
+                    #st.info("Modelo fallback (HGB) entrenado.")
 
 #with st.expander("🛟 Fallback HGB: ¿cuándo se usa y por qué?", expanded=False):
 #    st.markdown("""
@@ -2588,7 +2587,31 @@ if st.session_state["df_comorb"] is not None:
 #- Ventaja: tolera **NaN** durante **predicción** a través del pipeline (cuando imputamos/aceptamos menos observadas).
 #""")
 
+    st.subheader("Predicción de riesgo en la base completa")
 
+    st.markdown("""
+    **¿Qué hace esta parte?**  
+    Calculamos el **nivel de riesgo** para **todas** las personas de la base (no solo las del gráfico de pastel). Usamos las AVD (actividades de la vida diaria) que ya seleccionaste.
+
+    **¿Cómo se calcula?** *(en cascada, de más a menos datos disponibles)*  
+    1) Usamos dos modelos ya entrenados:
+       - Uno con **4 AVD** (más completo).
+       - Si a alguien le faltan datos, probamos con otro de **3 AVD**.
+    2) Para evitar depender solo de “rellenos”, pedimos un **mínimo de respuestas reales**:
+       - Modelo de 4 AVD: necesita **≥ 3** respuestas contestadas.
+       - Modelo de 3 AVD: necesita **≥ 2** respuestas contestadas.
+    3) Si aun así **no alcanza la información**, marcamos ese caso como **“Sin datos”**.
+
+    **¿Qué muestran los gráficos?**  
+    - **Barras:** comparan cuántas personas quedan en **Riesgo nulo / leve / moderado / severo**:
+      - con la **regla fija** (solo en quienes **no** tienen faltantes), y  
+      - con la **predicción del modelo** en **toda** la base.  
+    - **Pasteles:** muestran el mismo contraste pero en formato circular.
+
+    **Notas clínicas**  
+    - Esta herramienta **no reemplaza** el juicio clínico; sirve como **apoyo** para priorizar y orientar.  
+    - Si no hay modelos cargados, todos los casos aparecerán como **“Sin datos”** hasta que se carguen/entrenen.
+    """)
 
 
 
@@ -2603,7 +2626,6 @@ if st.session_state["df_comorb"] is not None:
     if "ind_df" not in ss:
         st.info(" ")
     else:
-        st.subheader("Predicción en todo el DataFrame (indiscernible)")
 
         df_all = ss["ind_df"].copy()  # ADL con posibles NaN (index='Indice')
 
