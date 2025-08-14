@@ -1,29 +1,4 @@
 import streamlit as st
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-
-box_css = (
-    "background:#EAF3FF;border:1px solid #D2E6FF;border-radius:16px;"
-    "padding:14px 18px;display:flex;align-items:center;gap:16px;"
-)
-img_css = "height:250px;width:auto;border-radius:8px;"
-h1_css  = "margin:0 0 4px 0;font-size:1.6rem;line-height:1.2;"
-sub_css = "font-size:1.02rem;color:#334155;max-width:50ch;"
-
-st.markdown(
-    f"""
-    <div style="{box_css}">
-      <img src="{LOGO_URL}" alt="Logo RS²" style="{img_css}" />
-      <div>
-        <h1 style="{h1_css}">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="{sub_css}">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 
 
 
@@ -630,6 +605,17 @@ elif option == "Relaciones de Indiscernibilidad":
     columnas_finales_presentes = [c for c in columnas_finales if c in datos_seleccionados.columns]
     datos_seleccionados = datos_seleccionados[columnas_finales_presentes]
 
+# --- Snapshot del original normalizado (para joins posteriores) ---
+    # Guarda SIEMPRE la versión original lista (con 'Indice') para poder mapear luego.
+    st.session_state["df_original_norm"] = datos_seleccionados.copy()
+    st.session_state["df_original_cols"] = list(datos_seleccionados.columns)
+
+    # (opcional) chequeo de unicidad del identificador
+    if datos_seleccionados["Indice"].duplicated().any():
+        st.warning("⚠️ 'Indice' no es único en el archivo cargado. Considera crear un ID único.")
+
+
+    
     # -----------------------------------------
     # Mostrar resultados
     # -----------------------------------------
