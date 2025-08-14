@@ -574,9 +574,15 @@ elif option == "Relaciones de Indiscernibilidad":
         "H13","H15A","H15B","H15D","H16A","H16D","H17A","H17D","H18A","H18D","H19A","H19D"
     ]
 
+    # Detectar columnas faltantes
+    faltantes = [col for col in nuevo_dataframe.columns if col not in columnas_deseadas_base]
+
+    # Crear lista final unificada
+    columnas_completas = columnas_deseadas_base + faltantes
+    
     # Seleccionar solo las columnas deseadas que existan
-    presentes = [c for c in columnas_deseadas_base if c in df.columns]
-    faltantes = sorted(set(columnas_deseadas_base) - set(presentes))
+    presentes = [c for c in columnas_completas if c in df.columns]
+    faltantes = sorted(set(columnas_completas) - set(presentes))
     if faltantes:
         st.warning("Columnas no encontradas (se omiten): " + ", ".join(faltantes))
 
