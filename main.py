@@ -40,7 +40,7 @@ st.markdown(
         gap: 16px;                               /* espacio entre logo y texto */
       }}
       .hero-box img {{
-        height: 72px;                            /* tamaño del logo */
+        height: 150px;                            /* tamaño del logo */
         width: auto;
         border-radius: 8px;
       }}
