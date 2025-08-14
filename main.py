@@ -2790,6 +2790,71 @@ elif option == "Relaciones de Indiscernibilidad":
 
 
 
+
+    
+    # =========================
+    # Enriquecer predicciones con columnas del DF original
+    # =========================
+    st.subheader("Predicciones + columnas originales (enriquecido)")
+
+    ss = st.session_state
+
+    # Asegurar que df_pred_all exista (viene del bloque anterior)
+    if "df_pred_all_rf" in ss:
+        df_pred_all = ss["df_pred_all_rf"].copy()
+    else:
+        # Si no está en sesión, tomamos el df_pred_all de la variable local (si existe)
+        try:
+            df_pred_all = df_pred_all.copy()
+        except NameError:
+            st.warning("No encuentro el DataFrame de predicciones en memoria.")
+            df_pred_all = None
+
+    # DF original normalizado (con 'Indice'), guardado al cargar datos
+    df_orig = ss.get("df_original_norm")
+
+    if isinstance(df_pred_all, pd.DataFrame) and isinstance(df_orig, pd.DataFrame):
+        # Trabajar con 'Indice' como columna para el merge
+        df_pred_all_reset = df_pred_all.reset_index()  # trae 'Indice' si era índice
+        if "Indice" not in df_pred_all_reset.columns:
+            # En caso raro de que el índice no se llame 'Indice', forzamos el nombre
+            idx_name = df_pred_all.index.name or "Indice"
+            df_pred_all_reset = df_pred_all.reset_index().rename(columns={idx_name: "Indice"})
+
+        if "Indice" not in df_orig.columns:
+            st.warning("El DF original no tiene la columna 'Indice'; no se puede enriquecer.")
+            df_enriquecido = df_pred_all_reset.copy()
+        else:
+            # Solo columnas que NO estén ya en df_pred_all_reset
+            base_cols = list(df_pred_all_reset.columns)
+            cols_extra = [c for c in df_orig.columns if c not in base_cols]
+
+            if cols_extra:
+                df_enriquecido = df_pred_all_reset.merge(
+                    df_orig[["Indice"] + cols_extra],
+                    on="Indice", how="left"
+                )
+            else:
+                df_enriquecido = df_pred_all_reset.copy()
+
+            # Opcional: ordenar para que 'Indice' y 'nivel_riesgo_pred' queden al inicio
+            first = [c for c in ["Indice", "nivel_riesgo_pred"] if c in df_enriquecido.columns]
+            rest  = [c for c in df_enriquecido.columns if c not in first]
+            df_enriquecido = df_enriquecido[first + rest]
+
+        st.dataframe(df_enriquecido.head(50), use_container_width=True)
+        st.download_button(
+            "Descargar predicciones enriquecidas (CSV)",
+            data=df_enriquecido.to_csv(index=False).encode("utf-8"),
+            file_name="predicciones_rf_enriquecidas.csv",
+            mime="text/csv",
+            key="dl_pred_all_rf_enriched"
+        )
+    else:
+        st.info("Aún no hay predicciones o no se ha guardado el DF original normalizado (‘df_original_norm’).")
+
+
+    
     ################################
 
     # ==========================================================
