@@ -2598,7 +2598,7 @@ if st.session_state["df_comorb"] is not None:
     - **Barras:** comparan cuántas personas quedan en **Riesgo nulo / leve / moderado / severo**:
       - con la **regla fija** (solo en quienes **no** tienen faltantes), y  
       - con la **predicción del modelo** en **toda** la base.  
-    - **Pasteles:** muestran el mismo contraste pero en formato circular.
+    - **Pasteles:** muestran las proporciones y su nivel de riesgo de acuerdo a los registros completos (primer gráfico) y las predicciones de Random Forest (segundo gráfico).
     
     """)
 
