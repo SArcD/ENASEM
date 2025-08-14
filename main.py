@@ -563,7 +563,7 @@ elif option == "Relaciones de Indiscernibilidad":
 
     # Eliminar posibles columnas "Unnamed: x" (índices exportados)
     df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+")]
-
+    st.dataframe(df)
     # -----------------------------------------
     # Definir columnas deseadas (base, sin sufijo)
     # -----------------------------------------
