@@ -55,7 +55,7 @@ def convert_df_to_xlsx(df):
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
 #option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de variables", "Buscador de datos", "Relaciones de Indiscernibilidad 2018", "Relaciones de Indiscernibilidad 2021", "Equipo de trabajo"])
-option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Buscador de variables", "Relaciones de Indiscernibilidad", "Análisis por subconjunto","Equipo de trabajo"])
+option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Buscador de variables", "Relaciones de Indiscernibilidad", "Análisis por subconjunto", "Equipo de trabajo"])
 
 if option == "Introducción":
     #
@@ -3193,7 +3193,7 @@ elif option == "Relaciones de Indiscernibilidad":
         else:
             st.caption("Formato esperado: columnas **Indice, Sexo, Edad** (opcionales) + columnas ADL (H11, H15A, H5, H6, C37, etc.).")
 
-elif option == "Buscador de variables":
+elif option == "Análisis por subconjunto":
     import unicodedata
     
     # -------------------------------
