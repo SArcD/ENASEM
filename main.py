@@ -558,20 +558,20 @@ elif option == "Relaciones de Indiscernibilidad":
         st.error(f"No se pudo leer el archivo: {e}")
         st.stop()
 
-    # --- Guardar snapshot crudo por si se necesita ---
+    # --- Snapshot crudo ---
     st.session_state["df_raw"] = df.copy()
 
-    # --- Normalizar nombres de columnas ---
-    # 1) quitar espacios repetidos / bordes
+    # --- Normalizar nombres ---
+    # 1) limpiar espacios
     cols = [re.sub(r"\s+", " ", str(c)).strip() for c in df.columns]
-    # 2) quitar sufijos _18 o _21 AL FINAL (p.ej., C49_1_18 -> C49_1)
+    # 2) quitar sufijos _18 o _21 SOLO al final (p. ej., C49_1_18 -> C49_1)
     cols = [re.sub(r"_(18|21)$", "", c) for c in cols]
     df.columns = cols
 
-    # --- Quitar columnas 'Unnamed: x' (índices exportados) ---
+    # --- Quitar columnas 'Unnamed: x' ---
     df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+$")]
 
-    # --- Resolver posibles duplicados de nombre tras normalizar ---
+    # --- Resolver duplicados tras normalizar ---
     def dedup_columns(columns):
         seen = {}
         out = []
@@ -588,27 +588,48 @@ elif option == "Relaciones de Indiscernibilidad":
         df.columns = dedup_columns(list(df.columns))
         st.info("Se detectaron columnas duplicadas tras normalizar; se renombraron con sufijo __dupN.")
 
-    # --- Columna derivada: C67 = C67_1 (m) + C67_2 (cm/100). NO se borran las originales ---
+    # --- Columna derivada: C67 = C67_1 + C67_2/100 (NO se borran las originales) ---
     if {"C67_1", "C67_2"}.issubset(df.columns):
         c1 = pd.to_numeric(df["C67_1"], errors="coerce")
         c2 = pd.to_numeric(df["C67_2"], errors="coerce")
         df["C67"] = c1 + (c2 / 100.0)
 
-    # --- Agregar columna 'Indice' al inicio ---
+    # --- Agregar 'Indice' al inicio ---
     df.insert(0, "Indice", df.index)
 
-    # --- Mostrar y persistir en sesión ---
-    st.dataframe(df)
+    # --- Guardar la versión completa normalizada para todo el flujo ---
     st.session_state["df_original_norm"] = df.copy()
     st.session_state["df_original_cols"] = list(df.columns)
 
-    # (Opcional) advertir si 'Indice' no es único
+    # --- Construir versión reducida: datos_seleccionados ---
+    columnas_deseadas_base = [
+        "AGE","SEX","C4","C6","C12","C19","C22A","C26","C32","C37",
+        "C49_1","C49_2","C49_8","C64","C66","C67_1","C67_2","C68E","C68G","C68H",
+        "C69A","C69B","C71A","C76","H1","H4","H5","H6","H8","H9","H10","H11","H12",
+        "H13","H15A","H15B","H15D","H16A","H16D","H17A","H17D","H18A","H18D","H19A","H19D"
+    ]
+
+    # Siempre incluir 'Indice' al frente
+    cols_objetivo = ["Indice"] + columnas_deseadas_base
+
+    presentes = [c for c in cols_objetivo if c in df.columns]
+    faltantes = [c for c in cols_objetivo if c not in df.columns]
+
+    datos_seleccionados = df[presentes].copy()
+
+    if faltantes:
+        st.warning("Columnas no encontradas en el archivo (se omiten en el reducido): " + ", ".join(faltantes))
+
+    # --- Mostrar ambos (completo y reducido) en tabs ---
+    tab1, tab2 = st.tabs(["📄 Datos completos (normalizados)", "🔎 datos_seleccionados (reducido)"])
+    with tab1:
+        st.dataframe(st.session_state["df_original_norm"], use_container_width=True)
+    with tab2:
+        st.dataframe(datos_seleccionados, use_container_width=True)
+
+    # (Opcional) verificar unicidad de 'Indice'
     if df["Indice"].duplicated().any():
         st.warning("⚠️ 'Indice' no es único en el archivo cargado. Considera crear un ID único.")
-
-
-    datos_seleccionados = df.copy()
-    st.dataframe(datos_seleccionados, use_container_width=True)
 
     
     
