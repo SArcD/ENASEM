@@ -3421,92 +3421,74 @@ elif option == "Análisis por subconjunto":
                 key=f"dl_vista_{seccion}"
             )
 
-    # =======================
-    # Tamiz cromático (1=Rojo, 2=Verde) para la sección elegida
-    # =======================
+
+ # ============= Tamiz cromático dentro del mismo bloque =============
     with st.expander("📊 Tamiz cromático de la sección (1=Rojo, 2=Verde)", expanded=True):
         import numpy as np
         import matplotlib.pyplot as plt
         from matplotlib.colors import ListedColormap, BoundaryNorm
         from matplotlib.patches import Patch
 
-        # Subconjunto SOLO con las columnas de la sección (sin encabezado extra)
         if not cols_presentes:
             st.warning("No hay columnas de la sección presentes para generar el tamiz.")
         else:
             data_tamiz = df_base[cols_presentes].copy()
-
-            # Convertir a numérico (por si vienen como string); 1 y 2 esperado
-            data_tamiz = data_tamiz.apply(pd.to_numeric, errors='coerce')
-
-            # Opcional: elegir columna para ordenar las filas (riesgo/subconjunto/ID, etc.)
-            candidatos_orden = [c for c in ["nivel_riesgo", "Diagnóstico_árbol", "subconjunto",
-                                            "conjunto", "cluster", "bloque", "Indice"]
+            # Convertir a 1/2 si vienen como texto; adapta si usas 'Sí/No' etc.
+            data_tamiz = data_tamiz.replace({'Sí': 2, 'No': 1, 'Si': 2, 'NO': 1}).apply(pd.to_numeric, errors='coerce')
+            
+            candidatos_orden = [c for c in ["nivel_riesgo","Diagnóstico_árbol","subconjunto",
+                                            "conjunto","cluster","bloque","Indice"]
                                 if c in df_base.columns]
             col_orden = st.selectbox("Ordenar filas por (opcional):", ["(sin orden)"] + candidatos_orden, index=0)
+            data_ord = df_base
             if col_orden != "(sin orden)":
-                # Orden estable; NaN al final
-                df_base = df_base.sort_values(by=col_orden, kind="mergesort")
-                data_tamiz = df_base[cols_presentes].apply(pd.to_numeric, errors='coerce')
+                data_ord = df_base.sort_values(by=col_orden, kind="mergesort")
+                data_tamiz = data_ord[cols_presentes].apply(pd.to_numeric, errors='coerce')
 
-            # Elegir columna de etiquetas de fila (o usar índice)
-            candidatos_etq = [c for c in df_base.columns if c not in cols_presentes]
+                # Etiquetas de filas
+            candidatos_etq = [c for c in data_ord.columns if c not in cols_presentes]
             col_etq = st.selectbox("Etiquetas de fila:", ["(índice)"] + candidatos_etq, index=0)
-            if col_etq == "(índice)":
-                y_labels = df_base.index.astype(str).tolist()
-            else:
-                y_labels = df_base[col_etq].astype(str).tolist()
+            y_labels = (data_ord.index.astype(str).tolist()
+                        if col_etq == "(índice)" else data_ord[col_etq].astype(str).tolist())
 
-            # Construir matriz enmascarada para NaN
             mask = data_tamiz.isna().values
             data_ma = np.ma.masked_where(mask, data_tamiz.values)
 
-            # Colores: 1=rojo, 2=verde; NaN=gris claro
             cmap = ListedColormap(["red", "green"])
-            norm = BoundaryNorm([0.5, 1.5, 2.5], cmap.N)
-            # importante: color para NaN
+            bnorm = BoundaryNorm([0.5, 1.5, 2.5], cmap.N)   # <- NO usar 'norm' para evitar choque
             cmap.set_bad(color="#d9d9d9")
 
-            # Tamaño de figura adaptativo
             fig_w = max(6, 0.7 * len(cols_presentes))
             fig_h = max(4, 0.25 * len(data_tamiz))
             fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+            ax.imshow(data_ma, cmap=cmap, norm=bnorm, aspect='auto')
 
-            im = ax.imshow(data_ma, cmap=cmap, norm=norm, aspect='auto')
-
-            # Cuadrícula fina
             ax.set_xticks(np.arange(len(cols_presentes)))
             ax.set_xticklabels(cols_presentes, rotation=45, ha='right')
             ax.set_yticks(np.arange(len(y_labels)))
             ax.set_yticklabels(y_labels)
 
-            # Líneas divisorias sutiles
             ax.set_xticks(np.arange(-0.5, len(cols_presentes), 1), minor=True)
             ax.set_yticks(np.arange(-0.5, len(y_labels), 1), minor=True)
             ax.grid(which='minor', color='black', linewidth=0.5, alpha=0.2)
             ax.tick_params(which='minor', length=0)
 
-            # Leyenda
             legend_handles = [
                 Patch(facecolor="red", edgecolor="black", label="1 (negativo)"),
                 Patch(facecolor="green", edgecolor="black", label="2 (positivo)"),
                 Patch(facecolor="#d9d9d9", edgecolor="black", label="NaN / sin dato")
             ]
             ax.legend(handles=legend_handles, loc="upper right", frameon=True)
-
             ax.set_title(f"Tamiz cromático — Sección: {seccion}\n(1=Rojo, 2=Verde)", pad=12)
-            st.pyplot(fig, clear_figure=True)
 
-            # Exportar imagen si se desea
-            buf = st.download_button(
+            st.pyplot(fig, clear_figure=True)
+            st.download_button(
                 "🖼️ Descargar imagen (PNG)",
-                data=lambda: fig.canvas.print_png(None),  # defer render
-                file_name=f"tamiz_{norm(seccion)}.png",
+                data=lambda: fig.canvas.print_png(None),
+                file_name=f"tamiz_{norm_str(seccion)}.png",
                 mime="image/png",
                 key=f"dl_tamiz_{seccion}"
             )
-
-
 
 
 else:
