@@ -23,7 +23,7 @@ gdown
 #scikit-learn>=1.5.0
 #imbalanced-learn>=0.12.0
 
-
+plotly
 streamlit==1.48.0
 pandas>=2.2,<2.3
 numpy>=1.26,<2.0
