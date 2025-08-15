@@ -3429,34 +3429,59 @@ elif option == "Análisis por subconjunto":
                 key=f"dl_vista_{seccion}"
             )
 
-        # ========= 1) Barras apiladas: proporciones por pregunta =========
-        if not cols_presentes:
-            st.warning("No hay columnas de la sección presentes para generar resúmenes.")
+    # ========= 1) Barras apiladas: proporciones por pregunta (solo preguntas discretas) =========
+    if not cols_presentes:
+        st.warning("No hay columnas de la sección presentes para generar resúmenes.")
+    else:
+        st.subheader("Proporción de respuestas por pregunta (solo variables discretas)")
+
+        # 1) Normalización básica a numérico y mapeo Sí/No
+        df_prop = (
+            df_base[cols_presentes]
+            .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
+            .apply(pd.to_numeric, errors='coerce')
+        )
+
+        # 2) Detectar columnas discretas (excluir continuas como edad/estatura)
+        DISCRETE_MAX_UNIQUE = 10  # ajusta si quieres ser más/menos estricto
+        cols_discretas = []
+        for c in df_prop.columns:
+            serie = df_prop[c].dropna()
+            if serie.empty:
+                continue
+            nun = serie.nunique(dropna=True)
+            # Discreta si pocos valores distintos o si solo hay 1/2 (o 0/1/2)
+            es_12 = serie.isin([1, 2]).all()
+            es_012 = serie.isin([0, 1, 2]).all()
+            if nun <= DISCRETE_MAX_UNIQUE or es_12 or es_012:
+                cols_discretas.append(c)
+
+        if not cols_discretas:
+            st.info("No se detectaron variables discretas en la selección (p. ej., solo continuas como edad/estatura).")
         else:
-            st.subheader("Proporción de respuestas por pregunta")
-            df_prop = (
-                df_base[cols_presentes]
-                .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
-                .apply(pd.to_numeric, errors='coerce')
-            )
-            # Reorganizar a largo
-            long = df_prop.melt(var_name="Pregunta", value_name="Respuesta")
-            # Categorizar 1/2/NaN
+            # 3) Proporciones por pregunta usando SOLO discretas (evita error de reset_index)
+            long = df_prop[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
             long["Respuesta_cat"] = pd.Categorical(
                 np.where(long["Respuesta"].isna(), "NaN", long["Respuesta"].astype("Int64").astype(str)),
-                categories=["1","2","NaN"], ordered=True
+                categories=["1", "2", "NaN"],
+                ordered=True
             )
             prop = (
-                long.groupby(["Pregunta","Respuesta_cat"])
-                    .size()
-                    .groupby(level=0)
-                    .apply(lambda s: 100*s/s.sum())
-                    .reset_index(name="Porcentaje")
+                long.groupby("Pregunta")["Respuesta_cat"]
+                    .value_counts(normalize=True)
+                    .rename("Porcentaje")
+                    .mul(100)
+                    .reset_index()
             )
+
             fig_bar = px.bar(
-                prop, x="Pregunta", y="Porcentaje", color="Respuesta_cat",
-                barmode="stack", text=prop["Porcentaje"].round(1).astype(str) + "%",
-                category_orders={"Respuesta_cat":["1","2","NaN"]}
+                prop,
+                x="Pregunta",
+                y="Porcentaje",
+                color="Respuesta_cat",
+                barmode="stack",
+                text=prop["Porcentaje"].round(1).astype(str) + "%",
+                category_orders={"Respuesta_cat": ["1", "2", "NaN"]}
             )
             fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
             st.plotly_chart(fig_bar, use_container_width=True)
@@ -3464,67 +3489,70 @@ elif option == "Análisis por subconjunto":
             # ========= 2) Patrones idénticos (bloques de indiscernibilidad) =========
             st.subheader("Patrones de respuesta idéntica (bloques)")
             top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5)
-            # Construir clave de patrón como tupla ordenada de respuestas por pregunta
-            df_pat = df_prop.copy()
-            # Opcional: trata NaN como categoría separada para que cuenten en el patrón
-            pat_keys = df_pat.apply(lambda r: tuple(r[c] for c in cols_presentes), axis=1)
+
+            df_pat = df_prop[cols_discretas].copy()
+            # Construir clave de patrón como tupla de valores por columna discreta (incluye NaN)
+            pat_keys = df_pat.apply(lambda r: tuple(r[c] for c in cols_discretas), axis=1)
             counts = pat_keys.value_counts(dropna=False)
             total = counts.sum()
-            top_counts = counts.head(top_n).reset_index()
-            top_counts.columns = ["Patrón", "Frecuencia"]
-            top_counts["Porcentaje"] = 100 * top_counts["Frecuencia"] / total
 
-            # Mostrar tabla amigable con patrón legible
-            def pattern_to_str(p):
-                def fmt(v):
-                    if pd.isna(v): return "NaN"
-                    try: return str(int(v))
-                    except: return str(v)
-                return " | ".join(f"{c}:{fmt(v)}" for c, v in zip(cols_presentes, p))
-            top_counts["Patrón (pregunta:valor)"] = top_counts["Patrón"].apply(pattern_to_str)
-            st.caption(f"Patrones únicos en total: {counts.shape[0]:,}")
-            st.dataframe(
-                top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
-                    .assign(Porcentaje=lambda d: d["Porcentaje"].round(2)),
-                use_container_width=True, height=400
-            )
+            if total == 0:
+                st.info("No hay filas válidas para construir patrones con las variables discretas seleccionadas.")
+            else:
+                top_counts = counts.head(top_n).reset_index()
+                top_counts.columns = ["Patrón", "Frecuencia"]
+                top_counts["Porcentaje"] = 100 * top_counts["Frecuencia"] / total
 
-            # Mini KPI: cobertura del TOP-N
-            cobertura = top_counts["Frecuencia"].sum() / total * 100
-            st.metric("Cobertura del TOP mostrado", f"{cobertura:.1f}%")
+                def pattern_to_str(p):
+                    def fmt(v):
+                        if pd.isna(v): return "NaN"
+                        try: return str(int(v))
+                        except: return str(v)
+                    return " | ".join(f"{c}:{fmt(v)}" for c, v in zip(cols_discretas, p))
 
-            # ========= 3) Treemap de patrones (tamaño = frecuencia; color = % de '2') =========
-            st.subheader("Treemap de patrones (tamaño = frecuencia, color = % de '2')")
-            # % de '2' dentro de cada patrón
-            def pct_twos(p):
-                vals = [x for x in p if not pd.isna(x)]
-                return 100 * (np.sum(np.array(vals)==2) / len(vals)) if vals else 0.0
+                top_counts["Patrón (pregunta:valor)"] = top_counts["Patrón"].apply(pattern_to_str)
+                st.caption(f"Patrones únicos en total (solo discretas): {counts.shape[0]:,}")
+                st.dataframe(
+                    top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
+                        .assign(Porcentaje=lambda d: d["Porcentaje"].round(2)),
+                    use_container_width=True, height=400
+                )
 
-            treemap_df = top_counts.copy()
-            treemap_df["%2_en_patron"] = treemap_df["Patrón"].apply(pct_twos)
-            treemap_df["Patrón (corto)"] = treemap_df["Patrón"].apply(
-                lambda p: " / ".join(str(int(x)) if pd.notna(x) else "NaN" for x in p)
-            )
+                # Mini KPI: cobertura del TOP-N
+                cobertura = top_counts["Frecuencia"].sum() / total * 100
+                st.metric("Cobertura del TOP mostrado", f"{cobertura:.1f}%")
 
-            fig_tree = px.treemap(
-                treemap_df,
-                path=["Patrón (corto)"],
-                values="Frecuencia",
-                color="%2_en_patron",
-                color_continuous_scale="Greens",
-                hover_data={"Porcentaje":":.2f","%2_en_patron":":.1f"}
-            )
-            fig_tree.update_layout(margin=dict(t=30,l=0,r=0,b=0), coloraxis_colorbar=dict(title="% de '2'"))
-            st.plotly_chart(fig_tree, use_container_width=True)
+                # ========= 3) Treemap de patrones (tamaño = frecuencia; color = % de '2') =========
+                st.subheader("Treemap de patrones (tamaño = frecuencia, color = % de '2')")
+                def pct_twos(p):
+                    vals = [x for x in p if not pd.isna(x)]
+                    return 100 * (np.sum(np.array(vals) == 2) / len(vals)) if vals else 0.0
 
-            # ========= Descargas =========
-            st.download_button(
-                "⬇️ Descargar TOP patrones (CSV)",
-                data=top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
-                    .to_csv(index=False).encode("utf-8"),
-                file_name="top_patrones_identicos.csv",
-                mime="text/csv"
-            )
+                treemap_df = top_counts.copy()
+                treemap_df["%2_en_patron"] = treemap_df["Patrón"].apply(pct_twos)
+                treemap_df["Patrón (corto)"] = treemap_df["Patrón"].apply(
+                    lambda p: " / ".join(str(int(x)) if pd.notna(x) else "NaN" for x in p)
+                )
+
+                fig_tree = px.treemap(
+                    treemap_df,
+                    path=["Patrón (corto)"],
+                    values="Frecuencia",
+                    color="%2_en_patron",
+                    color_continuous_scale="Greens",
+                    hover_data={"Porcentaje":":.2f","%2_en_patron":":.1f"}
+                )
+                fig_tree.update_layout(margin=dict(t=30,l=0,r=0,b=0), coloraxis_colorbar=dict(title="% de '2'"))
+                st.plotly_chart(fig_tree, use_container_width=True)
+
+                # ========= Descargas =========
+                st.download_button(
+                    "⬇️ Descargar TOP patrones (CSV)",
+                    data=top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
+                        .to_csv(index=False).encode("utf-8"),
+                    file_name="top_patrones_identicos.csv",
+                    mime="text/csv"
+                )
 
 
 
