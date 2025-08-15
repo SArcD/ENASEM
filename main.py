@@ -620,16 +620,16 @@ elif option == "Relaciones de Indiscernibilidad":
     if faltantes:
         st.warning("Columnas no encontradas en el archivo (se omiten en el reducido): " + ", ".join(faltantes))
 
-    # --- Mostrar ambos (completo y reducido) en tabs ---
-    tab1, tab2 = st.tabs(["📄 Datos completos (normalizados)", "🔎 datos_seleccionados (reducido)"])
-    with tab1:
-        st.dataframe(st.session_state["df_original_norm"], use_container_width=True)
-    with tab2:
-        st.dataframe(datos_seleccionados, use_container_width=True)
+#    # --- Mostrar ambos (completo y reducido) en tabs ---
+#    tab1, tab2 = st.tabs(["📄 Datos completos (normalizados)", "🔎 datos_seleccionados (reducido)"])
+#    with tab1:
+#        st.dataframe(st.session_state["df_original_norm"], use_container_width=True)
+#    with tab2:
+#        st.dataframe(datos_seleccionados, use_container_width=True)
 
-    # (Opcional) verificar unicidad de 'Indice'
-    if df["Indice"].duplicated().any():
-        st.warning("⚠️ 'Indice' no es único en el archivo cargado. Considera crear un ID único.")
+#    # (Opcional) verificar unicidad de 'Indice'
+#    if df["Indice"].duplicated().any():
+#        st.warning("⚠️ 'Indice' no es único en el archivo cargado. Considera crear un ID único.")
 
     
     
@@ -2733,14 +2733,14 @@ elif option == "Relaciones de Indiscernibilidad":
    
     
         # Muestra y descarga
-        st.dataframe(df_pred_all.reset_index().head(50), use_container_width=True)
-        st.download_button(
-            "Descargar predicciones RF (todo ind_df) CSV",
-            data=df_pred_all.reset_index().to_csv(index=False).encode("utf-8"),
-            file_name="predicciones_rf_todo_ind_df.csv",
-            mime="text/csv",
-            key="dl_pred_all_rf"
-        )
+        #st.dataframe(df_pred_all.reset_index().head(50), use_container_width=True)
+        #st.download_button(
+        #    "Descargar predicciones RF (todo ind_df) CSV",
+        #    data=df_pred_all.reset_index().to_csv(index=False).encode("utf-8"),
+        #    file_name="predicciones_rf_todo_ind_df.csv",
+        #    mime="text/csv",
+        #    key="dl_pred_all_rf"
+        #)
 
         # =========================
         # Barras: Regla (sin NaN) vs RF (todo ind_df)
@@ -2822,7 +2822,7 @@ elif option == "Relaciones de Indiscernibilidad":
     # Enriquecer predicciones con columnas del DF original
     # =========================
     st.subheader("Predicciones + columnas originales (enriquecido)")
-
+    st.markdown("""A continuación se muestra la base de datos con todas las columnas (además de dos columnas adicionales: una que muestra si pertenecieron a un subconjunto de las relaciones de indiscernibilidad y otra con el nivel de riesgo predicho por los modelos de Random Forest.""")
     ss = st.session_state
 
     # Asegurar que df_pred_all exista (viene del bloque anterior)
