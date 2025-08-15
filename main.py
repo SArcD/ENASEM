@@ -3502,178 +3502,178 @@ elif option == "Análisis por subconjunto":
             # =========================
 
 # ========= 1) Barras apiladas: proporciones por pregunta (solo variables discretas) =========
-import re
-import unicodedata
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import streamlit as st
+        import re
+        import unicodedata
+        import pandas as pd
+        import numpy as np
+        import plotly.express as px
+        import streamlit as st
 
-def _strip_accents(s: str) -> str:
-    return unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
+        def _strip_accents(s: str) -> str:
+            return unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
 
-# Regex amplio para detectar el "código" dentro del texto del diccionario (ej. C49_1, H15A, H18C01, PC12, etc.)
-CORE_RE = re.compile(r"(AA|PC|C|D|E|F|H|I)[0-9A-Z]+(?:[._][0-9A-Z]+)*", re.IGNORECASE)
+        # Regex amplio para detectar el "código" dentro del texto del diccionario (ej. C49_1, H15A, H18C01, PC12, etc.)
+        CORE_RE = re.compile(r"(AA|PC|C|D|E|F|H|I)[0-9A-Z]+(?:[._][0-9A-Z]+)*", re.IGNORECASE)
 
-def _base_norm(code: str) -> str:
-    """
-    Normaliza el código para que empareje con tus columnas:
-      - quita acentos
-      - reemplaza '.' por '_'
-      - colapsa espacios/underscores
-      - quita sufijos _18 o _21
-      - usa MAYÚSCULAS
-    """
-    s = _strip_accents(str(code)).strip()
-    s = s.replace(".", "_")
-    s = re.sub(r"\s+", "_", s)
-    s = re.sub(r"__+", "_", s)
-    s = re.sub(r"_(18|21)$", "", s)  # <- muy importante
-    return s.upper()
+        def _base_norm(code: str) -> str:
+            """
+            Normaliza el código para que empareje con tus columnas:
+              - quita acentos
+              - reemplaza '.' por '_'
+              - colapsa espacios/underscores
+              - quita sufijos _18 o _21
+              - usa MAYÚSCULAS
+            """
+            s = _strip_accents(str(code)).strip()
+            s = s.replace(".", "_")
+            s = re.sub(r"\s+", "_", s)
+            s = re.sub(r"__+", "_", s)
+            s = re.sub(r"_(18|21)$", "", s)  # <- muy importante
+            return s.upper()
 
-def _extract_core_and_desc_from_onecol(raw_text: str):
-    """
-    Del texto de una fila del diccionario (columna 1), extrae:
-      - code_raw: el token tipo C49_1, H15A, H18C01, etc.
-      - desc: lo que venga después como descripción
-    Si no encuentra patrón, devuelve (None, texto_limpio).
-    """
-    if not isinstance(raw_text, str):
-        return None, None
-    s_ = _strip_accents(raw_text)
-    s_ = s_.replace("Pregunta", "").strip()
-    m = CORE_RE.search(s_)
-    if not m:
-        return None, s_.strip() or None
-    code_raw = m.group(0)
-    desc = s_[m.end():].strip() or None
-    return code_raw, desc
+        def _extract_core_and_desc_from_onecol(raw_text: str):
+            """
+            Del texto de una fila del diccionario (columna 1), extrae:
+              - code_raw: el token tipo C49_1, H15A, H18C01, etc.
+              - desc: lo que venga después como descripción
+            Si no encuentra patrón, devuelve (None, texto_limpio).
+            """
+            if not isinstance(raw_text, str):
+                return None, None
+            s_ = _strip_accents(raw_text)
+            s_ = s_.replace("Pregunta", "").strip()
+            m = CORE_RE.search(s_)
+            if not m:
+                return None, s_.strip() or None
+            code_raw = m.group(0)
+            desc = s_[m.end():].strip() or None
+            return code_raw, desc
 
-if not cols_presentes:
-    st.warning("No hay columnas de la sección presentes para generar resúmenes.")
-else:
-    st.subheader("Proporción de respuestas por pregunta (solo variables discretas)")
-
-    # 1) Normalización básica a numérico y mapeo Sí/No
-    df_prop = (
-        df_base[cols_presentes]
-        .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
-        .apply(pd.to_numeric, errors='coerce')
-    )
-
-    # 2) Detectar columnas discretas (excluir continuas como edad/estatura)
-    DISCRETE_MAX_UNIQUE = 10
-    cols_discretas = []
-    for c in df_prop.columns:
-        serie = df_prop[c].dropna()
-        if serie.empty:
-            continue
-        nun = serie.nunique(dropna=True)
-        es_12 = serie.isin([1, 2]).all()
-        es_012 = serie.isin([0, 1, 2]).all()
-        if nun <= DISCRETE_MAX_UNIQUE or es_12 or es_012:
-            cols_discretas.append(c)
-
-    if not cols_discretas:
-        st.info("No se detectaron variables discretas en la selección (p. ej., solo continuas como edad/estatura).")
-    else:
-        # 3) Proporciones por pregunta usando SOLO discretas
-        long = df_prop[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
-        long["Respuesta_cat"] = pd.Categorical(
-            np.where(long["Respuesta"].isna(), "NaN", long["Respuesta"].astype("Int64").astype(str)),
-            categories=["1", "2", "NaN"],
-            ordered=True
-        )
-        prop = (
-            long.groupby("Pregunta")["Respuesta_cat"]
-                .value_counts(normalize=True)
-                .rename("Porcentaje")
-                .mul(100)
-                .reset_index()
-        )
-
-        fig_bar = px.bar(
-            prop,
-            x="Pregunta",
-            y="Porcentaje",
-            color="Respuesta_cat",
-            barmode="stack",
-            text=prop["Porcentaje"].round(1).astype(str) + "%",
-            category_orders={"Respuesta_cat": ["1", "2", "NaN"]}
-        )
-        fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
-        st.plotly_chart(fig_bar, use_container_width=True)
-
-        # ==============================
-        # 🔎 Tabla Código–Descripción (debajo del gráfico)
-        # ==============================
-        st.markdown("##### Diccionario de variables mostradas")
-        # Selector de año del diccionario
-        anio_dic = st.radio(
-            "Año del diccionario",
-            options=[2018, 2021],
-            index=0,
-            horizontal=True,
-            key="anio_diccionario_cod_desc"
-        )
-
-        # URLs RAW en GitHub (CSV con el texto de "Pregunta..." en la primera columna)
-        if anio_dic == 2018:
-            url_dic = "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018.csv"
+        if not cols_presentes:
+            st.warning("No hay columnas de la sección presentes para generar resúmenes.")
         else:
-            url_dic = "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_e_pc_f_h_i_2021_enasem_2021.csv"
+            st.subheader("Proporción de respuestas por pregunta (solo variables discretas)")
 
-        # Leer diccionario
-        try:
-            df_dic = pd.read_csv(url_dic)
-        except Exception as e:
-            st.error(f"No se pudo leer el diccionario del {anio_dic}: {e}")
-            df_dic = pd.DataFrame()
-
-        # Construir tabla Código–Descripción
-        if df_dic.empty:
-            st.info("No se pudo construir el diccionario.")
-        else:
-            # Tomamos SIEMPRE la PRIMERA columna como fuente del texto de la pregunta
-            col_texto = df_dic.columns[0]
-            tmp = df_dic[[col_texto]].copy()
-            tmp[["Codigo_raw", "Descripcion"]] = tmp[col_texto].apply(
-                lambda x: pd.Series(_extract_core_and_desc_from_onecol(x))
+            # 1) Normalización básica a numérico y mapeo Sí/No
+            df_prop = (
+                df_base[cols_presentes]
+                .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
+                .apply(pd.to_numeric, errors='coerce')
             )
 
-            # Normalizamos el código para que empareje con los símbolos de tu DataFrame (sin _18 / _21)
-            tmp["Codigo"] = tmp["Codigo_raw"].apply(_base_norm)
-            dic_map = tmp.dropna(subset=["Codigo"]).drop_duplicates("Codigo")[["Codigo", "Descripcion"]]
+            # 2) Detectar columnas discretas (excluir continuas como edad/estatura)
+            DISCRETE_MAX_UNIQUE = 10
+            cols_discretas = []
+            for c in df_prop.columns:
+                serie = df_prop[c].dropna()
+                if serie.empty:
+                    continue
+                nun = serie.nunique(dropna=True)
+                es_12 = serie.isin([1, 2]).all()
+                es_012 = serie.isin([0, 1, 2]).all()
+                if nun <= DISCRETE_MAX_UNIQUE or es_12 or es_012:
+                    cols_discretas.append(c)
 
-            # Variables que salieron en la gráfica (en el eje X)
-            simbolos_en_grafica = sorted(prop["Pregunta"].unique().tolist())
-            df_dic_usado = pd.DataFrame({"Codigo": simbolos_en_grafica})
-            df_dic_usado = df_dic_usado.merge(dic_map, on="Codigo", how="left")
+            if not cols_discretas:
+                st.info("No se detectaron variables discretas en la selección (p. ej., solo continuas como edad/estatura).")
+            else:
+                # 3) Proporciones por pregunta usando SOLO discretas
+                long = df_prop[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
+                long["Respuesta_cat"] = pd.Categorical(
+                    np.where(long["Respuesta"].isna(), "NaN", long["Respuesta"].astype("Int64").astype(str)),
+                    categories=["1", "2", "NaN"],
+                    ordered=True
+                )
+                prop = (
+                    long.groupby("Pregunta")["Respuesta_cat"]
+                        .value_counts(normalize=True)
+                        .rename("Porcentaje")
+                        .mul(100)
+                        .reset_index()
+                )
 
-            # Señalamos cuales no se encontraron y tratamos un último parche:
-            # — si no encontró, intentamos agregar _18 para buscar (por si el diccionario trae el sufijo)
-            faltan_mask = df_dic_usado["Descripcion"].isna()
-            if faltan_mask.any():
-                cods_faltan = df_dic_usado.loc[faltan_mask, "Codigo"].tolist()
-                # reintento con _18
-                retry = pd.DataFrame({"Codigo_retry": [c + "_18" for c in cods_faltan]})
-                retry["Codigo"] = retry["Codigo_retry"].apply(_base_norm)  # vuelve a quitar _18 → no cambia
+                fig_bar = px.bar(
+                    prop,
+                    x="Pregunta",
+                    y="Porcentaje",
+                    color="Respuesta_cat",
+                    barmode="stack",
+                    text=prop["Porcentaje"].round(1).astype(str) + "%",
+                    category_orders={"Respuesta_cat": ["1", "2", "NaN"]}
+                )
+                fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
+                st.plotly_chart(fig_bar, use_container_width=True)
+
+                # ==============================
+                # 🔎 Tabla Código–Descripción (debajo del gráfico)
+                # ==============================
+                st.markdown("##### Diccionario de variables mostradas")
+                # Selector de año del diccionario
+                anio_dic = st.radio(
+                    "Año del diccionario",
+                    options=[2018, 2021],
+                    index=0,
+                    horizontal=True,
+                    key="anio_diccionario_cod_desc"
+                )
+
+                # URLs RAW en GitHub (CSV con el texto de "Pregunta..." en la primera columna)
+                if anio_dic == 2018:
+                    url_dic = "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018.csv"
+                else:
+                    url_dic = "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_e_pc_f_h_i_2021_enasem_2021.csv"
+
+                # Leer diccionario
+                try:
+                    df_dic = pd.read_csv(url_dic)
+                except Exception as e:
+                    st.error(f"No se pudo leer el diccionario del {anio_dic}: {e}")
+                    df_dic = pd.DataFrame()
+
+                # Construir tabla Código–Descripción        
+                if df_dic.empty:
+                    st.info("No se pudo construir el diccionario.")
+                else:
+                    # Tomamos SIEMPRE la PRIMERA columna como fuente del texto de la pregunta
+                    col_texto = df_dic.columns[0]
+                    tmp = df_dic[[col_texto]].copy()
+                    tmp[["Codigo_raw", "Descripcion"]] = tmp[col_texto].apply(
+                        lambda x: pd.Series(_extract_core_and_desc_from_onecol(x))
+                    )
+
+                    # Normalizamos el código para que empareje con los símbolos de tu DataFrame (sin _18 / _21)
+                    tmp["Codigo"] = tmp["Codigo_raw"].apply(_base_norm)
+                    dic_map = tmp.dropna(subset=["Codigo"]).drop_duplicates("Codigo")[["Codigo", "Descripcion"]]
+
+                    # Variables que salieron en la gráfica (en el eje X)
+                    simbolos_en_grafica = sorted(prop["Pregunta"].unique().tolist())
+                    df_dic_usado = pd.DataFrame({"Codigo": simbolos_en_grafica})
+                    df_dic_usado = df_dic_usado.merge(dic_map, on="Codigo", how="left")
+
+                    # Señalamos cuales no se encontraron y tratamos un último parche:
+                    # — si no encontró, intentamos agregar _18 para buscar (por si el diccionario trae el sufijo)
+                    faltan_mask = df_dic_usado["Descripcion"].isna()
+                    if faltan_mask.any():
+                        cods_faltan = df_dic_usado.loc[faltan_mask, "Codigo"].tolist()
+                        # reintento con _18
+                        retry = pd.DataFrame({"Codigo_retry": [c + "_18" for c in cods_faltan]})
+                        retry["Codigo"] = retry["Codigo_retry"].apply(_base_norm)  # vuelve a quitar _18 → no cambia
                 # nada más para cumplir estructura
                 # (si el CSV tuviera una columna "Código" explícita, podrías usar otro merge; aquí ya tomamos la 1ra col)
                 # así que este parche solo deja constancia; normalmente el primer merge ya resuelve.
 
-            # Mostrar tabla ordenada por símbolo
-            df_dic_usado = df_dic_usado.rename(columns={"Codigo": "Variable", "Descripcion": "Descripción"})
-            st.dataframe(df_dic_usado, use_container_width=True, height=320)
+                    # Mostrar tabla ordenada por símbolo
+                    df_dic_usado = df_dic_usado.rename(columns={"Codigo": "Variable", "Descripcion": "Descripción"})
+                    st.dataframe(df_dic_usado, use_container_width=True, height=320)
 
-            # Descarga
-            st.download_button(
-                "⬇️ Descargar diccionario (variables del gráfico)",
-                data=df_dic_usado.to_csv(index=False).encode("utf-8"),
-                file_name=f"diccionario_vars_grafico_{anio_dic}.csv",
-                mime="text/csv",
-                key=f"dl_dicc_vars_{anio_dic}"
-            )
+                    # Descarga
+                    st.download_button(
+                        "⬇️ Descargar diccionario (variables del gráfico)",
+                        data=df_dic_usado.to_csv(index=False).encode("utf-8"),
+                        file_name=f"diccionario_vars_grafico_{anio_dic}.csv",
+                        mime="text/csv",
+                        key=f"dl_dicc_vars_{anio_dic}"
+                    )
 
         # ========= 2) Patrones idénticos (bloques) – se deja igual que tenías =========
         st.subheader("Patrones de respuesta idéntica (bloques)")
