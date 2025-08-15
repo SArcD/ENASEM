@@ -3501,85 +3501,137 @@ elif option == "Análisis por subconjunto":
             # Diccionario: variables del gráfico (Código | Descripción)
             # =========================
 
-            import re, unicodedata
-            import pandas as pd
+
+            import re, unicodedata, pandas as pd
 
             st.markdown("#### Diccionario de variables del gráfico")
 
-            def _norm_text(s: str) -> str:
-                s = unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
-                s = str(s).strip()
-                s = re.sub(r"\s+", " ", s)
-                return s
+            # --- utilidades de normalización ---
+            def _strip_accents(s: str) -> str:
+                return unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
 
-            def _norm_code_for_join(s: str) -> str:
-                """Normaliza código: puntos→_, quita _18/_21 finales, colapsa _, a mayúsculas para matchear mejor."""
-                s = _norm_text(s)
+            def _base_norm(s: str) -> str:
+                s = _strip_accents(str(s)).strip()
                 s = s.replace(".", "_")
-                s = re.sub(r"_(18|21)$", "", s)
+                s = re.sub(r"\s+", "_", s)
                 s = re.sub(r"__+", "_", s)
+                s = re.sub(r"_(18|21)$", "", s)   # quita sufijos de año
                 return s.upper()
 
-            # 1) Tomar las variables que aparecen en el gráfico
+            # patrón para detectar el código núcleo (con puntos o guiones bajos)
+            CORE_RE = re.compile(r"(AA|PC|C|D|E|F|H|I)\d+(?:[._][0-9A-Z]+)*", re.IGNORECASE)
+
+            def _extract_core_and_desc_from_onecol(s: str):
+                """De una cadena como 'PreguntaC49.1.18Texto...' extrae:
+                   code_raw='C49.1.18' y desc='Texto...' (sin 'Pregunta').
+                """
+                if not isinstance(s, str):
+                    return None, None
+                s_ = _strip_accents(s)
+                s_ = s_.replace("Pregunta", "").strip()
+                m = CORE_RE.search(s_)
+                if not m:
+                    return None, s_.strip() or None
+                code_raw = m.group(0)              # por ej. C49.1.18
+                desc = s_[m.end():].strip() or None
+                return code_raw, desc
+
+            def _drop_zeros(seg: str) -> str:
+                # quita ceros a la izquierda en segmentos numéricos: _01 -> _1
+                return re.sub(r"_0*([0-9]+)", r"_\1", seg)
+
+            def _to_join_keys(code_raw: str) -> list[str]:
+                """Genera claves de unión típicas:
+                   - normalizada (C14_01 -> C14_01; sin año)
+                   - sin ceros a la izquierda (C14_01 -> C14_1)
+                """
+                if not code_raw:
+                    return []
+                core = _base_norm(code_raw)        # C49.1.18 -> C49_1  (quita _18/_21)
+                no_zeros = _drop_zeros(core)
+                return sorted(set([core, no_zeros]))
+
+            # --- variables que aparecen en el gráfico ---
             if "prop" not in locals():
-                st.warning("No encuentro la tabla 'prop' del gráfico. Genera primero el gráfico de barras de proporciones.")
+                st.warning("No encuentro la tabla 'prop' del gráfico. Genera primero el gráfico de barras de proporciones.")    
             else:
                 vars_en_grafico = sorted(pd.Series(prop["Pregunta"]).dropna().unique().tolist())
-                tabla_base = pd.DataFrame({"Codigo": vars_en_grafico})
-                tabla_base["join_key"] = tabla_base["Codigo"].map(_norm_code_for_join)
+                base = pd.DataFrame({"Codigo": vars_en_grafico})
+                base["join_keys"] = base["Codigo"].apply(_to_join_keys)
+                base = base.explode("join_keys", ignore_index=True)
 
-                # 2) Subir el diccionario (solo usaremos 2 primeras columnas)
-                dic_file = st.file_uploader(
-                    "Sube el diccionario CSV (usaremos SOLO las 2 primeras columnas: Código | Descripción)",
-                    type=["csv"],
-                    key="dic_minimo"
-                )
+                # --- selector de año y URLs de GitHub (blob → raw) ---
+                anio_dic = st.selectbox("Año del diccionario", [2018, 2021], index=0)
+                urls = {
+                    2018: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018.csv",
+                    2021: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_e_pc_f_h_i_2021_enasem_2021.csv",
+                }
+                url_dic = urls[anio_dic]
 
-                if not dic_file:
-                    st.info("Sube el CSV del diccionario para ver la tabla de Códigos y Descripciones.")
-                else:
-                    try:
-                        # leer con autodetección de separador
-                        _dic = pd.read_csv(dic_file, sep=None, engine="python", header=0)
-                    except Exception:
-                        # si falla por encabezados raros, lo reintenta forzando sin encabezado
-                        _dic = pd.read_csv(dic_file, sep=None, engine="python", header=None)
+                # --- leer diccionario flexible (1 o 2 columnas útiles) ---
+                try:
+                    dic_raw = pd.read_csv(url_dic, sep=None, engine="python", header=None, dtype=str)
+                except Exception as e:
+                    st.error(f"No se pudo leer el diccionario {anio_dic} desde GitHub: {e}")
+                    dic_raw = None
 
-                    # asegurar que existan al menos 2 columnas
-                    if _dic.shape[1] < 2:
-                        st.error("El diccionario subido no tiene al menos 2 columnas.")
+                if dic_raw is not None:
+                    # si trae múltiples columnas, nos quedamos con las 2 primeras
+                    if dic_raw.shape[1] >= 2:
+                        dic2 = dic_raw.iloc[:, :2].copy()
+                        dic2.columns = ["col0", "col1"]
+                        # si la primera ya viene limpia (código), úsala; si no, extrae
+                        codes, descs = [], []
+                        for a, b in zip(dic2["col0"], dic2["col1"]):
+                            # intenta: a = código (o string largo), b = desc
+                            code_a, _ = _extract_core_and_desc_from_onecol(str(a))
+                            if code_a:
+                                codes.append(code_a); descs.append(str(b) if pd.notna(b) else None)
+                            else:
+                                # quizá el código venía embebido en b
+                                code_b, desc_b = _extract_core_and_desc_from_onecol(str(b))
+                                codes.append(code_b)
+                                descs.append(desc_b)
+                        dic_parsed = pd.DataFrame({"Codigo_dic_raw": codes, "Descripcion_raw": descs})
                     else:
-                        # tomar SIEMPRE las dos primeras columnas
-                        dic2 = _dic.iloc[:, [0, 1]].copy()
-                        dic2.columns = ["Codigo_dic_raw", "Descripcion_raw"]
+                        # solo 1 columna: viene todo pegado
+                        s = dic_raw.iloc[:, 0].astype(str)
+                        codes, descs = zip(*[ _extract_core_and_desc_from_onecol(x) for x in s ])
+                        dic_parsed = pd.DataFrame({"Codigo_dic_raw": codes, "Descripcion_raw": descs})
 
-                        # normalizar códigos del diccionario
-                        dic2["join_key"] = dic2["Codigo_dic_raw"].astype(str).map(_norm_code_for_join)
+                    # limpiar filas sin código
+                    dic_parsed = dic_parsed.dropna(subset=["Codigo_dic_raw"]).copy()
+                    # generar claves de unión
+                    dic_parsed["join_keys"] = dic_parsed["Codigo_dic_raw"].apply(lambda x: _to_join_keys(x))
+                    dic_parsed = dic_parsed.explode("join_keys", ignore_index=True)
 
-                        # 3) merge
-                        out = tabla_base.merge(dic2[["join_key", "Descripcion_raw"]],
-                                               on="join_key", how="left") \
-                                        .drop(columns=["join_key"]) \
-                                        .rename(columns={"Descripcion_raw": "Descripcion"})
+                    # merge con variables del gráfico
+                    out = (base.merge(dic_parsed[["join_keys","Descripcion_raw"]],
+                                      on="join_keys", how="left")
+                                .drop(columns=["join_keys"])
+                                .drop_duplicates(subset=["Codigo"])
+                                .rename(columns={"Descripcion_raw":"Descripcion"}))
 
-                        # 4) Mostrar tabla y descargas
-                        st.dataframe(out, use_container_width=True)
+                    # tabla resultado
+                    st.dataframe(out[["Codigo","Descripcion"]], use_container_width=True)
 
-                        # avisos útiles
-                        faltantes = out["Codigo"][out["Descripcion"].isna()].tolist()
-                        if faltantes:
-                            st.warning(
-                                "No se encontró descripción para: " + ", ".join(faltantes[:25]) +
-                                (" …" if len(faltantes) > 25 else "")
-                                        )
-
-                        st.download_button(
-                            "⬇️ Descargar (Código–Descripción) como CSV",
-                            data=out.to_csv(index=False).encode("utf-8"),
-                            file_name="codigos_descripciones.csv",
-                            mime="text/csv",
-                            key="dl_cod_desc"
+                    # faltantes
+                    faltan = out.loc[out["Descripcion"].isna(), "Codigo"].tolist()
+                    if faltan:
+                        st.warning(
+                            "No se encontró descripción para: " +
+                            ", ".join(faltan[:25]) + (" …" if len(faltan) > 25 else "")
                         )
+
+                    # descarga
+                    st.download_button(
+                        "⬇️ Descargar (Código–Descripción) CSV",
+                        data=out.to_csv(index=False).encode("utf-8"),
+                        file_name=f"codigos_descripciones_{anio_dic}.csv",
+                        mime="text/csv",
+                        key=f"dl_cod_desc_{anio_dic}"
+                    )
+
 
 
 
