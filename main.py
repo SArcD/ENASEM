@@ -3429,9 +3429,6 @@ elif option == "Análisis por subconjunto":
                 key=f"dl_vista_{seccion}"
             )
 
-        # ============= Tamiz cromático dentro del mismo bloque =============
-        with st.expander("📊 Tamiz cromático de la sección (1=Rojo, 2=Verde)", expanded=True):
-
         # ========= 1) Barras apiladas: proporciones por pregunta =========
         if not cols_presentes:
             st.warning("No hay columnas de la sección presentes para generar resúmenes.")
