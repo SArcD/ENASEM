@@ -1433,6 +1433,15 @@ elif option == "Relaciones de Indiscernibilidad":
             longitudes_orden = sorted(longitudes, key=lambda x: x[1], reverse=True)
             nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
 
+            # --- Crear columna 'Subconjunto' ---
+            subconjunto_map = {}
+            for idx, indices in enumerate(clases):
+                for fila_idx in indices:
+                    subconjunto_map[fila_idx] = nombres[idx]
+
+            df_ind["Subconjunto"] = df_ind.index.map(subconjunto_map).fillna("Fuera de subconjunto")
+
+            
             if not clases:
                 st.warning("No se formaron clases (verifica ADL seleccionadas).")
             else:
