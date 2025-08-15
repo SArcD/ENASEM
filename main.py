@@ -3495,98 +3495,102 @@ elif option == "Análisis por subconjunto":
             st.plotly_chart(fig_bar, use_container_width=True)
 
 
+            # --- Tabla de código y descripción para las variables del gráfico ---
+
+            import re, unicodedata
             import pandas as pd
+            import streamlit as st
 
+            # Variables presentes en el gráfico (eje X)
+            vars_en_grafico = prop["Pregunta"].unique().tolist()
 
-            # === Debajo de fig_bar ===
-          #  st.markdown("### Diccionario de variables mostradas en la gráfica")
+            #st.markdown("#### Diccionario de variables")
+            #anio_dic = st.selectbox(
+            #    "Selecciona el año del diccionario:",
+            #    [2018, 2021],
+            #    index=0
+            #)
 
-            # 1) Menú para seleccionar año
-         #   anio_dicc = st.selectbox("Selecciona el año del diccionario", [2018, 2021], index=0)
-
-            # 2) URLs de los diccionarios en GitHub
-            urls_dicc = {
+            # URLs RAW en GitHub
+            urls_dic = {
                 2018: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018.csv",
-                2021: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_e_pc_f_h_i_2021_enasem_2021.csv"
+                2021: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_e_pc_f_h_i_2021_enasem_2021.csv",
             }
 
-            # Función para normalizar código
-            def _canon_code(x: str) -> str:
-                if pd.isna(x):
-                    return ""
-                s = str(x).strip()
-                s = s.replace(".", "_")
-                s = re.sub(r"\s+", "_", s)
-                s = re.sub(r"[^A-Za-z0-9_]+", "", s)
-                return s.upper()
+            # Helpers de normalización
+            def norm_text(s: str) -> str:
+                s = unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
+                s = s.strip()
+                s = re.sub(r"\s+", " ", s)
+                return s
 
-            def _strip_18(s: str) -> str:
-                return re.sub(r"_18$", "", s, flags=re.IGNORECASE)
+            def norm_colname(s: str) -> str:
+                # para nombres de columnas del diccionario
+                s = norm_text(s).lower()
+                s = s.replace("á","a").replace("é","e").replace("í","i").replace("ó","o").replace("ú","u")
+                s = s.replace("descripcion","descripcion")  # por si viniera con acento
+                s = s.replace("código","codigo")
+                s = re.sub(r"[^a-z0-9]+", "_", s).strip("_")
+                return s
 
-            # 3) Cargar diccionario desde GitHub
+            def norm_codigo_para_join(s: str) -> str:
+                # normaliza códigos de variables (diccionario y tus columnas)
+                s = norm_text(s)
+                s = s.replace(".", "_")           # C49.1 -> C49_1
+                s = re.sub(r"_(18|21)$", "", s)   # quita sufijos de año
+                s = re.sub(r"__+", "_", s)
+                return s.lower()
+
+            # Lee diccionario
             try:
-                dicc = pd.read_csv(urls_dicc[anio_dicc])
+                dic = pd.read_csv(urls_dic[anio_dic])
             except Exception as e:
-                st.error(f"No se pudo cargar el diccionario para {anio_dicc}: {e}")
-                dicc = None
+                st.error(f"No se pudo leer el diccionario del {anio_dic}: {e}")
+                dic = pd.DataFrame()
 
-            if dicc is not None and not dicc.empty:
-                # 4) Detectar columnas de código y descripción
-                candid_code = [c for c in dicc.columns if _canon_code(c) in
-                               {"CODIGO","VARIABLE","CLAVE","PREGUNTA","NOMBRE_VARIABLE","VAR","ITEM"}]
-                candid_desc = [c for c in dicc.columns if _canon_code(c) in
-                               {"DESCRIPCION","TEXTO","PREGUNTA_TEXTO","LABEL","ETIQUETA","DESCRIPCION_PREGUNTA"}]
+            tabla_dic = pd.DataFrame({"Variable": vars_en_grafico})
+            tabla_dic["var_norm_join"] = tabla_dic["Variable"].apply(norm_codigo_para_join)
 
-                if not candid_code:
-                    st.warning("No se encontró columna de CÓDIGO en el diccionario.")
-                if not candid_desc:
-                    st.warning("No se encontró columna de DESCRIPCIÓN en el diccionario.")
+            if not dic.empty:
+                # Normaliza encabezados del diccionario
+                dic.columns = [norm_colname(c) for c in dic.columns]
 
-                if candid_code and candid_desc:
-                    col_code = candid_code[0]
-                    col_desc = candid_desc[0]
+                # Detecta columna de código y de descripción de manera flexible
+                candidatos_codigo = [c for c in dic.columns if any(
+                    key in c for key in ["codigo","variable","var","clave"]        
+                )]
+                candidatos_desc = [c for c in dic.columns if any(
+                    key in c for key in ["descripcion","descripcion_de_la_variable","label","pregunta","texto","definicion","enunciado"]
+                )]
 
-                    dicc_work = dicc[[col_code, col_desc]].copy()
-                    dicc_work["codigo_norm"] = dicc_work[col_code].map(_canon_code)
-                    dicc_work["codigo_base"] = dicc_work["codigo_norm"].map(_strip_18)
+                cod_col = candidatos_codigo[0] if candidatos_codigo else None
+                desc_col = candidatos_desc[0] if candidatos_desc else None
 
-                    # Variables del gráfico
-                    vars_graf = pd.Index(prop["Pregunta"].unique())  # 'prop' viene del bloque del gráfico
-                    mapa = pd.DataFrame({"codigo_graf": vars_graf})
-                    mapa["codigo_graf_norm"] = mapa["codigo_graf"].map(_canon_code)
-                    mapa["codigo_graf_base"] = mapa["codigo_graf_norm"].map(_strip_18)
+                if not cod_col:
+                    st.warning("No se encontró columna de **código** en el diccionario (busqué: código/variable/var/clave).")
+                if not desc_col:
+                    st.warning("No se encontró columna de **descripción** en el diccionario (busqué: descripción/label/pregunta/texto/definición).")
 
-                    # Unión por código exacto
-                    merge1 = mapa.merge(
-                        dicc_work,
-                        left_on="codigo_graf_norm", right_on="codigo_norm",
-                        how="left"
-                    )
+                if cod_col and desc_col:
+                    dic["_join_code"] = dic[cod_col].astype(str).apply(norm_codigo_para_join)
+                    dic_mini = dic[["_join_code", desc_col]].rename(columns={desc_col: "Descripción"})
+                    # merge
+                    tabla_dic = tabla_dic.merge(dic_mini, left_on="var_norm_join", right_on="_join_code", how="left")
+                    tabla_dic = tabla_dic.drop(columns=["var_norm_join","_join_code"])
+                else:
+                    # sin columnas detectadas, muestra solo Variable
+                    tabla_dic = tabla_dic.drop(columns=["var_norm_join"])
 
-                    # Completar faltantes por base sin _18
-                    faltan = merge1[col_desc].isna()
-                    if faltan.any():
-                        merge2 = mapa.merge(
-                            dicc_work,
-                            left_on="codigo_graf_base", right_on="codigo_base",
-                            how="left"
-                        )
-                        merge1.loc[faltan, col_desc] = merge2.loc[faltan, col_desc]
+            # Muestra tabla
+            st.dataframe(tabla_dic.rename(columns={"Variable":"Código"}), use_container_width=True)
 
-                    # Tabla final
-                    tabla_dict = pd.DataFrame({
-                        "Código (dataset)": merge1["codigo_graf"],
-                        "Descripción": merge1[col_desc].fillna("(sin descripción en diccionario)")
-                    })
-
-                    st.dataframe(tabla_dict, use_container_width=True)
-
-#        st.download_button(
-#            "⬇️ Descargar tabla de códigos y descripciones (CSV)",
-#            data=tabla_dict.to_csv(index=False).encode("utf-8"),
-#            file_name=f"diccionario_variables_usadas_{anio_dicc}.csv",
-#            mime="text/csv"
-#        )
+            # Descarga
+            st.download_button(
+                "⬇️ Descargar tabla de códigos y descripciones (CSV)",
+                data=tabla_dic.rename(columns={"Variable":"Codigo"}).to_csv(index=False).encode("utf-8"),
+                file_name=f"codigos_descripciones_{anio_dic}.csv",
+                mime="text/csv"
+            )
 
 
 
