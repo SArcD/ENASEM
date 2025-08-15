@@ -1,0 +1,933 @@
+codigo,descripcion
+A1,ENTREVISTADOR: REGISTRA SI EL INFORMANTE ES:
+A2A1,"En la última entrevista usted dijo que su fecha de nacimiento era (FECHA) , ¿es esto correcto?"
+A2A2,Día
+A2A2,Mes
+A2A2,Año
+A2B,¿Cuál es su edad en años cumplidos?
+A3,¿Actualmente usted…
+A4,¿Usted continúa casado(a) (en unión) con la misma persona que (en AÑO/la última vez que hablamos con usted)?
+A5,¿Su último matrimonio (unión) terminó después de la última vez que hablamos con usted?
+A6,¿Este matrimonio (unión) comenzó después de la última vez que hablamos con usted?
+A7,"En la última entrevista usted dijo que tenía (NUMERO) hijos/hijas que nacieron vivos, ¿es esto correcto?"
+A7A,¿Cuántos hijos /hijas que nacieron vivos ha tenido usted?
+A8,"De los hijos e hijas que nacieron vivos, ¿cuántos viven todavía?"
+A13A,¿Cuántos años ha vivido en esta localidad?
+A13B,"Desde la última vez que hablamos con usted, ¿se cambió de domicilio?"
+A13C,"Desde la última vez que hablamos con usted, ¿ocurrió algún desastre (como un huracán, terremoto, tornado, inundación, incendio) que afectó su vivienda?"
+A14,"Desde la última vez que hablamos con usted, sin contar vacaciones o visitas cortas, ¿ha trabajado o vivido usted en Estados Unidos?"
+A15,¿Fue esta la primera vez que fue a Estados Unidos a trabajar o a vivir?
+A16A,¿En qué año se fue en esta primera ocasión a Estados Unidos?
+A16B,¿Cuál diría usted que fue la razón principal por la que fue a Estados Unidos ...
+A17,"Para esa primera estadía en Estados Unidos, cuando usted salió de la República Mexicana, ¿conocía a alguien que le ayudaría a establecerse en el lugar a donde fue?"
+A19,"Aproximadamente, ¿en qué año o a qué edad regresó de Estados Unidos en esa ocasión?"
+A19,"Aproximadamente, ¿en qué año o a qué edad regresó de Estados Unidos en esa ocasión?"
+A20,"En total cuando vivió en Estados Unidos, ¿usted vivió principalmente en áreas urbanas (ciudades) o en rurales (pueblo, granja, rancho)?"
+A21,"En total, ¿como por cuántos años ha trabajado o vivido usted en Estados Unidos?"
+A22,"Piense por favor en la estadía más larga en Estados Unidos, la mayor parte del tiempo, ¿qué tipo de trabajo realizó usted..."
+A22A,"Piense por favor en la estadía más larga en Estados Unidos, la mayor parte del tiempo, ¿qué tipo de trabajo realizó usted..."
+A23,"Para esa estadía en Estados Unidos, ¿generalmente usted enviaba dinero a su familia en México?"
+A27,¿Su intención era que ese dinero se usara… como ahorro para cuando regresara a México?
+A27,¿Su intención era que ese dinero se usara… para mantener a su familia?
+A27,¿Su intención era que ese dinero se usara… para mejorar su propiedad en México?
+A27,¿Su intención era que ese dinero se usara… para comprar muebles u otras cosas caras en la casa?
+A27,¿Su intención era que ese dinero se usara…?
+A27,¿Su intención era que ese dinero se usara…?
+A27,¿Su intención era que ese dinero se usara…?
+A28,Ahora piense acerca de la última vez que fue a trabajar o a vivir en Estados Unidos ¿cuál diría usted que fue la razón principal por la que fue a Estados Unidos ...
+A29A1,"En esa última vez, después de que vivió o trabajó allá, ¿en qué año o qué edad tenía usted cuando regresó?"
+A29A2,"En esa última vez, después de que vivió o trabajó allá, ¿en qué año o qué edad tenía usted cuando regresó?"
+A29B01,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque … usted estaba enfermo?"
+A29B02,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque … usted extrañaba a su familia?"
+A29B03,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque … le fue difícil permanecer en Estados Unidos?"
+A29B04,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque … era muy caro quedarse en Estados Unidos?"
+A29B05,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque … no ganaba suficiente allá?"
+A29B06,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque … tuvo problemas relacionados con migración?"
+A29B07,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque … tuvo problemas familiares en México?"
+A29B08,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque …?"
+A29B88,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque …?"
+A29B99,"En esa última vez que regresó de Estados Unidos, ¿se regresó porque …?"
+A30,REGISTRA SI MARCÓ MÁS DE UNA RAZÓN EN A.29b
+A31,¿Cuál diría usted que fue la razón principal por la que regresó…
+A32,"La última vez que regresó de Estados Unidos a México, ¿diría usted que su salud era..."
+A33B,"Durante el tiempo que estuvo en Estados Unidos, ¿alguna vez se contribuyó al sistema de seguridad social (social security) en algún trabajo, con su nombre o el de otra persona?"
+A33C,"Actualmente, ¿cuenta usted con permiso de residencia permanente o es ciudadano de Estados Unidos?"
+A35A,¿Asiste usted a servicios religiosos?
+A35B,¿Con qué frecuencia participa usted en las actividades organizadas por la iglesia?
+A36,"¿Qué tan importante es la religión en su vida?, ¿diría que es..."
+A37,"En los últimos 2 años, ¿ha hecho algún trabajo voluntario para organizaciones religiosas, educativas, de caridad o para la comunidad?"
+A38,"En los últimos 2 años, ¿como cuántas horas le dedicó usted a ese trabajo voluntario?"
+A38,"En los últimos 2 años, ¿como cuántas horas le dedicó usted a ese trabajo voluntario?"
+A39,¿Diría usted que fueron…
+A40,"A continuación, le voy a mostrar unas figuras de cuerpo. SI ENTREVISTADO ES"
+A40A,¿Qué figura considera que se parece a usted en este momento?
+A41,¿Falleció alguno de sus hijos(as)?
+A41,¿Falleció alguno de sus hijos(as)?
+A41,¿Falleció alguno de sus hijos(as)?
+A41,¿Falleció alguno de sus hijos(as)?
+A41,¿Falleció alguno de sus hijos(as)?
+A42,¿Se hizo cargo de cuidar a algún familiar enfermo?
+A42,¿Se hizo cargo de cuidar a algún familiar enfermo?
+A42,¿Se hizo cargo de cuidar a algún familiar enfermo?
+A42,¿Se hizo cargo de cuidar a algún familiar enfermo?
+A42,¿Se hizo cargo de cuidar a algún familiar enfermo?
+A43,"¿Ocurrió algún desastre (como un huracán, terremoto, tornado, inundación, incendio), que afectó su vivienda?"
+A43,"¿Ocurrió algún desastre (como un huracán, terremoto, tornado, inundación, incendio), que afectó su vivienda?"
+A43,"¿Ocurrió algún desastre (como un huracán, terremoto, tornado, inundación, incendio), que afectó su vivienda?"
+A43,"¿Ocurrió algún desastre (como un huracán, terremoto, tornado, inundación, incendio), que afectó su vivienda?"
+A43,"¿Ocurrió algún desastre (como un huracán, terremoto, tornado, inundación, incendio), que afectó su vivienda?"
+A44,"¿Sufrió algún accidente, fue víctima de un crimen, o algún otro evento que afectó su salud o situación familiar?"
+A44,"¿Sufrió algún accidente, fue víctima de un crimen, o algún otro evento que afectó su salud o situación familiar?"
+A44,"¿Sufrió algún accidente, fue víctima de un crimen, o algún otro evento que afectó su salud o situación familiar?"
+A44,"¿Sufrió algún accidente, fue víctima de un crimen, o algún otro evento que afectó su salud o situación familiar?"
+A44,"¿Sufrió algún accidente, fue víctima de un crimen, o algún otro evento que afectó su salud o situación familiar?"
+A45,¿Tuvo alguna pérdida (como por salud o su empleo o el de sus hijos o cónyuge) que afectó su situación financiera?
+A45,¿Tuvo alguna pérdida (como por salud o su empleo o el de sus hijos o cónyuge) que afectó su situación financiera?
+A45,¿Tuvo alguna pérdida (como por salud o su empleo o el de sus hijos o cónyuge) que afectó su situación financiera?
+A45,¿Tuvo alguna pérdida (como por salud o su empleo o el de sus hijos o cónyuge) que afectó su situación financiera?
+A45,¿Tuvo alguna pérdida (como por salud o su empleo o el de sus hijos o cónyuge) que afectó su situación financiera?
+A1,PreguntaAA1.18ENTREVISTADOR: REGISTRA SI EL INFORMANTE ES:
+A2,"PreguntaAA2.1.18¿En qué día, mes y año nació usted?"
+A2,"PreguntaAA2.2.18¿En qué día, mes y año nació usted?"
+A2,"PreguntaAA2.3.18¿En qué día, mes y año nació usted?"
+A4A1,PreguntaAA4A1.18¿Cuál es el último año o grado que usted aprobó en la escuela?
+A4A2,PreguntaAA4A2.18¿Cuál es el último año o grado que usted aprobó en la escuela?
+A4B,PreguntaAA4B.18¿Sabe leer y escribir un recado?
+A5,PreguntaAA5.18¿Sabe contar del 1 al 10?
+A6,"PreguntaAA6.18(Antes de cumplir 10 años), ¿alguna vez vivió en la misma casa o barrio con su abuela(o) por más de 6 meses?"
+A7,"PreguntaAA7.18(Antes de cumplir 10 años), ¿tuvo usted un problema serio de salud que afectó sus actividades normales por un mes o más?"
+A8A1,"PreguntaAA8A1.18(Antes de cumplir 10 años), ¿tuvo usted alguna de las siguientes enfermedades o padecimientos?"
+A8A2,"PreguntaAA8A2.18(Antes de cumplir 10 años), ¿tuvo usted alguna de las siguientes enfermedades o padecimientos?"
+A8A3,"PreguntaAA8A3.18(Antes de cumplir 10 años), ¿tuvo usted alguna de las siguientes enfermedades o padecimientos?"
+A8A4,"PreguntaAA8A4.18(Antes de cumplir 10 años), ¿tuvo usted alguna de las siguientes enfermedades o padecimientos?"
+A8A5,"PreguntaAA8A5.18(Antes de cumplir 10 años), ¿tuvo usted alguna de las siguientes enfermedades o padecimientos?"
+A8B,"PreguntaAA8B.18(Antes de cumplir 10 años), la mayor parte del tiempo ¿qué tipo de trabajo realizó su padre o tutor…"
+A8C,"PreguntaAA8C.18(Antes de cumplir 10 años), ¿comparado con otros niños de su edad, cómo era su salud?"
+A9A,PreguntaAA9A.18Antes de cumplir 10 años: ¿Su vivienda tenía excusado dentro de la vivienda?
+A9B,PreguntaAA9B.18Antes de cumplir 10 años: ¿Su vivienda tenía electricidad?
+A9C,PreguntaAA9C.18Antes de cumplir 10 años: ¿Se dormía generalmente con hambre?
+A9D,PreguntaAA9D.18Antes de cumplir 10 años: ¿Usaba zapatos o algún otro tipo de calzado regularmente?
+A9E,PreguntaAA9E.18Antes de cumplir 10 años: ¿Usted o alguno de sus hermanos tuvo que dejar la escuela para ayudar a sus padres?
+A9F,PreguntaAA9F.18Antes de cumplir 10 años: ¿Usted o algún miembro de su familia dormía en el mismo cuarto que se usaba para cocinar?
+A9G,PreguntaAA9G.18Antes de cumplir 10 años: ¿Usted o su familia recibieron ayuda de familiares debido a problemas económicos?
+A9H,PreguntaAA9H.18Antes de cumplir 10 años: ¿Alguno de sus padres o tutores fumaba?
+A9I,PreguntaAA9I.18Antes de cumplir 10 años: ¿Alguien más en su hogar fumaba?
+A10,PreguntaAA10.18¿Actualmente usted…
+A11,PreguntaAA11.1.18¿En qué año o a qué edad terminó su último(a) matrimonio (unión)?
+A11,PreguntaAA11.2.18¿En qué año o a qué edad terminó su último(a) matrimonio (unión)?
+A12,PreguntaAA12.1.18¿En qué año o a qué edad comenzó ese matrimonio (unión)?
+A12,PreguntaAA12.2.18¿En qué año o a qué edad comenzó ese matrimonio (unión)?
+A13A,PreguntaAA13A.18¿Antes de su (matrimonio actual/último matrimonio/unión actual/última unión) tuvo usted otra unión o matrimonio?
+A13B,PreguntaAA13B.18¿Cuál era su estado conyugal antes de su unión actual…
+A13C,PreguntaAA13C.18¿Este matrimonio (unión) se terminó por…
+A14,"PreguntaAA14.18Sin contar la unión actual (última unión), ¿cuántas veces estuvo usted unido(a) o casado(a)?"
+A15,PreguntaAA15.1.18¿En qué año o a qué edad comenzó su primera unión o matrimonio?
+A15,PreguntaAA15.2.18¿En qué año o a qué edad comenzó su primera unión o matrimonio?
+A16,PreguntaAA16.18¿Ésta fue…
+A17,PreguntaAA17.18¿Este(a) matrimonio(unión) se terminó por…
+A18,PreguntaAA18.1.18¿En qué año o a qué edad terminó este(a) matrimonio (unión)?
+A18,PreguntaAA18.2.18¿En qué año o a qué edad terminó este(a) matrimonio (unión)?
+A19,PreguntaAA19.18¿Cuántos hijos e hijas que nacieron vivos ha tenido usted?
+A20,"PreguntaAA20.18De los hijos e hijas que nacieron vivos, ¿cuántos viven todavía?"
+A21,PreguntaAA21.18¿Como cuántos años ha vivido en esta localidad o siempre ha vivido aquí?
+A25,"PreguntaAA25.18Sin contar vacaciones o visitas cortas, ¿alguna vez ha trabajado o vivido usted en Estados Unidos?"
+A26,"PreguntaAA26.1.18Piense por favor en la primera estadía en Estados Unidos, aproximadamente ¿en qué año o a qué edad se fue a Estados Unidos?"
+A26,"PreguntaAA26.2.18Piense por favor en la primera estadía en Estados Unidos, aproximadamente ¿en qué año o a qué edad se fue a Estados Unidos?"
+A27,PreguntaAA27.18¿Cuál diría usted que fue la razón principal por la que fue a Estados Unidos?
+A28,"PreguntaAA28.18Para esa primera estadía en Estados Unidos, cuando usted salió de la República Mexicana, ¿conocía a alguien que le ayudaría a establecerse en el lugar a donde fue?"
+A30,PreguntaAA30.1.18Aproximadamente ¿en qué año o a qué edad regresó de Estados Unidos en esa ocasión?
+A30,PreguntaAA30.2.18Aproximadamente ¿en qué año o a qué edad regresó de Estados Unidos en esa ocasión?
+A31B,"PreguntaAA31B.18En total, ¿como cuántos años ha trabajado o vivido usted en Estados Unidos?"
+A31C,"PreguntaAA31C.18Piense por favor en la estadía más larga en Estados Unidos, la mayor parte del tiempo, ¿qué tipo de trabajo realizó usted…"
+A31D,"PreguntaAA31D.18Para esa estadía en Estados Unidos, ¿generalmente usted enviaba dinero a su familia en México?"
+A31H1,PreguntaAA31H1.18¿Su intención era que ese dinero se usara… como ahorro para cuando regresara a México?
+A31H2,PreguntaAA31H2.18¿Su intención era que ese dinero se usara… para mantener a su familia?
+A31H3,PreguntaAA31H3.18¿Su intención era que ese dinero se usara… para mejorar su propiedad en México?
+A31H4,PreguntaAA31H4.18¿Su intención era que ese dinero se usara… para comprar muebles u otras cosas caras en la casa?
+A31H5,PreguntaAA31H5.18¿Su intención era que ese dinero se usara… ?
+A31H8,PreguntaAA31H8.18¿Su intención era que ese dinero se usara… ?
+A31H9,PreguntaAA31H9.18¿Su intención era que ese dinero se usara… ?
+A32A,"PreguntaAA32A.18Ahora piense acerca de la última vez que fue a trabajar o a vivir en Estados Unidos, ¿cuál diría usted que fue la razón principal por la que fue a Estados Unidos…"
+A32B1,"PreguntaAA32B1.18Por favor piense acerca de la última vez que regresó de Estados Unidos después de que vivió allá, ¿en qué año o qué edad tenía usted cuando regresó?"
+A32B2,"PreguntaAA32B2.18Por favor piense acerca de la última vez que regresó de Estados Unidos después de que vivió allá, ¿en qué año o qué edad tenía usted cuando regresó?"
+A32C01,"PreguntaAA32C01.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque… usted estaba enfermo?"
+A32C02,"PreguntaAA32C02.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque… usted extrañaba a su familia?"
+A32C03,"PreguntaAA32C03.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque… le fue difícil permanecer en Estados Unidos?"
+A32C04,"PreguntaAA32C04.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque… era muy caro quedarse en Estados Unidos?"
+A32C05,"PreguntaAA32C05.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque… no ganaba suficiente allá?"
+A32C06,"PreguntaAA32C06.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque… tuvo problemas relacionados con migración?"
+A32C07,"PreguntaAA32C07.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque… tuvo problemas familiares en México?"
+A32C08,"PreguntaAA32C08.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque…?"
+A32C88,"PreguntaAA32C88.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque…?"
+A32C99,"PreguntaAA32C99.18Ahora piense acerca de la última vez que regresó de Estados Unidos a México, ¿se regresó porque…?"
+A32D,PreguntaAA32D.18REGISTRA SI MARCÓ MÁS DE UNA RAZÓN EN AA.32c
+A32E,PreguntaAA32E.18¿Cuál diría usted que fue la razón principal por la que regresó?
+A32F,"PreguntaAA32F.18La última vez que regresó de Estados Unidos a México, diría usted que su salud era…"
+A33,"PreguntaAA33.18Durante el tiempo que estuvo en Estados Unidos, ¿alguna vez se contribuyó al sistema de seguridad social (social security) en algún trabajo, con su nombre o el de otra persona?"
+A34,PreguntaAA34.18Actualmente ¿cuenta usted con permiso de residencia permanente o es ciudadano de Estados Unidos?
+A35,PreguntaAA35.18¿Alguna vez tuvo que criar a sus hijos pequeños sin que estuviera con usted su cónyuge?
+A36,"PreguntaAA36.18En total, ¿como por cuánto tiempo los crió sin su cónyuge?"
+A37A,PreguntaAA37A.18¿Habla usted inglés?
+A37B,PreguntaAA37B.18¿Habla usted alguna lengua indígena?
+A38A,PreguntaAA38A.18¿Asiste usted a servicios religiosos?
+A38B,PreguntaAA38B.18¿Con qué frecuencia participa usted en las actividades organizadas por la iglesia?
+A39,PreguntaAA39.18¿Qué tan importante es la religión en su vida? ¿Diría que es…
+A40,"PreguntaAA40.18En los últimos 2 años, ¿ha hecho algún trabajo voluntario para organizaciones religiosas, educativas, de caridad o para la comunidad?"
+A41,"PreguntaAA41.1.18En los últimos 2 años, ¿como cuántas horas le dedicó usted a ese trabajo voluntario?"
+A41,"PreguntaAA41.2.18En los últimos 2 años, ¿como cuántas horas le dedicó usted a ese trabajo voluntario?"
+A42,PreguntaAA42.18¿Diría usted que fueron…
+A43,"PreguntaAA43.18A continuación, le voy a mostrar unas figuras de cuerpo."
+A43A,PreguntaAA43A.18¿Qué figura considera que se parece a usted en este momento?
+A43B,"PreguntaAA43B.18Ahora piense por favor cuando usted tenía 50 años, ¿qué figura considera que se parece más a usted a esa edad?"
+A43C,"PreguntaAA43C.18Ahora piense por favor cuando usted tenía 20 años, ¿qué figura considera que se parece más a usted a esa edad?"
+A44,PreguntaAA44.18¿Se hizo cargo de cuidar a algún familiar enfermo?
+A44,PreguntaAA44.1.18¿En qué año(s)?
+A44,PreguntaAA44.2.18¿En qué año(s)?
+A44,PreguntaAA44.3.18¿En qué año(s)?
+A44,PreguntaAA44.4.18¿En qué año(s)?
+A44,PreguntaAA44.5.18¿En qué año(s)?
+A44,PreguntaAA44.6.18¿En qué año(s)?
+A44,PreguntaAA44.7.18¿En qué año(s)?
+A44,PreguntaAA44.8.18¿En qué año(s)?
+A44,PreguntaAA44.9.18¿En qué año(s)?
+A44,PreguntaAA44.10.18¿En qué año(s)?
+A44,PreguntaAA44.11.18¿En qué año(s)?
+A45,"PreguntaAA45.18¿Ocurrió algún desastre (como un huracán, terremoto, tornado, inundación, incendio), que afectó su vivienda?"
+A45,PreguntaAA45.1.18¿En qué año(s)?
+A45,PreguntaAA45.2.18¿En qué año(s)?
+A45,PreguntaAA45.3.18¿En qué año(s)?
+A45,PreguntaAA45.4.18¿En qué año(s)?
+A45,PreguntaAA45.5.18¿En qué año(s)?
+A45,PreguntaAA45.6.18¿En qué año(s)?
+A45,PreguntaAA45.7.18¿En qué año(s)?
+A45,PreguntaAA45.8.18¿En qué año(s)?
+A45,PreguntaAA45.9.18¿En qué año(s)?
+A45,PreguntaAA45.10.18¿En qué año(s)?
+A45,PreguntaAA45.11.18¿En qué año(s)?
+A46,"PreguntaAA46.18¿Sufrió algún accidente, fue víctima de un crimen, o algún otro evento que afectó su salud o situación familiar?"
+A46,PreguntaAA46.1.18¿En qué año(s)?
+A46,PreguntaAA46.2.18¿En qué año(s)?
+A46,PreguntaAA46.3.18¿En qué año(s)?
+A46,PreguntaAA46.4.18¿En qué año(s)?
+A46,PreguntaAA46.5.18¿En qué año(s)?
+A46,PreguntaAA46.6.18¿En qué año(s)?
+A46,PreguntaAA46.7.18¿En qué año(s)?
+A46,PreguntaAA46.8.18¿En qué año(s)?
+A46,PreguntaAA46.9.18¿En qué año(s)?
+A46,PreguntaAA46.10.18¿En qué año(s)?
+A46,PreguntaAA46.11.18¿En qué año(s)?
+A47,PreguntaAA47.18¿Tuvo alguna pérdida (como por salud o su empleo o el de sus hijos o cónyuge) que afectó su situación financiera?
+A47,PreguntaAA47.1.18¿En qué año(s)?
+A47,PreguntaAA47.2.18¿En qué año(s)?
+A47,PreguntaAA47.3.18¿En qué año(s)?
+A47,PreguntaAA47.4.18¿En qué año(s)?
+A47,PreguntaAA47.5.18¿En qué año(s)?
+A47,PreguntaAA47.6.18¿En qué año(s)?
+A47,PreguntaAA47.7.18¿En qué año(s)?
+A47,PreguntaAA47.8.18¿En qué año(s)?
+A47,PreguntaAA47.9.18¿En qué año(s)?
+A47,PreguntaAA47.10.18¿En qué año(s)?
+A47,PreguntaAA47.11.18¿En qué año(s)?
+C1,"Ahora tengo algunas preguntas sobre su salud, ¿diría usted que su salud es..."
+C2A,"Comparando su salud con la de hace dos años, ¿diría usted que su salud ahora está …"
+C3A,"Comparado con otras personas de su edad, ¿diría usted que actualmente su salud es…"
+C3B,"Durante los dos últimos años, ¿le ha atendido un doctor o personal médico?"
+C4,¿Alguna vez le ha dicho un doctor o personal médico que usted tiene hipertensión o presión alta?
+C5,¿Está usted tomando ahora algún medicamento para bajar la presión?
+C6,¿Alguna vez le ha dicho un doctor o personal médico que usted tiene diabetes?
+C7,¿Está usted tomando ahora alguna medicina oralmente para controlar su diabetes?
+C8,¿Está usted usando ahora inyecciones o bomba de insulina?
+C9,¿Sigue una dieta especial para controlar su diabetes?
+C10,¿En general ahora está su diabetes bajo control?
+C11,¿Con qué frecuencia se le mide el nivel de azúcar en la sangre o en la orina?
+C11,¿Con qué frecuencia se le mide el nivel de azúcar en la sangre o en la orina?
+C12,¿Alguna vez le ha dicho un doctor o personal médico que usted tiene cáncer?
+C13,"En total, ¿cuántos cánceres en distintos lugares u órganos ha tenido usted?"
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C14,¿Qué tipo de cáncer?
+C15,"En los últimos dos años, ¿ha consultado a un doctor o personal médico sobre su cáncer?"
+C16,"Durante los últimos dos años, ¿qué tipo de tratamientos ha recibido para el cáncer?"
+C16,"Durante los últimos dos años, ¿qué tipo de tratamientos ha recibido para el cáncer?"
+C16,"Durante los últimos dos años, ¿qué tipo de tratamientos ha recibido para el cáncer?"
+C16,"Durante los últimos dos años, ¿qué tipo de tratamientos ha recibido para el cáncer?"
+C16,"Durante los últimos dos años, ¿qué tipo de tratamientos ha recibido para el cáncer?"
+C16,"Durante los últimos dos años, ¿qué tipo de tratamientos ha recibido para el cáncer?"
+C16,"A.18Durante los últimos dos años, ¿qué tipo de tratamientos ha recibido para el cáncer?"
+C16,"Durante los últimos dos años, ¿qué tipo de tratamientos ha recibido para el cáncer?"
+C16,"Durante los últimos dos años, ¿qué tipo de tratamientos ha recibido para el cáncer?"
+C17,¿Está usted ahora recibiendo tratamiento para el cáncer?
+C18,¿Cómo en qué año o a qué edad le diagnosticaron su cáncer (más reciente)?
+C18,¿Cómo en qué año o a qué edad le diagnosticaron su cáncer (más reciente)?
+C19,"¿Alguna vez le ha dicho un doctor o personal médico que usted tiene alguna enfermedad respiratoria, tal como asma o enfisema?"
+C20A,¿Está usted tomando ahora medicina u otro tratamiento para su enfermedad respiratoria?
+C20B,¿Está recibiendo oxígeno para su enfermedad pulmonar?
+C21,¿Esta condición le limita sus actividades normales tales como las labores del hogar o su trabajo?
+C22A,¿Alguna vez le ha dicho un doctor o personal médico que usted ha tenido un ataque/infarto al corazón?
+C22B1,¿Cómo en qué año o a qué edad tuvo su ataque/infarto al corazón (más reciente)?
+C22B2,¿Cómo en qué año o a qué edad tuvo su ataque/infarto al corazón (más reciente)?
+C23,¿Está usted tomando ahora medicinas para su enfermedad del corazón?
+C25A,¿Este problema del corazón le limita sus actividades normales tales como las labores del hogar o su trabajo?
+C25B,"¿Alguna vez le ha dicho un doctor o personal médico que usted ha tenido: falla cardiaca/insuficiencia cardiaca/falla congestiva del corazón, arritmia, o angina?"
+C26,"¿Alguna vez le ha dicho un doctor o personal médico que usted ha tenido una embolia cerebral, derrame cerebral o isquemia cerebral transitoria?"
+C27,"Debido a la embolia, ¿tiene usted… debilidad en los brazos y/o las piernas o ha disminuido su capacidad de moverlas o usarlas?"
+C27,"Debido a la embolia, ¿tiene usted… dificultad en hablar o en comer?"
+C27,"Debido a la embolia, ¿tiene usted… dificultad con la vista o visión?"
+C27,"Debido a la embolia, ¿tiene usted… dificultad en pensar o en decir lo que quiere?"
+C28,¿Está usted tomando ahora medicinas debido a la embolia cerebral o por complicaciones de esta?
+C29,¿Está usted recibiendo terapia o rehabilitación a causa de la embolia o las complicaciones que resultaron de esta?
+C30,¿Cómo en qué año o a qué edad tuvo su embolia (más reciente)?
+C30,¿Cómo en qué año o a qué edad tuvo su embolia (más reciente)?
+C31,¿Esta embolia le ha limitado sus actividades normales tales como las labores del hogar o su trabajo?
+C32,¿Alguna vez le ha dicho un doctor o personal médico que usted tiene artritis o reumatismo?
+C33,"¿Siente dolor, rigidez o hinchazón de las articulaciones o coyunturas?"
+C34,¿Está tomando medicinas o está recibiendo otro tratamiento para su artritis o reumatismo?
+C35,¿Están limitadas a veces sus actividades normales tales como las labores del hogar o su trabajo por la artritis o reumatismo?
+C36,"En los últimos dos años, ¿le ha dicho un doctor o personal médico que usted tenía… infección del hígado?"
+C36,"En los últimos dos años, ¿le ha dicho un doctor o personal médico que usted tenía… infección del riñon?"
+C36,"En los últimos dos años, ¿le ha dicho un doctor o personal médico que usted tenía… tuberculosis?"
+C36,"En los últimos dos años, ¿le ha dicho un doctor o personal médico que usted tenía… neumonía?"
+C36,"En los últimos dos años, ¿le ha dicho un doctor o personal médico que usted tenía… herpes o herpes zóster?"
+C37,¿Se ha caído en los últimos dos años?
+C38,¿Como cuántas veces ha ocurrido esto?
+C39,¿Se lastimó en esa(s) caída(s) de tal manera que necesitó tratamiento médico?
+C40B,"En los últimos dos años, ¿se ha fracturado algún hueso?"
+C41,¿Normalmente usa usted lentes?
+C42,¿Cómo es su visión (con lentes)? ¿es…
+C43,¿Normalmente usa usted audífono o aparato auditivo?
+C44,¿Cómo es su alcance de oído/audición (con aparato si normalmente lo usa)...
+C45,¿Sufre de dolor físico a menudo?
+C46,¿Cómo es el dolor físico la mayor parte del tiempo…
+C47,¿Este dolor le limita sus actividades normales como las labores del hogar o el trabajo?
+C48A,"En los últimos dos años, ¿ha tenido alguna de las siguientes pruebas o procedimientos médicos?"
+C48B,"En los últimos dos años, ¿ha tenido alguna de las siguientes pruebas o procedimientos médicos?"
+C48C,"En los últimos dos años, ¿ha tenido alguna de las siguientes pruebas o procedimientos médicos?"
+C48D,"En los últimos dos años, ¿ha tenido alguna de las siguientes pruebas o procedimientos médicos?"
+C48E,"En los últimos dos años, ¿ha tenido alguna de las siguientes pruebas o procedimientos médicos?"
+C48F,"En los últimos dos años, ¿ha tenido alguna de las siguientes pruebas o procedimientos médicos?"
+C48G,"En los últimos dos años, ¿ha tenido alguna de las siguientes pruebas o procedimientos médicos?"
+C48H,"En los últimos dos años, … ¿Se examina los senos cada mes para detectar nudos o bultos?"
+C48I,"En los últimos dos años, … ¿Le han hecho una mamografía o una radiografía de los senos para detectar cáncer?"
+C48J,"En los últimos dos años, … ¿Le han hecho una prueba Papanicolaou para cáncer de la matriz?"
+C48K,"¿Qué edad tenía usted cuando terminó de pasar por su menopausia, es decir, su última menstruación o regla?"
+C48K1,¿Tenía usted…
+C48L,"¿Le han hecho una histerectomía, es decir una cirugía para quitarle la matriz (útero) y ovarios, o la matriz (útero) solamente?"
+C48M,"En los dos últimos años, ¿le han hecho una prueba de tacto rectal o prueba de sangre para cáncer de próstata?"
+C49,"Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo… se ha sentido deprimido?"
+C49,"Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo… ha sentido que todo lo que hacía era un esfuerzo?"
+C49,"Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo… ha sentido que su sueño era intranquilo?"
+C49,"Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo… se ha sentido feliz?"
+C49,"Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo… se ha sentido solo?"
+C49,"Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo… ha sentido que disfrutaba de la vida?"
+C49,"Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo… se ha sentido triste?"
+C49,"Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo… se ha sentido cansado?"
+C49,"Estas preguntas se refieren a cómo se ha sentido usted durante la semana pasada. Para cada pregunta, por favor dígame, ¿la mayor parte del tiempo… ha sentido que tenía mucha energía?"
+C50A,"En los últimos dos años, ¿Alguna vez se sintió usted triste, bajo(a) de ánimos, o deprimido(a) por dos o más semanas seguidas?"
+C50B,"En promedio durante los últimos dos años, ¿ha hecho ejercicio o trabajo físico pesado tres veces por semana o más?"
+C51,¿Alguna vez ha fumado cigarros?
+C52,¿Cuántos años tenía cuando comenzó a fumar?
+C52,¿Cuántos años tenía cuando comenzó a fumar?
+C52,¿Cuántos años tenía cuando comenzó a fumar?
+C53,¿Fumó usted cigarros en los últimos dos años?
+C54,¿Fuma cigarros actualmente?
+C55,¿Qué tan a menudo fuma usted?
+C56,¿Cuántos cigarros fuma usted normalmente al día?
+C57,"Cuando más fumaba usted, ¿cuántos cigarros se fumaba en un día?"
+C58,¿Hace cuántos años dejó de fumar?
+C58,¿Hace cuántos años dejó de fumar?
+C58,¿Hace cuántos años dejó de fumar?
+C59A,"¿Actualmente toma bebidas alcohólicas como cerveza, vino, licor, o pulque?"
+C59B,"En los últimos tres meses, ¿como cuántos días por semana ha tomado alguna bebida alcohólica?"
+C59C,"De los días en que tomó bebidas alcohólicas en los últimos tres meses, ¿como cuántas bebidas tomó por día?"
+C59D,"En los últimos tres meses, ¿cuántos días tomó cuatro o más bebidas en una ocasión?"
+C59E,"Durante los últimos dos años ¿ha tomado usted bebidas alcohólicas como cerveza, vino, licor o pulque?"
+C64,"¿Comparado con hace dos años, usted…"
+C65,"En los últimos dos años, ¿ha cambiado su alimentación o sus hábitos de ejercicio para subir o bajar de peso?"
+C66,¿Como cuántos kilos pesa usted ahora?
+C67,¿Como cuánto mide usted sin zapatos?
+C67,¿Como cuánto mide usted sin zapatos?
+C68A,"Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente?"
+C68B,"Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente?"
+C68C,"Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente?"
+C68D,"Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente?"
+C68E,"Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente?"
+C68F,"Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente?"
+C68G,"Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente?"
+C68H,"Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente?"
+C68I,"Durante los últimos dos años, ¿ha tenido alguno de los siguientes problemas o molestias frecuentemente?"
+C69A,"¿Cómo evaluaría la fuerza de su mano (la que utiliza más)?, ¿diría que es…"
+C69B,"¿Qué tan seguido tiene usted dificultad en mantener su equilibrio/balance?, ¿diría que…"
+C70,"En los últimos dos años, ¿ha comido menos por falta de apetito, problemas digestivos, dificultades para masticar o tragar?"
+C70A,"En los últimos dos años, ¿ha tenido dificultades para comer por problemas con sus dientes o su dentadura postiza?"
+C71A,¿Le falta alguna extremidad o parte de sus piernas o brazos debido a un accidente o enfermedad?
+C71B,¿Ocurrió esta pérdida en los últimos dos años?
+C72,¿Alguna vez le ha dicho un doctor o personal médico que sufre de algún problema de salud causado por su actividad laboral?
+C73,"Debido a enfermedad o heridas, durante los últimos 12 meses, ¿como cuántos días se tuvo que quedar en cama por más de medio día?"
+C74A,¿Con qué frecuencia tiene dificultad para quedarse dormido(a)? ¿diría que…
+C74B,¿Con qué frecuencia se despierta durante la noche después de que se quedó dormido? ¿diría que…
+C74C,¿Con qué frecuencia se despierta temprano y no puede dormirse nuevamente? ¿diría que…
+C74D,¿Con qué frecuencia se siente descansado(a) cuando se despierta en las mañanas?
+C75,"En los últimos 12 meses, ¿usted cree que ha tenido…"
+C76,"En los últimos 12 meses, ¿cuánto efecto cree usted que el estrés ha tenido sobre su salud?"
+D1,¿Usted tiene derecho a servicio médico en…
+D1D,"¿Aproximadamente, desde cuándo tiene derecho a este servicio?"
+D2,¿Recibe esos servicios o prestaciones porque es…
+D1,¿Usted tiene derecho a servicio médico en…
+D1D,"¿Aproximadamente, desde cuándo tiene derecho a este servicio?"
+D2,¿Recibe esos servicios o prestaciones porque es…
+D1,¿Usted tiene derecho a servicio médico en…
+D1D,"¿Aproximadamente, desde cuándo tiene derecho a este servicio?"
+D2,¿Recibe esos servicios o prestaciones porque es…
+D1,¿Usted tiene derecho a servicio médico en…
+D1D,"¿Aproximadamente, desde cuándo tiene derecho a este servicio?"
+D2,¿Recibe esos servicios o prestaciones porque es…
+D1,¿Usted tiene derecho a servicio médico en…
+D1D,"¿Aproximadamente, desde cuándo tiene derecho a este servicio?"
+D2,¿Recibe esos servicios o prestaciones porque es…
+D1,¿Usted tiene derecho a servicio médico en…
+D1D,"¿Aproximadamente, desde cuándo tiene derecho a este servicio?"
+D2,¿Recibe esos servicios o prestaciones porque es…
+D3A,"¿Entonces, no tiene derecho a servicio médico en ninguna institución?"
+D3B,"Desde la última vez que hablamos con usted, ¿tuvo una cirugía mayor (Ha tenido usted una cirugía mayor en los últimos tres o cuatro años)?"
+D3C,Especifique el año (los años)
+D3C,Especifique el año (los años)
+D3C,Especifique el año (los años)
+D3C,Especifique el año (los años)
+D4,"Incluyendo todas las veces en el último año, ¿cómo cuántas noches ha estado internado en un hospital?"
+D5,¿En qué tipo de hospitales se atendió?
+D5,¿En qué tipo de hospitales se atendió?
+D5,¿En qué tipo de hospitales se atendió?
+D5,¿En qué tipo de hospitales se atendió?
+D5,¿En qué tipo de hospitales se atendió?
+D5,¿En qué tipo de hospitales se atendió?
+D5,¿En qué tipo de hospitales se atendió?
+D5,¿En qué tipo de hospitales se atendió?
+D5,¿En qué tipo de hospitales se atendió?
+D5,¿En qué tipo de hospitales se atendió?
+D6,"Incluyendo todas las veces, ¿como cuánto pagó por estas hospitalizaciones?"
+D7A,"¿Diría usted que son… más de $7,500 pesos?"
+D7B,"¿Diría usted que son… más de $4,000 pesos?"
+D7C,"¿Diría usted que son… más de $30,000 pesos?"
+D8,"En el último año, ¿como cuántas veces… ha consultado usted a un dentista?"
+D9,"Incluyendo todas las veces, ¿como cuánto se pagó por esto en efectivo o se pagó en especie?"
+D10A1,"¿Diría usted que son… más de $2,000 pesos?"
+D10B1,¿Diría usted que son… más de $400 pesos?
+D10C1,"¿Diría usted que son… más de $15,000 pesos?"
+D10D01,¿A dónde acudió?
+D10D02,¿A dónde acudió?
+D10D03,¿A dónde acudió?
+D10D04,¿A dónde acudió?
+D10D05,¿A dónde acudió?
+D10D06,¿A dónde acudió?
+D10D07,¿A dónde acudió?
+D10D08,¿A dónde acudió?
+D10D09,¿A dónde acudió?
+D10D10,¿A dónde acudió?
+D10D88,¿A dónde acudió?
+D10D99,¿A dónde acudió?
+D8,"En el último año, ¿como cuántas veces… le tuvieron que hacer procedimientos quirúrgicos sin internarse en el hospital?"
+D9,"Incluyendo todas las veces, ¿como cuánto se pagó por esto en efectivo o se pagó en especie?"
+D10A2,"¿Diría usted que son… más de $2,000 pesos?"
+D10B2,¿Diría usted que son… más de $400 pesos?
+D10C2,"¿Diría usted que son… más de $15,000 pesos?"
+D10D01,¿A dónde acudió?
+D10D02,¿A dónde acudió?
+D10D03,¿A dónde acudió?
+D10D04,¿A dónde acudió?
+D10D05,¿A dónde acudió?
+D10D06,¿A dónde acudió?
+D10D07,¿A dónde acudió?
+D10D08,¿A dónde acudió?
+D10D09,¿A dónde acudió?
+D10D10,¿A dónde acudió?
+D10D88,¿A dónde acudió?
+D10D99,¿A dónde acudió?
+D8,"En el último año, ¿como cuántas veces… ha visitado o consultado con un doctor o personal médico?"
+D9,"Incluyendo todas las veces, ¿como cuánto se pagó por esto en efectivo o se pagó en especie?"
+D10A3,"¿Diría usted que son… más de $2,000 pesos?"
+D10B3,¿Diría usted que son… más de $400 pesos?
+D10C3,"¿Diría usted que son… más de $15,000 pesos?"
+D10D01,¿A dónde acudió?
+D10D02,¿A dónde acudió?
+D10D03,¿A dónde acudió?
+D10D04,¿A dónde acudió?
+D10D05,¿A dónde acudió?
+D10D06,¿A dónde acudió?
+D10D07,¿A dónde acudió?
+D10D08,¿A dónde acudió?
+D10D09,¿A dónde acudió?
+D10D10,¿A dónde acudió?
+D10D88,¿A dónde acudió?
+D10D99,¿A dónde acudió?
+D11,"En el último año, ¿consultó con un dependiente de farmacia o botica acerca de su salud?"
+D12A,"Piense en el último año, en un mes normal, ¿cuánto se pagó por los medicamentos que usted toma?"
+D12B,.A.18¿Diría usted que son… más de $400 pesos?
+D12B,.B.18¿Diría usted que son… más de $200 pesos?
+D12B,".C.18¿Diría usted que son… más de $2,000 pesos?"
+D12C,"En el último año, ¿dejó de tomar alguna medicina necesaria debido a su costo?"
+D13,"En el último año, ¿quién pagó principalmente por los gastos médicos que tuvo que hacer?"
+D15,"En los últimos dos años, ¿pensó alguna vez que tenía un problema serio de salud pero no fue al doctor?"
+D16A,¿A qué se debió que no haya ido al médico?
+D16B,¿A qué se debió que no haya ido al médico?
+D16C,¿A qué se debió que no haya ido al médico?
+D16D,¿A qué se debió que no haya ido al médico?
+D16E,¿A qué se debió que no haya ido al médico?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D17,¿A quién o a dónde acudiría si usted tuviera un problema menor de salud (como resfriado)?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… IMSS?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… ISSSTE / ISSSTE Estatal?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… Secretaría de Salud o Servicios Estatales de Salud?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… IMSS PROSPERA (antes Oportunidades)?
+D18,"¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… PEMEX, Defensa o Marina?"
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… Clínica u hospital privado?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… Cruz Roja?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… Farmacia?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… Consultorio en farmacia?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)… Quiropráctico / Homeópata / Curandero /Huesero / Curandero / Hierbero?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)…?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)…?
+D18,¿A quién o a dónde acudiría si usted tuviera un problema serio de salud (como ataque al corazón)…?
+D19,"Enseguida le voy a leer seis afirmaciones sobre la forma de ser de las personas. Responda abierta y sinceramente. Por favor dígame qué tan bien lo describen a usted: mucho, algo, poco, nada."
+D20,"Enseguida le voy a leer seis afirmaciones sobre la forma de ser de las personas. Responda abierta y sinceramente. Por favor dígame qué tan bien lo describen a usted: mucho, algo, poco, nada."
+D21,"Enseguida le voy a leer seis afirmaciones sobre la forma de ser de las personas. Responda abierta y sinceramente. Por favor dígame qué tan bien lo describen a usted: mucho, algo, poco, nada."
+D22,"Enseguida le voy a leer seis afirmaciones sobre la forma de ser de las personas. Responda abierta y sinceramente. Por favor dígame qué tan bien lo describen a usted: mucho, algo, poco, nada."
+D23,"Enseguida le voy a leer seis afirmaciones sobre la forma de ser de las personas. Responda abierta y sinceramente. Por favor dígame qué tan bien lo describen a usted: mucho, algo, poco, nada."
+D24,"Enseguida le voy a leer seis afirmaciones sobre la forma de ser de las personas. Responda abierta y sinceramente. Por favor dígame qué tan bien lo describen a usted: mucho, algo, poco, nada."
+D25A,"Enseguida le voy a leer cosas que la gente dice a veces. Para cada una de las expresiones, por favor dígame si usted: está de acuerdo, algo de acuerdo, algo en desacuerdo, o en desacuerdo."
+D25B,"Enseguida le voy a leer cosas que la gente dice a veces. Para cada una de las expresiones, por favor dígame si usted: está de acuerdo, algo de acuerdo, algo en desacuerdo, o en desacuerdo."
+D25C,"Enseguida le voy a leer cosas que la gente dice a veces. Para cada una de las expresiones, por favor dígame si usted: está de acuerdo, algo de acuerdo, algo en desacuerdo, o en desacuerdo."
+D25D,"Enseguida le voy a leer cosas que la gente dice a veces. Para cada una de las expresiones, por favor dígame si usted: está de acuerdo, algo de acuerdo, algo en desacuerdo, o en desacuerdo."
+D25E,"Enseguida le voy a leer cosas que la gente dice a veces. Para cada una de las expresiones, por favor dígame si usted: está de acuerdo, algo de acuerdo, algo en desacuerdo, o en desacuerdo."
+D25F,"Enseguida le voy a leer cosas que la gente dice a veces. Para cada una de las expresiones, por favor dígame si usted: está de acuerdo, algo de acuerdo, algo en desacuerdo, o en desacuerdo."
+D25G,"Enseguida le voy a leer cosas que la gente dice a veces. Para cada una de las expresiones, por favor dígame si usted: está de acuerdo, algo de acuerdo, algo en desacuerdo, o en desacuerdo."
+D25H,"Enseguida le voy a leer cosas que la gente dice a veces. Para cada una de las expresiones, por favor dígame si usted: está de acuerdo, algo de acuerdo, algo en desacuerdo, o en desacuerdo."
+D27,REGISTRA SI EL ENTREVISTADO ES CASADO O UNIDO
+D28,"Cuando se trata de tomar decisiones familiares importantes, ¿quién tiene mayor peso en las decisiones, usted o su cónyuge?"
+D30,"¿Diría que (él/ella) tiene mucho más peso en las decisiones que usted, o solamente algo más de peso?"
+D31,"Cuando se trata de tomar una decisión personal importante como si va usted al médico o va a hacerse una cirugía, ¿cuánto peso diría que usted tiene en la decisión?, ¿diría que …"
+D32,"Cuando se trata de tomar la decisión final acerca de tratamiento médico, ¿diría que prefiere…"
+D33A,Se presentan cinco afirmaciones con las que usted puede o no estar de acuerdo. Por favor dígame lo que piensa en cada caso. Responda abierta y sinceramente.
+D33B,Se presentan cinco afirmaciones con las que usted puede o no estar de acuerdo. Por favor dígame lo que piensa en cada caso. Responda abierta y sinceramente.
+D33C,Se presentan cinco afirmaciones con las que usted puede o no estar de acuerdo. Por favor dígame lo que piensa en cada caso. Responda abierta y sinceramente.
+D33D,Se presentan cinco afirmaciones con las que usted puede o no estar de acuerdo. Por favor dígame lo que piensa en cada caso. Responda abierta y sinceramente.
+D33E,Se presentan cinco afirmaciones con las que usted puede o no estar de acuerdo. Por favor dígame lo que piensa en cada caso. Responda abierta y sinceramente.
+D34A1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34A2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34A3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34B1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34B2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34B3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34C1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34C2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34C3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34D1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34D2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34D3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34E1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34E2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34E3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34F1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34F2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34F3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34G1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34G2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34G3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34H1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34H2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34H3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34I1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34I2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34I3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34J1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34J2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34J3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34K1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34K2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34K3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34L1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34L2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34L3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34M1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34M2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34M3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34N1,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34N2,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D34N3,Las siguientes preguntas se refieren a distintas actividades que uno puede realizar en su vida diaria. Le voy a pedir que por favor me diga si usted realizó algunas de estas actividades durante el último año y cada cuándo las realizó. Excluya actividades que realiza como parte de su trabajo u ocupación
+D35A,"Las siguientes preguntas se refieren a cómo se siente respecto a diferentes aspectos de su vida. Para cada uno por favor dígame, ¿qué tan frecuentemente… siente que le falta compañía?"
+D35B,"Las siguientes preguntas se refieren a cómo se siente respecto a diferentes aspectos de su vida. Para cada uno por favor dígame, ¿qué tan frecuentemente… se siente ignorado por los demás?"
+D35C,"Las siguientes preguntas se refieren a cómo se siente respecto a diferentes aspectos de su vida. Para cada uno por favor dígame, ¿qué tan frecuentemente… se siente aislado, apartado de los demás?"
+E1A,¿Cómo evaluaría usted su memoria en el presente? Diría que:
+E1B,"¿Comparando con hace dos años, diría que su memoria es…"
+E2,¿Usted necesita lentes para leer de cerca o ver objetos en una página?
+E3A,"ENTREVISTADOR: AVERIGUA SI EL ENTREVISTADO CUENTA CON LENTES PARA LEER Y PÍDELE QUE SE LOS PONGA. SI NO TIENE LENTES O NO ESTÁN DISPONIBLES, OFRÉCELE UN PAR. INDICA SI LA PERSONA PUEDE LEER CON LOS LENTES"
+E3B,"ENTREVISTADOR: LEE INSTRUCCIONES A continuación le presentamos unas palabras para ejercitar su lectura. Por favor, lea el texto en voz alta. Tome esta medicina una vez al día después de la comida."
+E4,Tiene dificultad para usar el lápiz
+E5,Tipo de dificultad
+E6,"ENTREVISTADOR: EN CASO DE PAREJA ENTREVISTADA, PREGUNTA EL MES DE NACIMIENTO DE CADA UNO. APLICA LA LISTA ""A"" AL MÁS PRÓXIMO A CUMPLIR AÑOS Y LA LISTA ""B"" A LA OTRA PERSONA. EN CASO DE ENTREVISTA ÚNICA EN EL HOGAR: APLICA LA LISTA ""A"" SI HOY ES LUNES, MIÉRCOLES O VIERNES. APLICA LA LISTA ""B"" SI HOY ES CUALQUIER OTRO DÍA. INDICA LA LISTA QUE SE APLICÓ"
+E7A,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7A,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7A,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7A,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7A,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7A,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7A,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7A,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7A1,".TOT.18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7B,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7B,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7B,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7B,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7B,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7B,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7B,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7B,".18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7B1,".TOT.18Voy a leerle una lista de palabras. Escuche bien. Cuando yo termine de leerlas, usted debe de repetir todas las palabras que pueda. No importa el orden en que usted las repita. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A2,".TOT.18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B2,".TOT.18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7A3,".TOT.18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B,".18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E7B3,".TOT.18Voy a leer la misma lista otra vez. Una vez más, cuando yo me detenga, dígame todas las palabras que pueda, incluyendo las que ya dijo antes. ¿Está listo(a)?"
+E8A,FIGURA. RESULTADO DEL EJERCICIO
+E8A,.C.18RESULTADO DEL EJERCICIO
+E9A,FLUIDEZ VERBAL SEMÁNTICA. RESULTADO DEL EJERCICIO
+E9A,.C.18RESULTADO DEL EJERCICIO
+E9B,.C.18RESULTADO DEL EJERCICIO
+E10A,RECORRIDO VISUAL. RESULTADO DEL EJERCICIO
+E10,.C.18RESULTADO DEL EJERCICIO
+E11A,¿Respondió correctamente… Día?
+E11B,¿Respondió correctamente… Mes?
+E11C,¿Respondió correctamente… Año?
+E13A,EVOCACIÓN DE FIGURA. RESULTADO DEL EJERCICIO
+E13A,.C.18RESULTADO DEL EJERCICIO
+E14A,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14A,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14A,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14A,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14A,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14A,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14A,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14A,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14A,".TOT.18¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14B,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14B,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14B,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14B,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14B,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14B,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14B,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14B,"¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E14B,".TOT.18¿Recuerda la lista larga de palabras que yo leí antes? Dígame, por favor, todas las palabras de la lista que pueda recordar, en el orden que sea."
+E15A,PRIMERA RESTA Dígame: ¿Cuánto es 100-7?
+E15B,SEGUNDA RESTA Ahora siga restando de 7 en 7.
+E15C,TERCERA RESTA
+E15D,CUARTA RESTA
+E15E,QUINTA RESTA
+C1,"PreguntaPC1.18Parte de este estudio trata sobre la memoria de la gente y la habilidad de pensar en algunas cosas. Primero, ¿cómo evaluaría la memoria de (NOMBRE) al presente? ¿Diría que es…"
+C2,"PreguntaPC2.18Comparado con hace dos años, ¿diría usted que la memoria de (NOMBRE) ha..."
+C3,PreguntaPC3.18¿Cómo evaluaría la habilidad de (NOMBRE) para hacer juicios y decisiones? ¿Diría que es...
+C4,PreguntaPC4.18¿Cómo evaluaría la habilidad de (NOMBRE) para organizar sus actividades diarias? ¿Diría que su habilidad es...
+C5,"PreguntaPC5.18Comparado a hace dos años, ¿qué tan bien recuerda (NOMBRE) cosas de la familia y de los amigos, tal como sus ocupaciones, sus cumpleaños y direcciones? ¿Ha…"
+C6,PreguntaPC6.18¿Es mucho mejor o algo mejor?
+C7,PreguntaPC7.18¿Es mucho peor o algo peor?
+C8,"PreguntaPC8.18Comparado a hace dos años, ¿qué tan bien recuerda (NOMBRE) cosas que han ocurrido recientemente? ¿Ha..."
+C9,PreguntaPC9.18¿Es mucho mejor o algo mejor?
+C10,PreguntaPC10.18¿Es mucho peor o algo peor?
+C11,"PreguntaPC11.18Comparado a hace dos años, ¿qué tan bien recuerda (NOMBRE) conversaciones después de algunos días? ¿Ha..."
+C12,PreguntaPC12.18¿Es mucho mejor o algo mejor?
+C13,PreguntaPC13.18¿Es mucho peor o algo peor?
+C14,"PreguntaPC14.18Comparado a hace dos años, ¿qué tan bien recuerda (NOMBRE) su dirección y número de teléfono? ¿Ha..."
+C15,PreguntaPC15.18¿Es mucho mejor o algo mejor?
+C16,PreguntaPC16.18¿Es mucho peor o algo peor?
+C17,"PreguntaPC17.18Comparado a hace dos años, ¿qué tan bien recuerda (NOMBRE) el día y mes que es? ¿Ha..."
+C18,PreguntaPC18.18¿Es mucho mejor o algo mejor?
+C19,PreguntaPC19.18¿Es mucho peor o algo peor?
+C20,"PreguntaPC20.18Comparado a hace dos años, ¿qué tan bien recuerda (NOMBRE) donde se guardan las cosas? ¿Ha…"
+C21,PreguntaPC21.18¿Es mucho mejor o algo mejor?
+C22,PreguntaPC22.18¿Es mucho peor o algo peor?
+C23,"PreguntaPC23.18Comparado a hace dos años, ¿qué tan bien recuerda (NOMBRE) dónde encontrar algo que se ha dejado en un lugar no acostumbrado? ¿Ha…"
+C24,PreguntaPC24.18¿Es mucho mejor o algo mejor?
+C25,PreguntaPC25.18¿Es mucho peor o algo peor?
+C26,"PreguntaPC26.18Comparado a hace dos años, ¿qué tan bien sabe (NOMBRE) cómo operar aparatos domésticos que le son familiares? ¿Ha…"
+C27,PreguntaPC27.18¿Es mucho mejor o algo mejor?
+C28,PreguntaPC28.18¿Es mucho peor o algo peor?
+C29,"PreguntaPC29.18Comparado a hace dos años, ¿qué tan bien aprende (NOMBRE) a usar un nuevo aparato o utensilio doméstico? ¿Ha…"
+C30,PreguntaPC30.18¿Es mucho mejor o algo mejor?
+C31,PreguntaPC31.18¿Es mucho peor o algo peor?
+C32,"PreguntaPC32.18Comparado a hace dos años, ¿qué tan bien aprende (NOMBRE) cosas nuevas en general? ¿Ha…"
+C33,PreguntaPC33.18¿Es mucho mejor o algo mejor?
+C34,PreguntaPC34.18¿Es mucho peor o algo peor?
+C35,"PreguntaPC35.18Comparado a hace dos años, ¿qué tan bien entiende (NOMBRE) lo que está sucediendo en una historia o en la televisión? ¿Ha…"
+C36,PreguntaPC36.18¿Es mucho mejor o algo mejor?
+C37,PreguntaPC37.18¿Es mucho peor o algo peor?
+C38,"PreguntaPC38.18Comparado a hace dos años, ¿qué tan bien toma (NOMBRE) decisiones sobre asuntos diarios como qué hacer de comer o qué ropa ponerse? ¿Ha…"
+C39,PreguntaPC39.18¿Es mucho mejor o algo mejor?
+C40,PreguntaPC40.18¿Es mucho peor o algo peor?
+C41,"PreguntaPC41.18Comparado a hace dos años, ¿qué tan bien maneja (NOMBRE) el dinero para las compras? ¿Ha…"
+C42,PreguntaPC42.18¿Es mucho mejor o algo mejor?
+C43,PreguntaPC43.18¿Es mucho peor o algo peor?
+C44,"PreguntaPC44.18Comparado a hace dos años, ¿qué tan bien maneja (NOMBRE) sus asuntos económicos, como la pensión o tratos con el banco? ¿Ha…"
+C45,PreguntaPC45.18¿Es mucho mejor o algo mejor?
+C46,PreguntaPC46.18¿Es mucho peor o algo peor?
+C47,"PreguntaPC47.18Comparado a hace dos años, ¿qué tan bien hace (NOMBRE) cálculos diarios, tal como saber cuánta comida hay que comprar, o calcular cuánto tiempo ha pasado desde la última visita de un pariente o un amigo? ¿Ha…"
+C48,PreguntaPC48.18¿Es mucho mejor o algo mejor?
+C49,PreguntaPC49.18¿Es mucho peor o algo peor?
+C50,"PreguntaPC50.18Comparado a hace dos años, ¿qué tan bien puede comprender qué es lo que está pasando o puede razonar las cosas? ¿Ha…"
+C51,PreguntaPC51.18¿Es mucho mejor o algo mejor?
+C52,PreguntaPC52.18¿Es mucho peor o algo peor?
+C53,PreguntaPC53.18¿Alguna vez se desorienta (no encuentra lugares) en ambientes que le son familiares?
+C54,"PreguntaPC54.18¿Alguna vez se extravía y tarda en volver, o vuelve solamente con ayuda?"
+C55,PreguntaPC55.18¿Se puede dejar solo(a) a (NOMBRE) como por una hora?
+C56,"PreguntaPC56.18¿Alguna vez (NOMBRE), ve u oye cosas que en realidad no están allí?"
+F1,¿Como hasta qué nivel cursó su madre en la escuela?
+F2,¿Alguna vez su madre trabajó o vivió en Estados Unidos?
+F3,¿Vive actualmente su madre?
+F4,¿Qué edad tiene su madre?
+F5,"Debido a un problema de salud, ¿necesita ayuda su madre con necesidades básicas como vestirse, comer, o bañarse?"
+F6,¿Puede estar sola su madre por una hora o más?
+F8,¿Como qué edad tenía su madre cuando murió?
+F9,"A su madre, ¿alguna vez le dijo un doctor o personal médico que ella tiene o tuvo diabetes o azúcar en la sangre?"
+F10,¿Como hasta qué nivel cursó su padre en la escuela?
+F11,¿Alguna vez su padre trabajó o vivió en Estados Unidos?
+F12,¿Vive actualmente su padre?
+F13,¿Qué edad tiene su padre?
+F14,"Debido a un problema de salud, ¿necesita ayuda su padre con necesidades básicas como vestirse, comer, o bañarse?"
+F15,¿Puede estar solo su padre por una hora o más?
+F17,¿Como qué edad tenía su padre cuando murió?
+F18,¿Alguna vez le dijo un doctor o personal médico que él tiene o tuvo diabetes o azúcar en la sangre?
+F34,¿Cuántos hermanos y hermanas que nacieron vivos tuvo usted?
+F36,"De los hermanos y hermanas que nacieron vivos, ¿cuántos viven todavía?"
+F37,¿Alguna vez le dijo un doctor o personal médico a alguno de sus hermanos o hermanas que tienen o tuvieron diabetes o azúcar en la sangre?
+F38,"Sin contar vacaciones o visitas cortas, en los últimos dos años (alguna vez), ¿trabajó o vivió alguno de sus hermanos o hermanas en Estados Unidos?"
+F40,"Durante los últimos dos años, ¿usted (y/o su cónyuge) le dio apoyo económico a sus padres? Incluya ayuda para pagar gastos como de renta; excluya vivienda compartida o las comidas compartidas."
+F43,"Durante los últimos dos años, ¿usted (y/o su cónyuge) le ayudó a sus padres con actividades básicas como vestirse, comer, o bañarse debido a un problema de salud? Excluya ayuda con actividades del hogar, mandados, transporte."
+F44,"¿Fue esa ayuda de por lo menos una hora a la semana, o como de 100 horas en los últimos dos años?"
+F45,¿Quién recibió ese apoyo?
+F47,"Durante los últimos dos años, ¿alguno de sus hermanos o hermanas (o sus cónyuges) dio apoyo económico a sus padres? Incluya ayuda para pagar gastos como de renta; excluya vivienda compartida o las comidas compartidas."
+F51,"Durante los últimos dos años, ¿alguno de sus hermanos o hermanas (o sus cónyuges) ayudó a sus padres con actividades básicas como vestirse, comer, o bañarse debido a un problema de salud? Excluya ayuda con actividades del hogar, mandados, transporte."
+F55,¿Se ha puesto usted de acuerdo con uno o más de sus hermanos o hermanas para compartir las responsabilidades solamente del cuidado personal de sus padres?
+F57,¿Se ha puesto usted de acuerdo con uno o más de sus hermanos o hermanas para compartir las responsabilidades económicas de sus padres?
+H1,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene usted dificultad en caminar varias cuadras?"
+H2,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en correr o trotar un kilómetro?"
+H3,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en caminar una cuadra?"
+H4,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en estar sentado(a) por dos horas?"
+H5,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantarse de una silla después de haber estado sentado(a) durante largo tiempo?"
+H6,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir varios pisos de escaleras sin descansar?"
+H7,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir un piso de escaleras sin descansar?"
+H8,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en inclinar su cuerpo, arrodillarse, agacharse o ponerse en cuclillas?"
+H9,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en subir o extender los brazos más arriba de los hombros?"
+H10,Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud ¿tiene alguna dificultad en jalar o empujar objetos grandes como un sillón?
+H11,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en levantar o transportar objetos que pesan más de 5 kilos, como una bolsa pesada de alimentos?"
+H12,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene alguna dificultad en recoger una moneda de 1 peso de la mesa?"
+H13,"Dígame por favor si usted tiene alguna dificultad en hacer cada una de las actividades diarias que le voy a mencionar. No incluya dificultades que cree que durarán menos de tres meses. Debido a problemas de salud, ¿tiene usted dificultad para vestirse, incluyendo ponerse los zapatos y los calcetines?"
+H14,¿Le ayuda alguien a vestirse?
+H15A,"Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad… para caminar de un lado a otro de un cuarto?"
+H15B,"¿Usa usted equipo o aparatos, tales como bastón, caminador, o silla de ruedas… para caminar de un lado a otro de un cuarto?"
+H15C01,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C02,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C03,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C04,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C05,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C06,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C07,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C08,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C09,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C10,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C11,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C88,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15C99,¿Qué equipo utiliza… para caminar de un lado a otro de un cuarto?
+H15D,¿Alguien le ayuda a usted?
+H16A,"Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad… para bañarse en una tina o regadera?"
+H16D,¿Alguien le ayuda a usted… para bañarse en una tina o regadera?
+H17A,"Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad... al comer, por ejemplo para cortar su comida?"
+H17D,"¿Alguien le ayuda a usted… al comer, por ejemplo para cortar su comida?"
+H18A,"Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad... al acostarse y levantarse de la cama?"
+H18B,"¿Usa usted equipo o aparatos tales como bastón, caminador, o silla de ruedas… al acostarse y levantarse de la cama?"
+H18C01,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C02,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C03,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C04,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C05,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C06,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C07,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C08,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C09,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C10,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C11,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C88,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18C99,¿Qué equipo utiliza…al acostarse y levantarse de la cama?
+H18D,¿Alguien le ayuda a usted… al acostarse y levantarse de la cama?
+H19A,"Por favor dígame si tiene alguna dificultad con cada una de las actividades que le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad... al usar el excusado, incluyendo subirse y bajarse o ponerse en cuclillas?"
+H19D,"¿Alguien le ayuda a usted… al usar el excusado, incluyendo subirse y bajarse o ponerse en cuclillas?"
+H22,¿Qué parentesco tiene (NOMBRE) con usted?
+H23,NÚMERO DE REGISTRO
+H24,"Durante el mes pasado, ¿como cuántos dias le ayudó (NOMBRE)?"
+H25,"En los días que (NOMBRE) le ayuda, ¿como cuántas horas por día le ayuda?"
+H22,¿Qué parentesco tiene (NOMBRE) con usted?
+H23,NÚMERO DE REGISTRO
+H24,"Durante el mes pasado, ¿como cuántos dias le ayudó (NOMBRE)?"
+H25,"En los días que (NOMBRE) le ayuda, ¿como cuántas horas por día le ayuda?"
+H22,¿Qué parentesco tiene (NOMBRE) con usted?
+H23,NÚMERO DE REGISTRO
+H24,"Durante el mes pasado, ¿como cuántos dias le ayudó (NOMBRE)?"
+H25,"En los días que (NOMBRE) le ayuda, ¿como cuántas horas por día le ayuda?"
+H26A,"Ahora voy a mencionar otras actividades. Por favor dígame si tiene alguna dificultad con las actividades que yo le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad… en preparar una comida caliente?"
+H26B,¿Esto es debido a un problema de salud?
+H26C,¿Alguien le ayuda austed… en preparar una comida caliente?
+H27A,"Ahora voy a mencionar otras actividades. Por favor dígame si tiene alguna dificultad con las actividades que yo le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad... en hacer compras de víveres/mandado?"
+H27B,¿Esto es debido a un problema de salud?
+H27C,¿Alguien le ayuda a usted… en hacer compras de víveres / mandado?
+H28A,"Ahora voy a mencionar otras actividades. Por favor dígame si tiene alguna dificultad con las actividades que yo le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad... en tomar sus medicamentos (si toma alguno o tuviera que tomar alguno)?"
+H28B,¿Esto es debido a un problema de salud?
+H28C,¿Alguien le ayuda austed… en tomar sus medicamentos (si toma alguno o tuviera que tomar alguno)?
+H29A,"Ahora voy a mencionar otras actividades. Por favor dígame si tiene alguna dificultad con las actividades que yo le voy a mencionar. Si usted no hace ninguna de las siguientes actividades, simplemente dígamelo. No incluya dificultades que cree que durarán menos de tres meses. Debido a un problema de salud ¿usted tiene dificultad… para manejar su dinero?"
+H29B,¿Esto es debido a un problema de salud?
+H29C,¿Alguien le ayuda austed… para manejar su dinero?
+H32,¿Qué parentesco tiene (NOMBRE) con usted?
+H33,NÚMERO DE REGISTRO
+H34,"Durante el mes pasado, ¿como cuántos dias le ayudó (NOMBRE)?"
+H35,"En los días que (NOMBRE) le ayuda, ¿como cuántas horas por día le ayuda?"
+H32,¿Qué parentesco tiene (NOMBRE) con usted?
+H33,NÚMERO DE REGISTRO
+H34,"Durante el mes pasado, ¿como cuántos dias le ayudó (NOMBRE)?"
+H35,"En los días que (NOMBRE) le ayuda, ¿como cuántas horas por día le ayuda?"
+H32,¿Qué parentesco tiene (NOMBRE) con usted?
+H33,NÚMERO DE REGISTRO
+H34,"Durante el mes pasado, ¿como cuántos dias le ayudó (NOMBRE)?"
+H35,"En los días que (NOMBRE) le ayuda, ¿como cuántas horas por día le ayuda?"
+I2,¿Alguna vez en su vida ha tenido o realizado un trabajo por el que recibió un pago o ganancia?
+I3,"¿Alguna vez en su vida ayudó en un negocio, granja, rancho o parcela sin recibir un pago o ganancia?"
+I4,¿En qué año o a qué edad comenzó usted su primer trabajo?
+I4,¿En qué año o a qué edad comenzó usted su primer trabajo?
+I5,¿Como cuánto tiempo en total ha trabajado (trabajó) recibiendo pago o ganancia a lo largo de su vida?
+I6,"Para las siguientes preguntas, por favor piense acerca de las actividades que realizó en su trabajo principal a lo largo de su vida, o en la mayor parte de su vida. ¿Me puede describir las tareas o funciones principales que usted desempeña(ó) en su trabajo principal?"
+I7,"En ese trabajo principal, la mayor parte del tiempo ¿usted ha sido (era)…"
+I8,"Ese trabajo principal, ¿usted lo realiza (realizaba) en un local para trabajar?"
+I9A,ENTREVISTADOR: CLASIFICA Y REGISTRA LA RESPUESTA ANTERIOR EN EL SIGUIENTE LISTADO
+I9A,ENTREVISTADOR: CLASIFICA Y REGISTRA LA RESPUESTA ANTERIOR EN EL SIGUIENTE LISTADO
+I9B,¿A qué edad entró a trabajar a su trabajo principal?
+I10,¿Por cuántos años ha realizado este tipo de actividades o trabajo?
+I11,¿Ese trabajo principal lo realizó alguna vez en Estados Unidos?
+I12,"En el trabajo principal a lo largo de su vida, ¿cuáles de las siguientes prestaciones le dan (daban)?"
+I12,"En el trabajo principal a lo largo de su vida, ¿cuáles de las siguientes prestaciones le dan (daban)?"
+I12,"En el trabajo principal a lo largo de su vida, ¿cuáles de las siguientes prestaciones le dan (daban)?"
+I12,"En el trabajo principal a lo largo de su vida, ¿cuáles de las siguientes prestaciones le dan (daban)?"
+I12,"En el trabajo principal a lo largo de su vida, ¿cuáles de las siguientes prestaciones le dan (daban)?"
+I12,"En el trabajo principal a lo largo de su vida, ¿cuáles de las siguientes prestaciones le dan (daban)?"
+I12,"En el trabajo principal a lo largo de su vida, ¿cuáles de las siguientes prestaciones le dan (daban)?"
+I12,"En el trabajo principal a lo largo de su vida, ¿cuáles de las siguientes prestaciones le dan (daban)?"
+I13,¿Recibió usted algún beneficio del IMSS antes de Agosto de 1997?
+I13A,¿Recibió usted algún beneficio del ISSSTE antes de 2007?
+I14,"A lo largo de su vida, en algún trabajo ¿alguna vez se aportó una cantidad para recibir una pensión para su jubilación?"
+I15,¿Como por cuántos años se hizo esta aportación?
+I16,¿Actualmente usted…
+I17,Regularmente ¿cuáles días y cuántas horas dedica usted a su trabajo principal ?
+I17,Regularmente ¿cuáles días y cuántas horas dedica usted a su trabajo principal ?
+I17,Regularmente ¿cuáles días y cuántas horas dedica usted a su trabajo principal ?
+I17,Regularmente ¿cuáles días y cuántas horas dedica usted a su trabajo principal ?
+I17,Regularmente ¿cuáles días y cuántas horas dedica usted a su trabajo principal ?
+I17,Regularmente ¿cuáles días y cuántas horas dedica usted a su trabajo principal ?
+I17,Regularmente ¿cuáles días y cuántas horas dedica usted a su trabajo principal ?
+I18,"Si usted quisiera, ¿podría reducir el número de horas que trabaja, aunque le reduzcan su sueldo?"
+I19,"Acerca de las actividades que usted realiza en su trabajo actual, ¿considera que son similares o iguales a las que realizó en su trabajo a lo largo de su vida, o la mayor parte de su vida?"
+I20,¿Me puede describir las tareas o funciones principales que usted desempeña en su trabajo principal actual?
+I21,"En su trabajo principal actual, ¿usted es…"
+I22,"Ese trabajo principal, ¿usted lo realiza en un local para trabajar?"
+I23A,ENTREVISTADOR: CLASIFICA Y REGISTRA LA RESPUESTA ANTERIOR EN EL SIGUIENTE LISTADO
+I23A,ENTREVISTADOR: CLASIFICA Y REGISTRA LA RESPUESTA ANTERIOR EN EL SIGUIENTE LISTADO
+I23B,¿A qué edad entró a trabajar a su trabajo principal actual?
+I24,¿Por cuántós años ha realizado este tipo de actividades o trabajo?
+I25A1,"En el trabajo principal actual, ¿cuáles de las siguientes prestaciones le dan?"
+I25A2,"En el trabajo principal actual, ¿cuáles de las siguientes prestaciones le dan?"
+I25A3,"En el trabajo principal actual, ¿cuáles de las siguientes prestaciones le dan?"
+I25A4,"En el trabajo principal actual, ¿cuáles de las siguientes prestaciones le dan?"
+I25A5,"En el trabajo principal actual, ¿cuáles de las siguientes prestaciones le dan?"
+I25A6,"En el trabajo principal actual, ¿cuáles de las siguientes prestaciones le dan?"
+I25A7,"En el trabajo principal actual, ¿cuáles de las siguientes prestaciones le dan?"
+I25A8,"En el trabajo principal actual, ¿cuáles de las siguientes prestaciones le dan?"
+I25B1,"Ahora piense acerca de todos los trabajos que tiene actualmente. Regularmente ¿cuáles días y cuántas horas dedica usted, contando todos sus trabajos?"
+I25B2,"Ahora piense acerca de todos los trabajos que tiene actualmente. Regularmente ¿cuáles días y cuántas horas dedica usted, contando todos sus trabajos?"
+I25B3,"Ahora piense acerca de todos los trabajos que tiene actualmente. Regularmente ¿cuáles días y cuántas horas dedica usted, contando todos sus trabajos?"
+I25B4,"Ahora piense acerca de todos los trabajos que tiene actualmente. Regularmente ¿cuáles días y cuántas horas dedica usted, contando todos sus trabajos?"
+I25B5,"Ahora piense acerca de todos los trabajos que tiene actualmente. Regularmente ¿cuáles días y cuántas horas dedica usted, contando todos sus trabajos?"
+I25B6,"Ahora piense acerca de todos los trabajos que tiene actualmente. Regularmente ¿cuáles días y cuántas horas dedica usted, contando todos sus trabajos?"
+I25B7,"Ahora piense acerca de todos los trabajos que tiene actualmente. Regularmente ¿cuáles días y cuántas horas dedica usted, contando todos sus trabajos?"
+I25C,"En su trabajo actual (con pago o sin pago), ¿tiene contacto directo con insecticidas o plaguicidas?"
+I26,¿Cuál es el motivo por el que usted no trabaja?
+I26,¿Cuál es el motivo por el que usted no trabaja?
+I26,¿Cuál es el motivo por el que usted no trabaja?
+I26,¿Cuál es el motivo por el que usted no trabaja?
+I26,¿Cuál es el motivo por el que usted no trabaja?
+I26,¿Cuál es el motivo por el que usted no trabaja?
+I26,¿Cuál es el motivo por el que usted no trabaja?
+I26,¿Cuál es el motivo por el que usted no trabaja?
+I26,¿Cuál es el motivo por el que usted no trabaja?
+I27,"¿Ha trabajado usted en alguna empresa, negocio, actividad por su cuenta o como ayudante sin pago alguna vez en su vida?"
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I28,¿Cuál es el motivo por el que usted dejó su último trabajo?
+I29,¿En qué año o hace cuántos años dejó usted el último trabajo que tuvo?
+I29,¿En qué año o hace cuántos años dejó usted el último trabajo que tuvo?
+I30,¿Diría usted que su situación económica es…
+I31,¿Diría usted que su situación económica de su hogar es…
