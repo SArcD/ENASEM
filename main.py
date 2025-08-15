@@ -3497,27 +3497,24 @@ elif option == "Análisis por subconjunto":
 
             # --- Tabla de código y descripción para las variables del gráfico ---
 
+            # =========================
+            # Diccionario: variables del gráfico (Código | Descripción)
+            # =========================
             import re, unicodedata
             import pandas as pd
-            import streamlit as st
 
-            # Variables presentes en el gráfico (eje X)
-            vars_en_grafico = prop["Pregunta"].unique().tolist()
+            st.markdown("#### Diccionario de variables")
 
-            #st.markdown("#### Diccionario de variables")
-            #anio_dic = st.selectbox(
-            #    "Selecciona el año del diccionario:",
-            #    [2018, 2021],
-            #    index=0
-            #)
+            # 1) Selección de año del diccionario (DEBE ir antes del try/except)
+            anio_dic = st.selectbox("Selecciona el año del diccionario:", [2018, 2021], index=0)
 
-            # URLs RAW en GitHub
+            # 2) URLs RAW en GitHub
             urls_dic = {
                 2018: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018.csv",
                 2021: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_e_pc_f_h_i_2021_enasem_2021.csv",
             }
 
-            # Helpers de normalización
+            # 3) Helpers
             def norm_text(s: str) -> str:
                 s = unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
                 s = s.strip()
@@ -3525,72 +3522,73 @@ elif option == "Análisis por subconjunto":
                 return s
 
             def norm_colname(s: str) -> str:
-                # para nombres de columnas del diccionario
                 s = norm_text(s).lower()
                 s = s.replace("á","a").replace("é","e").replace("í","i").replace("ó","o").replace("ú","u")
-                s = s.replace("descripcion","descripcion")  # por si viniera con acento
-                s = s.replace("código","codigo")
+                s = s.replace("código","codigo")  # por si viene con acento
                 s = re.sub(r"[^a-z0-9]+", "_", s).strip("_")
                 return s
 
             def norm_codigo_para_join(s: str) -> str:
-                # normaliza códigos de variables (diccionario y tus columnas)
                 s = norm_text(s)
-                s = s.replace(".", "_")           # C49.1 -> C49_1
-                s = re.sub(r"_(18|21)$", "", s)   # quita sufijos de año
+                s = s.replace(".", "_")             # C49.1 -> C49_1
+                s = re.sub(r"_(18|21)$", "", s)     # quita sufijos de año
                 s = re.sub(r"__+", "_", s)
                 return s.lower()
 
-            # Lee diccionario
-            try:
-                dic = pd.read_csv(urls_dic[anio_dic])
-            except Exception as e:
-                st.error(f"No se pudo leer el diccionario del {anio_dic}: {e}")
-                dic = pd.DataFrame()
-
+            # 4) Variables presentes en el gráfico (eje X)    
+            vars_en_grafico = sorted(prop["Pregunta"].unique().tolist())
             tabla_dic = pd.DataFrame({"Variable": vars_en_grafico})
             tabla_dic["var_norm_join"] = tabla_dic["Variable"].apply(norm_codigo_para_join)
 
-            if not dic.empty:
-                # Normaliza encabezados del diccionario
+            # 5) Intentar leer el diccionario desde GitHub; si falla, permitir subir CSV manualmente
+            dic = pd.DataFrame()
+            try:
+                dic = pd.read_csv(urls_dic[anio_dic])
+            except Exception as e:
+                st.warning("No se pudo leer el diccionario desde GitHub. Puedes subir el CSV manualmente abajo.")
+                up = st.file_uploader("Sube el diccionario CSV (encabezados con código/variable y descripción)", type=["csv"], key=f"dic_{anio_dic}")
+                if up is not None:
+                    try:
+                        dic = pd.read_csv(up)
+                    except Exception as e2:
+                        st.error(f"No se pudo leer el CSV subido: {e2}")
+
+            if dic.empty:
+                # Mostrar sólo la columna Variable si no hay diccionario
+                st.dataframe(tabla_dic[["Variable"]], use_container_width=True)
+            else:
+                # 6) Normalizar encabezados y detectar columnas de código/descripcion
                 dic.columns = [norm_colname(c) for c in dic.columns]
 
-                # Detecta columna de código y de descripción de manera flexible
-                candidatos_codigo = [c for c in dic.columns if any(
-                    key in c for key in ["codigo","variable","var","clave"]        
-                )]
-                candidatos_desc = [c for c in dic.columns if any(
-                    key in c for key in ["descripcion","descripcion_de_la_variable","label","pregunta","texto","definicion","enunciado"]
-                )]
+                candidatos_codigo = [c for c in dic.columns if any(k in c for k in ["codigo","variable","var","clave"])]
+                candidatos_desc   = [c for c in dic.columns if any(k in c for k in ["descripcion","label","pregunta","texto","enunciado","definicion"])]
 
-                cod_col = candidatos_codigo[0] if candidatos_codigo else None
-                desc_col = candidatos_desc[0] if candidatos_desc else None
+                cod_col  = candidatos_codigo[0] if candidatos_codigo else None
+                desc_col = candidatos_desc[0]   if candidatos_desc   else None
 
                 if not cod_col:
-                    st.warning("No se encontró columna de **código** en el diccionario (busqué: código/variable/var/clave).")
+                    st.warning("No se encontró columna de **código** en el diccionario (intenté: código/variable/var/clave).")
                 if not desc_col:
-                    st.warning("No se encontró columna de **descripción** en el diccionario (busqué: descripción/label/pregunta/texto/definición).")
+                    st.warning("No se encontró columna de **descripción** en el diccionario (intenté: descripción/label/pregunta/texto/enunciado/definición).")
 
                 if cod_col and desc_col:
                     dic["_join_code"] = dic[cod_col].astype(str).apply(norm_codigo_para_join)
                     dic_mini = dic[["_join_code", desc_col]].rename(columns={desc_col: "Descripción"})
-                    # merge
-                    tabla_dic = tabla_dic.merge(dic_mini, left_on="var_norm_join", right_on="_join_code", how="left")
-                    tabla_dic = tabla_dic.drop(columns=["var_norm_join","_join_code"])
+                    out = tabla_dic.merge(dic_mini, left_on="var_norm_join", right_on="_join_code", how="left")
+                    out = out.drop(columns=["var_norm_join","_join_code"]).rename(columns={"Variable":"Código"})
+                    st.dataframe(out, use_container_width=True)
+
+                    st.download_button(
+                        "⬇️ Descargar tabla de códigos y descripciones (CSV)",
+                        data=out.to_csv(index=False).encode("utf-8"),
+                        file_name=f"codigos_descripciones_{anio_dic}.csv",
+                        mime="text/csv",
+                        key=f"dl_dic_{anio_dic}"
+                    )
                 else:
-                    # sin columnas detectadas, muestra solo Variable
-                    tabla_dic = tabla_dic.drop(columns=["var_norm_join"])
+                    # Sin columnas identificadas -> mostrar sólo Variable
+                    st.dataframe(tabla_dic[["Variable"]].rename(columns={"Variable":"Código"}), use_container_width=True)
 
-            # Muestra tabla
-            st.dataframe(tabla_dic.rename(columns={"Variable":"Código"}), use_container_width=True)
-
-            # Descarga
-            st.download_button(
-                "⬇️ Descargar tabla de códigos y descripciones (CSV)",
-                data=tabla_dic.rename(columns={"Variable":"Codigo"}).to_csv(index=False).encode("utf-8"),
-                file_name=f"codigos_descripciones_{anio_dic}.csv",
-                mime="text/csv"
-            )
 
 
 
