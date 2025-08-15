@@ -2868,7 +2868,7 @@ elif option == "Relaciones de Indiscernibilidad":
             rest  = [c for c in df_enriquecido.columns if c not in first]
             df_enriquecido = df_enriquecido[first + rest]
 
-        st.dataframe(df_enriquecido.head(50), use_container_width=True)
+        st.dataframe(df_enriquecido, use_container_width=True)
         st.download_button(
             "Descargar predicciones enriquecidas (CSV)",
             data=df_enriquecido.to_csv(index=False).encode("utf-8"),
