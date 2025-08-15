@@ -3431,73 +3431,106 @@ elif option == "Análisis por subconjunto":
 
         # ============= Tamiz cromático dentro del mismo bloque =============
         with st.expander("📊 Tamiz cromático de la sección (1=Rojo, 2=Verde)", expanded=True):
-            from matplotlib.colors import ListedColormap, BoundaryNorm
-            from matplotlib.patches import Patch
 
-            if not cols_presentes:
-                st.warning("No hay columnas de la sección presentes para generar el tamiz.")
-            else:
-                data_tamiz = df_base[cols_presentes].copy()
-                # Convertir a 1/2 si vienen como texto; adapta si usas 'Sí/No' etc.
-                data_tamiz = data_tamiz.replace({'Sí': 2, 'No': 1, 'Si': 2, 'NO': 1}).apply(pd.to_numeric, errors='coerce')
+        # ========= 1) Barras apiladas: proporciones por pregunta =========
+        if not cols_presentes:
+            st.warning("No hay columnas de la sección presentes para generar resúmenes.")
+        else:
+            st.subheader("Proporción de respuestas por pregunta")
+            df_prop = (
+                df_base[cols_presentes]
+                .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
+                .apply(pd.to_numeric, errors='coerce')
+            )
+            # Reorganizar a largo
+            long = df_prop.melt(var_name="Pregunta", value_name="Respuesta")
+            # Categorizar 1/2/NaN
+            long["Respuesta_cat"] = pd.Categorical(
+                np.where(long["Respuesta"].isna(), "NaN", long["Respuesta"].astype("Int64").astype(str)),
+                categories=["1","2","NaN"], ordered=True
+            )
+            prop = (
+                long.groupby(["Pregunta","Respuesta_cat"])
+                    .size()
+                    .groupby(level=0)
+                    .apply(lambda s: 100*s/s.sum())
+                    .reset_index(name="Porcentaje")
+            )
+            fig_bar = px.bar(
+                prop, x="Pregunta", y="Porcentaje", color="Respuesta_cat",
+                barmode="stack", text=prop["Porcentaje"].round(1).astype(str) + "%",
+                category_orders={"Respuesta_cat":["1","2","NaN"]}
+            )
+            fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
+            st.plotly_chart(fig_bar, use_container_width=True)
 
-                candidatos_orden = [c for c in ["nivel_riesgo","Diagnóstico_árbol","subconjunto",
-                                                "conjunto","cluster","bloque","Indice"]
-                                    if c in df_base.columns]
-                col_orden = st.selectbox("Ordenar filas por (opcional):", ["(sin orden)"] + candidatos_orden, index=0)
-                data_ord = df_base
-                if col_orden != "(sin orden)":
-                    data_ord = df_base.sort_values(by=col_orden, kind="mergesort")
-                    data_tamiz = data_ord[cols_presentes].apply(pd.to_numeric, errors='coerce')
+            # ========= 2) Patrones idénticos (bloques de indiscernibilidad) =========
+            st.subheader("Patrones de respuesta idéntica (bloques)")
+            top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5)
+            # Construir clave de patrón como tupla ordenada de respuestas por pregunta
+            df_pat = df_prop.copy()
+            # Opcional: trata NaN como categoría separada para que cuenten en el patrón
+            pat_keys = df_pat.apply(lambda r: tuple(r[c] for c in cols_presentes), axis=1)
+            counts = pat_keys.value_counts(dropna=False)
+            total = counts.sum()
+            top_counts = counts.head(top_n).reset_index()
+            top_counts.columns = ["Patrón", "Frecuencia"]
+            top_counts["Porcentaje"] = 100 * top_counts["Frecuencia"] / total
 
-                # Etiquetas de filas
-                candidatos_etq = [c for c in data_ord.columns if c not in cols_presentes]
-                col_etq = st.selectbox("Etiquetas de fila:", ["(índice)"] + candidatos_etq, index=0)
-                y_labels = (data_ord.index.astype(str).tolist()
-                            if col_etq == "(índice)" else data_ord[col_etq].astype(str).tolist())
+            # Mostrar tabla amigable con patrón legible
+            def pattern_to_str(p):
+                def fmt(v):
+                    if pd.isna(v): return "NaN"
+                    try: return str(int(v))
+                    except: return str(v)
+                return " | ".join(f"{c}:{fmt(v)}" for c, v in zip(cols_presentes, p))
+            top_counts["Patrón (pregunta:valor)"] = top_counts["Patrón"].apply(pattern_to_str)
+            st.caption(f"Patrones únicos en total: {counts.shape[0]:,}")
+            st.dataframe(
+                top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
+                    .assign(Porcentaje=lambda d: d["Porcentaje"].round(2)),
+                use_container_width=True, height=400
+            )
 
-                mask = data_tamiz.isna().values
-                data_ma = np.ma.masked_where(mask, data_tamiz.values)
+            # Mini KPI: cobertura del TOP-N
+            cobertura = top_counts["Frecuencia"].sum() / total * 100
+            st.metric("Cobertura del TOP mostrado", f"{cobertura:.1f}%")
 
-                cmap = ListedColormap(["red", "green"])
-                bnorm = BoundaryNorm([0.5, 1.5, 2.5], cmap.N)   # <- NO usar 'norm' para evitar choque
-                cmap.set_bad(color="#d9d9d9")
+            # ========= 3) Treemap de patrones (tamaño = frecuencia; color = % de '2') =========
+            st.subheader("Treemap de patrones (tamaño = frecuencia, color = % de '2')")
+            # % de '2' dentro de cada patrón
+            def pct_twos(p):
+                vals = [x for x in p if not pd.isna(x)]
+                return 100 * (np.sum(np.array(vals)==2) / len(vals)) if vals else 0.0
 
-                fig_w = max(6, 0.7 * len(cols_presentes))
-                fig_h = max(4, 0.25 * len(data_tamiz))
-                fig, ax = plt.subplots(figsize=(fig_w, fig_h))
-                ax.imshow(data_ma, cmap=cmap, norm=bnorm, aspect='auto')
+            treemap_df = top_counts.copy()
+            treemap_df["%2_en_patron"] = treemap_df["Patrón"].apply(pct_twos)
+            treemap_df["Patrón (corto)"] = treemap_df["Patrón"].apply(
+                lambda p: " / ".join(str(int(x)) if pd.notna(x) else "NaN" for x in p)
+            )
 
-                ax.set_xticks(np.arange(len(cols_presentes)))
-                ax.set_xticklabels(cols_presentes, rotation=45, ha='right')
-                ax.set_yticks(np.arange(len(y_labels)))
-                ax.set_yticklabels(y_labels)
+            fig_tree = px.treemap(
+                treemap_df,
+                path=["Patrón (corto)"],
+                values="Frecuencia",
+                color="%2_en_patron",
+                color_continuous_scale="Greens",
+                hover_data={"Porcentaje":":.2f","%2_en_patron":":.1f"}
+            )
+            fig_tree.update_layout(margin=dict(t=30,l=0,r=0,b=0), coloraxis_colorbar=dict(title="% de '2'"))
+            st.plotly_chart(fig_tree, use_container_width=True)
 
-                ax.set_xticks(np.arange(-0.5, len(cols_presentes), 1), minor=True)
-                ax.set_yticks(np.arange(-0.5, len(y_labels), 1), minor=True)
-                ax.grid(which='minor', color='black', linewidth=0.5, alpha=0.2)
-                ax.tick_params(which='minor', length=0)
+            # ========= Descargas =========
+            st.download_button(
+                "⬇️ Descargar TOP patrones (CSV)",
+                data=top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
+                    .to_csv(index=False).encode("utf-8"),
+                file_name="top_patrones_identicos.csv",
+                mime="text/csv"
+            )
 
-                legend_handles = [
-                    Patch(facecolor="red", edgecolor="black", label="1 (negativo)"),
-                    Patch(facecolor="green", edgecolor="black", label="2 (positivo)"),
-                    Patch(facecolor="#d9d9d9", edgecolor="black", label="NaN / sin dato")
-                ]
-                ax.legend(handles=legend_handles, loc="upper right", frameon=True)
-                ax.set_title(f"Tamiz cromático — Sección: {seccion}\n(1=Rojo, 2=Verde)", pad=12)
 
-                st.pyplot(fig, clear_figure=True)
 
-                # ✅ descarga de imagen con BytesIO y nombre normalizado con norm()
-                buf = io.BytesIO()
-                fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
-                st.download_button(
-                    "🖼️ Descargar imagen (PNG)",
-                    data=buf.getvalue(),
-                    file_name=f"tamiz_{norm(seccion)}.png",
-                    mime="image/png",
-                    key=f"dl_tamiz_{seccion}"
-                )
 
 
 else:
