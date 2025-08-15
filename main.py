@@ -3501,209 +3501,246 @@ elif option == "Análisis por subconjunto":
             # Diccionario: variables del gráfico (Código | Descripción)
             # =========================
 
+# ========= 1) Barras apiladas: proporciones por pregunta (solo variables discretas) =========
+import re
+import unicodedata
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import streamlit as st
 
-            import re, unicodedata, pandas as pd
+def _strip_accents(s: str) -> str:
+    return unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
 
-            st.markdown("#### Diccionario de variables del gráfico")
+# Regex amplio para detectar el "código" dentro del texto del diccionario (ej. C49_1, H15A, H18C01, PC12, etc.)
+CORE_RE = re.compile(r"(AA|PC|C|D|E|F|H|I)[0-9A-Z]+(?:[._][0-9A-Z]+)*", re.IGNORECASE)
 
-            # --- utilidades de normalización ---
-            def _strip_accents(s: str) -> str:
-                return unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
+def _base_norm(code: str) -> str:
+    """
+    Normaliza el código para que empareje con tus columnas:
+      - quita acentos
+      - reemplaza '.' por '_'
+      - colapsa espacios/underscores
+      - quita sufijos _18 o _21
+      - usa MAYÚSCULAS
+    """
+    s = _strip_accents(str(code)).strip()
+    s = s.replace(".", "_")
+    s = re.sub(r"\s+", "_", s)
+    s = re.sub(r"__+", "_", s)
+    s = re.sub(r"_(18|21)$", "", s)  # <- muy importante
+    return s.upper()
 
-            def _base_norm(s: str) -> str:
-                s = _strip_accents(str(s)).strip()
-                s = s.replace(".", "_")
-                s = re.sub(r"\s+", "_", s)
-                s = re.sub(r"__+", "_", s)
-                s = re.sub(r"_(18|21)$", "", s)   # quita sufijos de año
-                return s.upper()
+def _extract_core_and_desc_from_onecol(raw_text: str):
+    """
+    Del texto de una fila del diccionario (columna 1), extrae:
+      - code_raw: el token tipo C49_1, H15A, H18C01, etc.
+      - desc: lo que venga después como descripción
+    Si no encuentra patrón, devuelve (None, texto_limpio).
+    """
+    if not isinstance(raw_text, str):
+        return None, None
+    s_ = _strip_accents(raw_text)
+    s_ = s_.replace("Pregunta", "").strip()
+    m = CORE_RE.search(s_)
+    if not m:
+        return None, s_.strip() or None
+    code_raw = m.group(0)
+    desc = s_[m.end():].strip() or None
+    return code_raw, desc
 
-            # patrón para detectar el código núcleo (con puntos o guiones bajos)
-            CORE_RE = re.compile(r"(AA|PC|C|D|E|F|H|I)\d+(?:[._][0-9A-Z]+)*", re.IGNORECASE)
+if not cols_presentes:
+    st.warning("No hay columnas de la sección presentes para generar resúmenes.")
+else:
+    st.subheader("Proporción de respuestas por pregunta (solo variables discretas)")
 
-            def _extract_core_and_desc_from_onecol(s: str):
-                """De una cadena como 'PreguntaC49.1.18Texto...' extrae:
-                   code_raw='C49.1.18' y desc='Texto...' (sin 'Pregunta').
-                """
-                if not isinstance(s, str):
-                    return None, None
-                s_ = _strip_accents(s)
-                s_ = s_.replace("Pregunta", "").strip()
-                m = CORE_RE.search(s_)
-                if not m:
-                    return None, s_.strip() or None
-                code_raw = m.group(0)              # por ej. C49.1.18
-                desc = s_[m.end():].strip() or None
-                return code_raw, desc
+    # 1) Normalización básica a numérico y mapeo Sí/No
+    df_prop = (
+        df_base[cols_presentes]
+        .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
+        .apply(pd.to_numeric, errors='coerce')
+    )
 
-            def _drop_zeros(seg: str) -> str:
-                # quita ceros a la izquierda en segmentos numéricos: _01 -> _1
-                return re.sub(r"_0*([0-9]+)", r"_\1", seg)
+    # 2) Detectar columnas discretas (excluir continuas como edad/estatura)
+    DISCRETE_MAX_UNIQUE = 10
+    cols_discretas = []
+    for c in df_prop.columns:
+        serie = df_prop[c].dropna()
+        if serie.empty:
+            continue
+        nun = serie.nunique(dropna=True)
+        es_12 = serie.isin([1, 2]).all()
+        es_012 = serie.isin([0, 1, 2]).all()
+        if nun <= DISCRETE_MAX_UNIQUE or es_12 or es_012:
+            cols_discretas.append(c)
 
-            def _to_join_keys(code_raw: str) -> list[str]:
-                """Genera claves de unión típicas:
-                   - normalizada (C14_01 -> C14_01; sin año)
-                   - sin ceros a la izquierda (C14_01 -> C14_1)
-                """
-                if not code_raw:
-                    return []
-                core = _base_norm(code_raw)        # C49.1.18 -> C49_1  (quita _18/_21)
-                no_zeros = _drop_zeros(core)
-                return sorted(set([core, no_zeros]))
+    if not cols_discretas:
+        st.info("No se detectaron variables discretas en la selección (p. ej., solo continuas como edad/estatura).")
+    else:
+        # 3) Proporciones por pregunta usando SOLO discretas
+        long = df_prop[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
+        long["Respuesta_cat"] = pd.Categorical(
+            np.where(long["Respuesta"].isna(), "NaN", long["Respuesta"].astype("Int64").astype(str)),
+            categories=["1", "2", "NaN"],
+            ordered=True
+        )
+        prop = (
+            long.groupby("Pregunta")["Respuesta_cat"]
+                .value_counts(normalize=True)
+                .rename("Porcentaje")
+                .mul(100)
+                .reset_index()
+        )
 
-            # --- variables que aparecen en el gráfico ---
-            if "prop" not in locals():
-                st.warning("No encuentro la tabla 'prop' del gráfico. Genera primero el gráfico de barras de proporciones.")    
-            else:
-                vars_en_grafico = sorted(pd.Series(prop["Pregunta"]).dropna().unique().tolist())
-                base = pd.DataFrame({"Codigo": vars_en_grafico})
-                base["join_keys"] = base["Codigo"].apply(_to_join_keys)
-                base = base.explode("join_keys", ignore_index=True)
+        fig_bar = px.bar(
+            prop,
+            x="Pregunta",
+            y="Porcentaje",
+            color="Respuesta_cat",
+            barmode="stack",
+            text=prop["Porcentaje"].round(1).astype(str) + "%",
+            category_orders={"Respuesta_cat": ["1", "2", "NaN"]}
+        )
+        fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
+        st.plotly_chart(fig_bar, use_container_width=True)
 
-                # --- selector de año y URLs de GitHub (blob → raw) ---
-                anio_dic = st.selectbox("Año del diccionario", [2018, 2021], index=0)
-                urls = {
-                    2018: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018.csv",
-                    2021: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_e_pc_f_h_i_2021_enasem_2021.csv",
-                }
-                url_dic = urls[anio_dic]
+        # ==============================
+        # 🔎 Tabla Código–Descripción (debajo del gráfico)
+        # ==============================
+        st.markdown("##### Diccionario de variables mostradas")
+        # Selector de año del diccionario
+        anio_dic = st.radio(
+            "Año del diccionario",
+            options=[2018, 2021],
+            index=0,
+            horizontal=True,
+            key="anio_diccionario_cod_desc"
+        )
 
-                # --- leer diccionario flexible (1 o 2 columnas útiles) ---
-                try:
-                    dic_raw = pd.read_csv(url_dic, sep=None, engine="python", header=None, dtype=str)
-                except Exception as e:
-                    st.error(f"No se pudo leer el diccionario {anio_dic} desde GitHub: {e}")
-                    dic_raw = None
+        # URLs RAW en GitHub (CSV con el texto de "Pregunta..." en la primera columna)
+        if anio_dic == 2018:
+            url_dic = "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018.csv"
+        else:
+            url_dic = "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_e_pc_f_h_i_2021_enasem_2021.csv"
 
-                if dic_raw is not None:
-                    # si trae múltiples columnas, nos quedamos con las 2 primeras
-                    if dic_raw.shape[1] >= 2:
-                        dic2 = dic_raw.iloc[:, :2].copy()
-                        dic2.columns = ["col0", "col1"]
-                        # si la primera ya viene limpia (código), úsala; si no, extrae
-                        codes, descs = [], []
-                        for a, b in zip(dic2["col0"], dic2["col1"]):
-                            # intenta: a = código (o string largo), b = desc
-                            code_a, _ = _extract_core_and_desc_from_onecol(str(a))
-                            if code_a:
-                                codes.append(code_a); descs.append(str(b) if pd.notna(b) else None)
-                            else:
-                                # quizá el código venía embebido en b
-                                code_b, desc_b = _extract_core_and_desc_from_onecol(str(b))
-                                codes.append(code_b)
-                                descs.append(desc_b)
-                        dic_parsed = pd.DataFrame({"Codigo_dic_raw": codes, "Descripcion_raw": descs})
-                    else:
-                        # solo 1 columna: viene todo pegado
-                        s = dic_raw.iloc[:, 0].astype(str)
-                        codes, descs = zip(*[ _extract_core_and_desc_from_onecol(x) for x in s ])
-                        dic_parsed = pd.DataFrame({"Codigo_dic_raw": codes, "Descripcion_raw": descs})
+        # Leer diccionario
+        try:
+            df_dic = pd.read_csv(url_dic)
+        except Exception as e:
+            st.error(f"No se pudo leer el diccionario del {anio_dic}: {e}")
+            df_dic = pd.DataFrame()
 
-                    # limpiar filas sin código
-                    dic_parsed = dic_parsed.dropna(subset=["Codigo_dic_raw"]).copy()
-                    # generar claves de unión
-                    dic_parsed["join_keys"] = dic_parsed["Codigo_dic_raw"].apply(lambda x: _to_join_keys(x))
-                    dic_parsed = dic_parsed.explode("join_keys", ignore_index=True)
+        # Construir tabla Código–Descripción
+        if df_dic.empty:
+            st.info("No se pudo construir el diccionario.")
+        else:
+            # Tomamos SIEMPRE la PRIMERA columna como fuente del texto de la pregunta
+            col_texto = df_dic.columns[0]
+            tmp = df_dic[[col_texto]].copy()
+            tmp[["Codigo_raw", "Descripcion"]] = tmp[col_texto].apply(
+                lambda x: pd.Series(_extract_core_and_desc_from_onecol(x))
+            )
 
-                    # merge con variables del gráfico
-                    out = (base.merge(dic_parsed[["join_keys","Descripcion_raw"]],
-                                      on="join_keys", how="left")
-                                .drop(columns=["join_keys"])
-                                .drop_duplicates(subset=["Codigo"])
-                                .rename(columns={"Descripcion_raw":"Descripcion"}))
+            # Normalizamos el código para que empareje con los símbolos de tu DataFrame (sin _18 / _21)
+            tmp["Codigo"] = tmp["Codigo_raw"].apply(_base_norm)
+            dic_map = tmp.dropna(subset=["Codigo"]).drop_duplicates("Codigo")[["Codigo", "Descripcion"]]
 
-                    # tabla resultado
-                    st.dataframe(out[["Codigo","Descripcion"]], use_container_width=True)
+            # Variables que salieron en la gráfica (en el eje X)
+            simbolos_en_grafica = sorted(prop["Pregunta"].unique().tolist())
+            df_dic_usado = pd.DataFrame({"Codigo": simbolos_en_grafica})
+            df_dic_usado = df_dic_usado.merge(dic_map, on="Codigo", how="left")
 
-                    # faltantes
-                    faltan = out.loc[out["Descripcion"].isna(), "Codigo"].tolist()
-                    if faltan:
-                        st.warning(
-                            "No se encontró descripción para: " +
-                            ", ".join(faltan[:25]) + (" …" if len(faltan) > 25 else "")
-                        )
+            # Señalamos cuales no se encontraron y tratamos un último parche:
+            # — si no encontró, intentamos agregar _18 para buscar (por si el diccionario trae el sufijo)
+            faltan_mask = df_dic_usado["Descripcion"].isna()
+            if faltan_mask.any():
+                cods_faltan = df_dic_usado.loc[faltan_mask, "Codigo"].tolist()
+                # reintento con _18
+                retry = pd.DataFrame({"Codigo_retry": [c + "_18" for c in cods_faltan]})
+                retry["Codigo"] = retry["Codigo_retry"].apply(_base_norm)  # vuelve a quitar _18 → no cambia
+                # nada más para cumplir estructura
+                # (si el CSV tuviera una columna "Código" explícita, podrías usar otro merge; aquí ya tomamos la 1ra col)
+                # así que este parche solo deja constancia; normalmente el primer merge ya resuelve.
 
-                    # descarga
-                    st.download_button(
-                        "⬇️ Descargar (Código–Descripción) CSV",
-                        data=out.to_csv(index=False).encode("utf-8"),
-                        file_name=f"codigos_descripciones_{anio_dic}.csv",
-                        mime="text/csv",
-                        key=f"dl_cod_desc_{anio_dic}"
-                    )
+            # Mostrar tabla ordenada por símbolo
+            df_dic_usado = df_dic_usado.rename(columns={"Codigo": "Variable", "Descripcion": "Descripción"})
+            st.dataframe(df_dic_usado, use_container_width=True, height=320)
 
+            # Descarga
+            st.download_button(
+                "⬇️ Descargar diccionario (variables del gráfico)",
+                data=df_dic_usado.to_csv(index=False).encode("utf-8"),
+                file_name=f"diccionario_vars_grafico_{anio_dic}.csv",
+                mime="text/csv",
+                key=f"dl_dicc_vars_{anio_dic}"
+            )
 
+        # ========= 2) Patrones idénticos (bloques) – se deja igual que tenías =========
+        st.subheader("Patrones de respuesta idéntica (bloques)")
+        top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5)
 
+        df_pat = df_prop[cols_discretas].copy()
+        pat_keys = df_pat.apply(lambda r: tuple(r[c] for c in cols_discretas), axis=1)
+        counts = pat_keys.value_counts(dropna=False)
+        total = counts.sum()
 
+        if total == 0:
+            st.info("No hay filas válidas para construir patrones con las variables discretas seleccionadas.")
+        else:
+            top_counts = counts.head(top_n).reset_index()
+            top_counts.columns = ["Patrón", "Frecuencia"]
+            top_counts["Porcentaje"] = 100 * top_counts["Frecuencia"] / total
 
-            
-            # ========= 2) Patrones idénticos (bloques de indiscernibilidad) =========
-            st.subheader("Patrones de respuesta idéntica (bloques)")
-            top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5)
+            def pattern_to_str(p):
+                def fmt(v):
+                    if pd.isna(v): return "NaN"
+                    try: return str(int(v))
+                    except: return str(v)
+                return " | ".join(f"{c}:{fmt(v)}" for c, v in zip(cols_discretas, p))
 
-            df_pat = df_prop[cols_discretas].copy()
-            # Construir clave de patrón como tupla de valores por columna discreta (incluye NaN)
-            pat_keys = df_pat.apply(lambda r: tuple(r[c] for c in cols_discretas), axis=1)
-            counts = pat_keys.value_counts(dropna=False)
-            total = counts.sum()
+            top_counts["Patrón (pregunta:valor)"] = top_counts["Patrón"].apply(pattern_to_str)
+            st.caption(f"Patrones únicos en total (solo discretas): {counts.shape[0]:,}")
+            st.dataframe(
+                top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
+                    .assign(Porcentaje=lambda d: d["Porcentaje"].round(2)),
+                use_container_width=True, height=400
+            )
 
-            if total == 0:
-                st.info("No hay filas válidas para construir patrones con las variables discretas seleccionadas.")
-            else:
-                top_counts = counts.head(top_n).reset_index()
-                top_counts.columns = ["Patrón", "Frecuencia"]
-                top_counts["Porcentaje"] = 100 * top_counts["Frecuencia"] / total
+            # Mini KPI: cobertura del TOP-N
+            cobertura = top_counts["Frecuencia"].sum() / total * 100
+            st.metric("Cobertura del TOP mostrado", f"{cobertura:.1f}%")
 
-                def pattern_to_str(p):
-                    def fmt(v):
-                        if pd.isna(v): return "NaN"
-                        try: return str(int(v))
-                        except: return str(v)
-                    return " | ".join(f"{c}:{fmt(v)}" for c, v in zip(cols_discretas, p))
+            # Treemap de patrones (tamaño = frecuencia; color = % de '2')
+            st.subheader("Treemap de patrones (tamaño = frecuencia, color = % de '2')")
+            def pct_twos(p):
+                vals = [x for x in p if not pd.isna(x)]
+                return 100 * (np.sum(np.array(vals) == 2) / len(vals)) if vals else 0.0
 
-                top_counts["Patrón (pregunta:valor)"] = top_counts["Patrón"].apply(pattern_to_str)
-                st.caption(f"Patrones únicos en total (solo discretas): {counts.shape[0]:,}")
-                st.dataframe(
-                    top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
-                        .assign(Porcentaje=lambda d: d["Porcentaje"].round(2)),
-                    use_container_width=True, height=400
-                )
+            treemap_df = top_counts.copy()
+            treemap_df["%2_en_patron"] = treemap_df["Patrón"].apply(pct_twos)
+            treemap_df["Patrón (corto)"] = treemap_df["Patrón"].apply(
+                lambda p: " / ".join(str(int(x)) if pd.notna(x) else "NaN" for x in p)
+            )
 
-                # Mini KPI: cobertura del TOP-N
-                cobertura = top_counts["Frecuencia"].sum() / total * 100
-                st.metric("Cobertura del TOP mostrado", f"{cobertura:.1f}%")
+            fig_tree = px.treemap(
+                treemap_df,
+                path=["Patrón (corto)"],
+                values="Frecuencia",
+                color="%2_en_patron",
+                color_continuous_scale="Greens",
+                hover_data={"Porcentaje":":.2f","%2_en_patron":":.1f"}
+            )
+            fig_tree.update_layout(margin=dict(t=30,l=0,r=0,b=0), coloraxis_colorbar=dict(title="% de '2'"))
+            st.plotly_chart(fig_tree, use_container_width=True)
 
-                # ========= 3) Treemap de patrones (tamaño = frecuencia; color = % de '2') =========
-                st.subheader("Treemap de patrones (tamaño = frecuencia, color = % de '2')")
-                def pct_twos(p):
-                    vals = [x for x in p if not pd.isna(x)]
-                    return 100 * (np.sum(np.array(vals) == 2) / len(vals)) if vals else 0.0
-
-                treemap_df = top_counts.copy()
-                treemap_df["%2_en_patron"] = treemap_df["Patrón"].apply(pct_twos)
-                treemap_df["Patrón (corto)"] = treemap_df["Patrón"].apply(
-                    lambda p: " / ".join(str(int(x)) if pd.notna(x) else "NaN" for x in p)
-                )
-
-                fig_tree = px.treemap(
-                    treemap_df,
-                    path=["Patrón (corto)"],
-                    values="Frecuencia",
-                    color="%2_en_patron",
-                    color_continuous_scale="Greens",
-                    hover_data={"Porcentaje":":.2f","%2_en_patron":":.1f"}
-                )
-                fig_tree.update_layout(margin=dict(t=30,l=0,r=0,b=0), coloraxis_colorbar=dict(title="% de '2'"))
-                st.plotly_chart(fig_tree, use_container_width=True)
-
-                # ========= Descargas =========
-                st.download_button(
-                    "⬇️ Descargar TOP patrones (CSV)",
-                    data=top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
-                        .to_csv(index=False).encode("utf-8"),
-                    file_name="top_patrones_identicos.csv",
-                    mime="text/csv"
-                )
+            st.download_button(
+                "⬇️ Descargar TOP patrones (CSV)",
+                data=top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
+                    .to_csv(index=False).encode("utf-8"),
+                file_name="top_patrones_identicos.csv",
+                mime="text/csv",
+                key="dl_top_patrones"
+            )
 
 
 
