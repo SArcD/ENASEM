@@ -3195,7 +3195,13 @@ elif option == "Relaciones de Indiscernibilidad":
 
 elif option == "Análisis por subconjunto":
     import unicodedata
-    
+    import re  # ✅ Se usa en norm()
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import io
+    import streamlit as st
+
     # -------------------------------
     # Utilidades
     # -------------------------------
@@ -3326,12 +3332,14 @@ elif option == "Análisis por subconjunto":
             st.stop()
         df_filtrado = df[df[col_sub].isin(sel)].copy()
 
+    # ✅ Guarda el filtrado para la vista por secciones
+    st.session_state["df_filtrado"] = df_filtrado
+
     # -------------------------------
     # Resultados
     # -------------------------------
     st.markdown("### Vista de filas filtradas")
     st.caption(f"Filas seleccionadas: {df_filtrado.shape[0]} de {df.shape[0]}")
-
     st.dataframe(df_filtrado, use_container_width=True)
 
     # Conteo por categoría elegida (útil para verificar)
@@ -3351,10 +3359,10 @@ elif option == "Análisis por subconjunto":
     )
 
     # =======================
-    # Vista por secciones (después del filtrado por nivel_riesgo)
+    # Vista por secciones (después del filtrado)
     # =======================
 
-    # 1) Usar directamente df_filtrado
+    # 1) Usar directamente df_filtrado desde session_state
     df_base = st.session_state.get("df_filtrado")
 
     if not isinstance(df_base, pd.DataFrame) or df_base.empty:
@@ -3377,7 +3385,7 @@ elif option == "Análisis por subconjunto":
                 "C64"
             ],
             "5. Datos antropométricos y condición física": [
-                "C66", "C67_1", "C67_2", "C67",  # incluye C67 si existe
+                "C66", "C67_1", "C67_2", "C67",
                 "C68E", "C68G", "C68H", "C69A", "C69B", "C71A"
             ],
             "6. Actividades de la vida diaria (AVD)": [
@@ -3386,7 +3394,7 @@ elif option == "Análisis por subconjunto":
             ],
         }
 
-        # 3) Selector de sección
+        # 3) Selector de sección (la “barra para seleccionar categoría”)
         seccion = st.selectbox("Selecciona una sección para mostrar:", list(SECCIONES.keys()))
 
         # 4) Columnas base a mostrar (intersecta con columnas presentes)
@@ -3421,74 +3429,75 @@ elif option == "Análisis por subconjunto":
                 key=f"dl_vista_{seccion}"
             )
 
+        # ============= Tamiz cromático dentro del mismo bloque =============
+        with st.expander("📊 Tamiz cromático de la sección (1=Rojo, 2=Verde)", expanded=True):
+            from matplotlib.colors import ListedColormap, BoundaryNorm
+            from matplotlib.patches import Patch
 
- # ============= Tamiz cromático dentro del mismo bloque =============
-    with st.expander("📊 Tamiz cromático de la sección (1=Rojo, 2=Verde)", expanded=True):
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from matplotlib.colors import ListedColormap, BoundaryNorm
-        from matplotlib.patches import Patch
+            if not cols_presentes:
+                st.warning("No hay columnas de la sección presentes para generar el tamiz.")
+            else:
+                data_tamiz = df_base[cols_presentes].copy()
+                # Convertir a 1/2 si vienen como texto; adapta si usas 'Sí/No' etc.
+                data_tamiz = data_tamiz.replace({'Sí': 2, 'No': 1, 'Si': 2, 'NO': 1}).apply(pd.to_numeric, errors='coerce')
 
-        if not cols_presentes:
-            st.warning("No hay columnas de la sección presentes para generar el tamiz.")
-        else:
-            data_tamiz = df_base[cols_presentes].copy()
-            # Convertir a 1/2 si vienen como texto; adapta si usas 'Sí/No' etc.
-            data_tamiz = data_tamiz.replace({'Sí': 2, 'No': 1, 'Si': 2, 'NO': 1}).apply(pd.to_numeric, errors='coerce')
-            
-            candidatos_orden = [c for c in ["nivel_riesgo","Diagnóstico_árbol","subconjunto",
-                                            "conjunto","cluster","bloque","Indice"]
-                                if c in df_base.columns]
-            col_orden = st.selectbox("Ordenar filas por (opcional):", ["(sin orden)"] + candidatos_orden, index=0)
-            data_ord = df_base
-            if col_orden != "(sin orden)":
-                data_ord = df_base.sort_values(by=col_orden, kind="mergesort")
-                data_tamiz = data_ord[cols_presentes].apply(pd.to_numeric, errors='coerce')
+                candidatos_orden = [c for c in ["nivel_riesgo","Diagnóstico_árbol","subconjunto",
+                                                "conjunto","cluster","bloque","Indice"]
+                                    if c in df_base.columns]
+                col_orden = st.selectbox("Ordenar filas por (opcional):", ["(sin orden)"] + candidatos_orden, index=0)
+                data_ord = df_base
+                if col_orden != "(sin orden)":
+                    data_ord = df_base.sort_values(by=col_orden, kind="mergesort")
+                    data_tamiz = data_ord[cols_presentes].apply(pd.to_numeric, errors='coerce')
 
                 # Etiquetas de filas
-            candidatos_etq = [c for c in data_ord.columns if c not in cols_presentes]
-            col_etq = st.selectbox("Etiquetas de fila:", ["(índice)"] + candidatos_etq, index=0)
-            y_labels = (data_ord.index.astype(str).tolist()
-                        if col_etq == "(índice)" else data_ord[col_etq].astype(str).tolist())
+                candidatos_etq = [c for c in data_ord.columns if c not in cols_presentes]
+                col_etq = st.selectbox("Etiquetas de fila:", ["(índice)"] + candidatos_etq, index=0)
+                y_labels = (data_ord.index.astype(str).tolist()
+                            if col_etq == "(índice)" else data_ord[col_etq].astype(str).tolist())
 
-            mask = data_tamiz.isna().values
-            data_ma = np.ma.masked_where(mask, data_tamiz.values)
+                mask = data_tamiz.isna().values
+                data_ma = np.ma.masked_where(mask, data_tamiz.values)
 
-            cmap = ListedColormap(["red", "green"])
-            bnorm = BoundaryNorm([0.5, 1.5, 2.5], cmap.N)   # <- NO usar 'norm' para evitar choque
-            cmap.set_bad(color="#d9d9d9")
+                cmap = ListedColormap(["red", "green"])
+                bnorm = BoundaryNorm([0.5, 1.5, 2.5], cmap.N)   # <- NO usar 'norm' para evitar choque
+                cmap.set_bad(color="#d9d9d9")
 
-            fig_w = max(6, 0.7 * len(cols_presentes))
-            fig_h = max(4, 0.25 * len(data_tamiz))
-            fig, ax = plt.subplots(figsize=(fig_w, fig_h))
-            ax.imshow(data_ma, cmap=cmap, norm=bnorm, aspect='auto')
+                fig_w = max(6, 0.7 * len(cols_presentes))
+                fig_h = max(4, 0.25 * len(data_tamiz))
+                fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+                ax.imshow(data_ma, cmap=cmap, norm=bnorm, aspect='auto')
 
-            ax.set_xticks(np.arange(len(cols_presentes)))
-            ax.set_xticklabels(cols_presentes, rotation=45, ha='right')
-            ax.set_yticks(np.arange(len(y_labels)))
-            ax.set_yticklabels(y_labels)
+                ax.set_xticks(np.arange(len(cols_presentes)))
+                ax.set_xticklabels(cols_presentes, rotation=45, ha='right')
+                ax.set_yticks(np.arange(len(y_labels)))
+                ax.set_yticklabels(y_labels)
 
-            ax.set_xticks(np.arange(-0.5, len(cols_presentes), 1), minor=True)
-            ax.set_yticks(np.arange(-0.5, len(y_labels), 1), minor=True)
-            ax.grid(which='minor', color='black', linewidth=0.5, alpha=0.2)
-            ax.tick_params(which='minor', length=0)
+                ax.set_xticks(np.arange(-0.5, len(cols_presentes), 1), minor=True)
+                ax.set_yticks(np.arange(-0.5, len(y_labels), 1), minor=True)
+                ax.grid(which='minor', color='black', linewidth=0.5, alpha=0.2)
+                ax.tick_params(which='minor', length=0)
 
-            legend_handles = [
-                Patch(facecolor="red", edgecolor="black", label="1 (negativo)"),
-                Patch(facecolor="green", edgecolor="black", label="2 (positivo)"),
-                Patch(facecolor="#d9d9d9", edgecolor="black", label="NaN / sin dato")
-            ]
-            ax.legend(handles=legend_handles, loc="upper right", frameon=True)
-            ax.set_title(f"Tamiz cromático — Sección: {seccion}\n(1=Rojo, 2=Verde)", pad=12)
+                legend_handles = [
+                    Patch(facecolor="red", edgecolor="black", label="1 (negativo)"),
+                    Patch(facecolor="green", edgecolor="black", label="2 (positivo)"),
+                    Patch(facecolor="#d9d9d9", edgecolor="black", label="NaN / sin dato")
+                ]
+                ax.legend(handles=legend_handles, loc="upper right", frameon=True)
+                ax.set_title(f"Tamiz cromático — Sección: {seccion}\n(1=Rojo, 2=Verde)", pad=12)
 
-            st.pyplot(fig, clear_figure=True)
-            st.download_button(
-                "🖼️ Descargar imagen (PNG)",
-                data=lambda: fig.canvas.print_png(None),
-                file_name=f"tamiz_{norm_str(seccion)}.png",
-                mime="image/png",
-                key=f"dl_tamiz_{seccion}"
-            )
+                st.pyplot(fig, clear_figure=True)
+
+                # ✅ descarga de imagen con BytesIO y nombre normalizado con norm()
+                buf = io.BytesIO()
+                fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
+                st.download_button(
+                    "🖼️ Descargar imagen (PNG)",
+                    data=buf.getvalue(),
+                    file_name=f"tamiz_{norm(seccion)}.png",
+                    mime="image/png",
+                    key=f"dl_tamiz_{seccion}"
+                )
 
 
 else:
