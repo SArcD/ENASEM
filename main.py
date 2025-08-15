@@ -3241,6 +3241,13 @@ elif option == "Análisis por subconjunto":
     # -------------------------------
     st.header("Cargar y filtrar por Nivel de riesgo o Subconjunto")
 
+    # === Debajo de fig_bar ===
+    st.markdown("### Diccionario de variables mostradas")
+
+    # 1) Menú para seleccionar año
+    anio_dicc = st.selectbox("Selecciona el año del diccionario", [2018, 2021], index=0)
+
+    
     uploaded = st.file_uploader("Sube tu archivo CSV", type=["csv"])
     if not uploaded:
         st.info("Carga un .csv para comenzar.")
@@ -3487,6 +3494,103 @@ elif option == "Análisis por subconjunto":
             fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
             st.plotly_chart(fig_bar, use_container_width=True)
 
+
+            import pandas as pd
+
+
+            # === Debajo de fig_bar ===
+          #  st.markdown("### Diccionario de variables mostradas en la gráfica")
+
+            # 1) Menú para seleccionar año
+         #   anio_dicc = st.selectbox("Selecciona el año del diccionario", [2018, 2021], index=0)
+
+            # 2) URLs de los diccionarios en GitHub
+            urls_dicc = {
+                2018: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_f_e_pc_h_i_enasem_2018.csv",
+                2021: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_datos_sect_a_c_d_e_pc_f_h_i_2021_enasem_2021.csv"
+            }
+
+            # Función para normalizar código
+            def _canon_code(x: str) -> str:
+                if pd.isna(x):
+                    return ""
+                s = str(x).strip()
+                s = s.replace(".", "_")
+                s = re.sub(r"\s+", "_", s)
+                s = re.sub(r"[^A-Za-z0-9_]+", "", s)
+                return s.upper()
+
+            def _strip_18(s: str) -> str:
+                return re.sub(r"_18$", "", s, flags=re.IGNORECASE)
+
+            # 3) Cargar diccionario desde GitHub
+            try:
+                dicc = pd.read_csv(urls_dicc[anio_dicc])
+            except Exception as e:
+                st.error(f"No se pudo cargar el diccionario para {anio_dicc}: {e}")
+                dicc = None
+
+            if dicc is not None and not dicc.empty:
+                # 4) Detectar columnas de código y descripción
+                candid_code = [c for c in dicc.columns if _canon_code(c) in
+                               {"CODIGO","VARIABLE","CLAVE","PREGUNTA","NOMBRE_VARIABLE","VAR","ITEM"}]
+                candid_desc = [c for c in dicc.columns if _canon_code(c) in
+                               {"DESCRIPCION","TEXTO","PREGUNTA_TEXTO","LABEL","ETIQUETA","DESCRIPCION_PREGUNTA"}]
+
+                if not candid_code:
+                    st.warning("No se encontró columna de CÓDIGO en el diccionario.")
+                if not candid_desc:
+                    st.warning("No se encontró columna de DESCRIPCIÓN en el diccionario.")
+
+                if candid_code and candid_desc:
+                    col_code = candid_code[0]
+                    col_desc = candid_desc[0]
+
+                    dicc_work = dicc[[col_code, col_desc]].copy()
+                    dicc_work["codigo_norm"] = dicc_work[col_code].map(_canon_code)
+                    dicc_work["codigo_base"] = dicc_work["codigo_norm"].map(_strip_18)
+
+                    # Variables del gráfico
+                    vars_graf = pd.Index(prop["Pregunta"].unique())  # 'prop' viene del bloque del gráfico
+                    mapa = pd.DataFrame({"codigo_graf": vars_graf})
+                    mapa["codigo_graf_norm"] = mapa["codigo_graf"].map(_canon_code)
+                    mapa["codigo_graf_base"] = mapa["codigo_graf_norm"].map(_strip_18)
+
+                    # Unión por código exacto
+                    merge1 = mapa.merge(
+                        dicc_work,
+                        left_on="codigo_graf_norm", right_on="codigo_norm",
+                        how="left"
+                    )
+
+                    # Completar faltantes por base sin _18
+                    faltan = merge1[col_desc].isna()
+                    if faltan.any():
+                        merge2 = mapa.merge(
+                            dicc_work,
+                            left_on="codigo_graf_base", right_on="codigo_base",
+                            how="left"
+                        )
+                        merge1.loc[faltan, col_desc] = merge2.loc[faltan, col_desc]
+
+                    # Tabla final
+                    tabla_dict = pd.DataFrame({
+                        "Código (dataset)": merge1["codigo_graf"],
+                        "Descripción": merge1[col_desc].fillna("(sin descripción en diccionario)")
+                    })
+
+                    st.dataframe(tabla_dict, use_container_width=True)
+
+#        st.download_button(
+#            "⬇️ Descargar tabla de códigos y descripciones (CSV)",
+#            data=tabla_dict.to_csv(index=False).encode("utf-8"),
+#            file_name=f"diccionario_variables_usadas_{anio_dicc}.csv",
+#            mime="text/csv"
+#        )
+
+
+
+            
             # ========= 2) Patrones idénticos (bloques de indiscernibilidad) =========
             st.subheader("Patrones de respuesta idéntica (bloques)")
             top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5)
