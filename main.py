@@ -3602,7 +3602,7 @@ elif option == "Análisis por subconjunto":
                     category_orders={"Respuesta_cat": ["1", "2", "NaN"]}
                 )
                 fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
-                st.plotly_chart(fig_bar, use_container_width=True)
+                #st.plotly_chart(fig_bar, use_container_width=True)
 
                 # ==============================
                 # 🔎 Tabla Código–Descripción (debajo del gráfico)
