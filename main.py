@@ -3350,6 +3350,78 @@ elif option == "Análisis por subconjunto":
         mime="text/csv"
     )
 
+    # =======================
+    # Vista por secciones (después del filtrado por nivel_riesgo)
+    # =======================
+
+    # 1) Usar directamente df_filtrado
+    df_base = st.session_state.get("df_filtrado")
+
+    if not isinstance(df_base, pd.DataFrame) or df_base.empty:
+        st.info("No hay datos disponibles para mostrar por secciones aún.")
+    else:
+        st.subheader("Vista por secciones de columnas")
+
+        # 2) Definir secciones -> listas de columnas
+        SECCIONES = {
+            "1. Datos demográficos básicos": [
+                "AGE", "SEX"
+            ],
+            "2. Diagnóstico y antecedentes médicos generales": [
+                "C4", "C6", "C12", "C19", "C22A", "C26", "C32", "C37"
+            ],
+            "3. Bienestar psicológico y salud mental": [
+                "C49_1", "C49_2", "C49_8", "C76"
+            ],
+            "4. Autopercepción de salud y comparación temporal": [
+                "C64"
+            ],
+            "5. Datos antropométricos y condición física": [
+                "C66", "C67_1", "C67_2", "C67",  # incluye C67 si existe
+                "C68E", "C68G", "C68H", "C69A", "C69B", "C71A"
+            ],
+            "6. Actividades de la vida diaria (AVD)": [
+                "H1","H4","H5","H6","H8","H9","H10","H11","H12","H13",
+                "H15A","H15B","H15D","H16A","H16D","H17A","H17D","H18A","H18D","H19A","H19D"
+            ],
+        }
+
+        # 3) Selector de sección
+        seccion = st.selectbox("Selecciona una sección para mostrar:", list(SECCIONES.keys()))
+
+        # 4) Columnas base a mostrar (intersecta con columnas presentes)
+        cols_obj = SECCIONES[seccion]
+        cols_presentes = [c for c in cols_obj if c in df_base.columns]
+
+        # Anteponer Indice y nivel_riesgo si existen
+        encabezado = [c for c in ["Indice", "nivel_riesgo", "nivel_riesgo_pred"] if c in df_base.columns]
+        cols_finales = encabezado + [c for c in cols_presentes if c not in encabezado]
+
+        # 5) (Opcional) permitir agregar columnas extra
+        with st.expander("➕ Agregar columnas adicionales a la vista", expanded=False):
+            otras = st.multiselect(
+                "Columnas extra:",
+                options=[c for c in df_base.columns if c not in cols_finales],
+                default=[]
+            )
+            cols_finales = cols_finales + otras
+
+        # 6) Mostrar tabla
+        if not cols_finales:
+            st.warning("Ninguna de las columnas de la sección está presente en el DataFrame.")
+        else:
+            st.dataframe(df_base[cols_finales], use_container_width=True, height=520)
+
+            # 7) Botón de descarga de la vista
+            st.download_button(
+                f"Descargar vista: {seccion} (CSV)",
+                data=df_base[cols_finales].to_csv(index=False).encode("utf-8"),
+                file_name=f"vista_{seccion.split('.')[0]}_{seccion.split('. ',1)[-1].replace(' ','_')}.csv",
+                mime="text/csv",
+                key=f"dl_vista_{seccion}"
+            )
+
+
 
 else:
        st.subheader("Equipo de Trabajo")
