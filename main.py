@@ -55,7 +55,7 @@ def convert_df_to_xlsx(df):
 # Crear una barra lateral para la selección de pestañas
 st.sidebar.title("Navegación")
 #option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Filtrar datos", "Buscador de variables", "Buscador de datos", "Relaciones de Indiscernibilidad 2018", "Relaciones de Indiscernibilidad 2021", "Equipo de trabajo"])
-option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Buscador de variables", "Relaciones de Indiscernibilidad", "Equipo de trabajo"])
+option = st.sidebar.selectbox("Seleccione una pestaña", ["Introducción", "Buscador de variables", "Relaciones de Indiscernibilidad", "Análisis por subconjunto","Equipo de trabajo"])
 
 if option == "Introducción":
     #
@@ -3192,6 +3192,164 @@ elif option == "Relaciones de Indiscernibilidad":
                     )
         else:
             st.caption("Formato esperado: columnas **Indice, Sexo, Edad** (opcionales) + columnas ADL (H11, H15A, H5, H6, C37, etc.).")
+
+elif option == "Buscador de variables":
+    import unicodedata
+    
+    # -------------------------------
+    # Utilidades
+    # -------------------------------
+    def norm(s: str) -> str:
+        """Normaliza nombres de columnas: minúsculas, sin acentos, sin espacios extras."""
+        s = unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
+        s = re.sub(r"\s+", "_", s.strip().lower())
+        return s
+
+    def find_candidate_columns(df: pd.DataFrame, keyword_groups):
+        """
+        Devuelve columnas candidatas cuyas versiones normalizadas contienen
+        TODOS los keywords en algún grupo. keyword_groups: lista de listas de palabras, p.ej.
+        [['nivel','riesgo'], ['diagnostico','arbol']]
+        """
+        cols = []
+        norm_map = {c: norm(c) for c in df.columns}
+        for c, nc in norm_map.items():
+            for group in keyword_groups:
+                if all(k in nc for k in group):
+                    cols.append(c)
+                    break
+        # mantener orden original y quitar duplicados
+        seen = set(); out = []
+        for c in cols:
+            if c not in seen:
+                seen.add(c); out.append(c)
+        return out
+
+    @st.cache_data(show_spinner=False)
+    def read_any_csv(uploaded_file) -> pd.DataFrame:
+        return pd.read_csv(uploaded_file, sep=None, engine="python")
+
+    # -------------------------------
+    # Sección: Cargar archivo
+    # -------------------------------
+    st.header("Cargar y filtrar por Nivel de riesgo o Subconjunto")
+
+    uploaded = st.file_uploader("Sube tu archivo CSV", type=["csv"])
+    if not uploaded:
+        st.info("Carga un .csv para comenzar.")
+        st.stop()
+
+    # Leer CSV
+    try:
+        df = read_any_csv(uploaded)
+    except Exception as e:
+        st.error(f"No se pudo leer el CSV: {e}")
+        st.stop()
+
+    # Limpiar columnas tipo Unnamed:
+    df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+")].copy()
+
+    st.success(f"Archivo cargado: {uploaded.name}")
+    st.caption(f"{df.shape[0]} filas × {df.shape[1]} columnas")
+
+    # -------------------------------
+    # Detectar columnas candidatas
+    # -------------------------------
+    # Riesgo: columnas con "nivel"+"riesgo" o "diagnostico"+"arbol"
+    riesgo_candidates = find_candidate_columns(
+        df,
+        keyword_groups=[
+            ["nivel","riesgo"],
+            ["diagnostico","arbol"],   # p.ej. "Diagnóstico_árbol"
+            ["riesgo"]                 # fallback laxa
+        ]
+    )
+
+    # Subconjunto: "subconjunto", "conjunto", "cluster", "bloque", "equivalencia"
+    subconj_candidates = find_candidate_columns(
+        df,
+        keyword_groups=[
+            ["subconjunto"],
+            ["conjunto"],
+            ["cluster"],
+            ["bloque"],
+            ["equivalencia"]
+        ]
+    )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write("**Columnas candidatas a “Nivel de riesgo”**")
+        if riesgo_candidates:
+            st.code(", ".join(riesgo_candidates), language="text")
+        else:
+            st.warning("No se detectaron columnas de riesgo automáticamente.")
+
+    with col2:
+        st.write("**Columnas candidatas a “Subconjunto”**")
+        if subconj_candidates:
+            st.code(", ".join(subconj_candidates), language="text")
+        else:
+            st.warning("No se detectaron columnas de subconjunto automáticamente.")
+
+    # -------------------------------
+    # Controles de filtrado
+    # -------------------------------
+    modo = st.radio(
+        "¿Cómo deseas filtrar?",
+        options=["Por nivel de riesgo", "Por subconjunto"],
+        index=0 if riesgo_candidates else 1 if subconj_candidates else 0,
+        horizontal=True
+    )
+
+    if modo == "Por nivel de riesgo":
+        if not riesgo_candidates:
+            st.error("No hay columnas candidatas de riesgo. Cambia a 'Por subconjunto' o revisa nombres de columnas.")
+            st.stop()
+        col_riesgo = st.selectbox("Elige la columna de riesgo:", riesgo_candidates)
+        valores = sorted(df[col_riesgo].dropna().unique().tolist())
+        sel = st.multiselect("Selecciona uno o más niveles de riesgo:", valores, default=valores[:1] if valores else [])
+        if not sel:
+            st.info("Selecciona al menos un valor para visualizar el filtrado.")
+            st.stop()
+        df_filtrado = df[df[col_riesgo].isin(sel)].copy()
+
+    else:  # Por subconjunto
+        if not subconj_candidates:
+            st.error("No hay columnas candidatas de subconjunto. Cambia a 'Por nivel de riesgo' o revisa nombres de columnas.")
+            st.stop()
+        col_sub = st.selectbox("Elige la columna de subconjunto:", subconj_candidates)
+        valores = sorted(df[col_sub].dropna().unique().tolist())
+        sel = st.multiselect("Selecciona uno o más subconjuntos:", valores, default=valores[:1] if valores else [])
+        if not sel:
+            st.info("Selecciona al menos un valor para visualizar el filtrado.")
+            st.stop()
+        df_filtrado = df[df[col_sub].isin(sel)].copy()
+
+    # -------------------------------
+    # Resultados
+    # -------------------------------
+    st.markdown("### Vista de filas filtradas")
+    st.caption(f"Filas seleccionadas: {df_filtrado.shape[0]} de {df.shape[0]}")
+
+    st.dataframe(df_filtrado, use_container_width=True)
+
+    # Conteo por categoría elegida (útil para verificar)
+    with st.expander("Ver conteo por categoría seleccionada"):
+        if modo == "Por nivel de riesgo":
+            st.write(df_filtrado[col_riesgo].value_counts(dropna=False))
+        else:
+            st.write(df_filtrado[col_sub].value_counts(dropna=False))
+
+    # Descargar CSV filtrado
+    csv_bytes = df_filtrado.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="⬇️ Descargar filas filtradas (CSV)",
+        data=csv_bytes,
+        file_name="filtrado.csv",
+        mime="text/csv"
+    )
+
 
 else:
        st.subheader("Equipo de Trabajo")
