@@ -3195,6 +3195,10 @@ elif option == "Relaciones de Indiscernibilidad":
             st.caption("Formato esperado: columnas **Indice, Sexo, Edad** (opcionales) + columnas ADL (H11, H15A, H5, H6, C37, etc.).")
 
 
+
+########################################################################################################################33
+###############
+
 elif option == "Análisis por subconjunto":
     import unicodedata
     import re  # ✅ Se usa en norm()
@@ -3203,6 +3207,7 @@ elif option == "Análisis por subconjunto":
     import matplotlib.pyplot as plt
     import io
     import streamlit as st
+    import plotly.express as px  # ✅ para los gráficos de barras/treemap
 
     # -------------------------------
     # Utilidades
@@ -3488,6 +3493,100 @@ elif option == "Análisis por subconjunto":
             fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
             st.plotly_chart(fig_bar, use_container_width=True)
 
+            # ========================
+            # (NUEVO) Tabla de CÓDIGO → DESCRIPCIÓN (debajo del gráfico)
+            # ========================
+
+            import re as _re_local
+
+            st.markdown("#### Diccionario de variables del gráfico")
+
+            # Selector de año del diccionario (ajusta si cambian rutas)
+            anio_dic = st.radio(
+                "Selecciona el año del diccionario:",
+                options=[2018, 2021],
+                index=0,
+                horizontal=True,
+                key="anio_diccionario_barra"
+            )
+
+            RAW_URLS = {
+                2018: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_simple_2018%20(4).csv",
+                2021: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_simple_2021%20(1).csv",
+            }
+            raw_url = RAW_URLS.get(anio_dic)
+
+            def _strip_anio_sufijo(code: str) -> str:
+                return _re_local.sub(r"_(18|21)$", "", str(code))
+
+            def _norm_code(code: str) -> str:
+                code = str(code).strip().upper().replace(" ", "")
+                code = code.replace(".", "_")
+                code = _strip_anio_sufijo(code)
+                return code
+
+            def _extrae_codigo_desde_texto(txt: str) -> str | None:
+                """
+                Extrae un token tipo C49_1, H15A, C22B1, etc. desde un texto como:
+                'Pregunta C49.1.18 ...'
+                """
+                s = str(txt)
+                m = _re_local.search(r"\b([A-Z]{1,4}[A-Z0-9]*(?:[._][A-Z0-9]+)*)\b", s)
+                if not m:
+                    return None
+                return _norm_code(m.group(1))
+
+            @st.cache_data(show_spinner=False)
+            def carga_diccionario(url: str):
+                import pandas as _pd_local
+                # Leemos dos columnas; el archivo simple tiene código+descripción en col0
+                df_dic = _pd_local.read_csv(url, header=0, usecols=[0, 1], dtype=str, encoding="utf-8")
+                df_dic = df_dic.rename(columns={df_dic.columns[0]: "col0", df_dic.columns[1]: "col1"})
+                # col0: "Pregunta C49.1.18 ..." → extraer código
+                df_dic["codigo"] = df_dic["col0"].apply(_extrae_codigo_desde_texto)
+                df_dic["descripcion_raw"] = df_dic["col0"].astype(str).str.strip()
+                df_dic = df_dic.dropna(subset=["codigo"]).copy()
+                df_dic["codigo"] = df_dic["codigo"].apply(_norm_code)
+                df_dic = df_dic.drop_duplicates(subset=["codigo"], keep="first")
+                mapa = dict(zip(df_dic["codigo"], df_dic["descripcion_raw"]))
+                return df_dic, mapa
+
+            try:
+                df_dic, mapa_desc = carga_diccionario(raw_url)
+            except Exception as e:
+                st.error(f"No se pudo leer el diccionario del {anio_dic} desde GitHub: {e}")
+                mapa_desc = {}
+                df_dic = None
+
+            # Variables que aparecen en el gráfico
+            vars_en_grafico = sorted(prop["Pregunta"].unique().tolist())
+
+            def _describe(code: str) -> str:
+                base = _norm_code(code)
+                if base in mapa_desc:
+                    return mapa_desc[base]
+                # fallback relajado
+                for k, v in mapa_desc.items():
+                    if _norm_code(k) == base:
+                        return v
+                return "—"
+
+            if not vars_en_grafico:
+                st.info("No hay variables para listar en el diccionario (el gráfico no contiene columnas discretas).")
+            else:
+                filas = [{"Variable": v, "Descripción": _describe(v)} for v in vars_en_grafico]
+                tabla_dict = pd.DataFrame(filas, columns=["Variable", "Descripción"])
+
+                st.dataframe(tabla_dict, use_container_width=True)
+
+                st.download_button(
+                    "⬇️ Descargar diccionario de variables del gráfico (CSV)",
+                    data=tabla_dict.to_csv(index=False).encode("utf-8"),
+                    file_name=f"diccionario_variables_grafico_{anio_dic}.csv",
+                    mime="text/csv",
+                    key=f"dl_dicc_{anio_dic}"
+                )
+
             # ========= 2) Patrones idénticos (bloques de indiscernibilidad) =========
             st.subheader("Patrones de respuesta idéntica (bloques)")
             top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5)
@@ -3555,8 +3654,6 @@ elif option == "Análisis por subconjunto":
                     file_name="top_patrones_identicos.csv",
                     mime="text/csv"
                 )
-
-
 
 
 
