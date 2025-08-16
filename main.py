@@ -3531,10 +3531,38 @@ elif option == "Análisis por subconjunto":
             st.info("No se detectaron variables discretas en la selección (p. ej., solo continuas como edad/estatura).")
         else:
             # 3) Proporciones por pregunta usando SOLO discretas (evita error de reset_index)
+            #long = df_prop[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
+            #long["Respuesta_cat"] = pd.Categorical(
+            #    np.where(long["Respuesta"].isna(), "NaN", long["Respuesta"].astype("Int64").astype(str)),
+            #    categories=["1", "2", "NaN"],
+            #    ordered=True
+            #)
+            #prop = (
+            #    long.groupby("Pregunta")["Respuesta_cat"]
+            #        .value_counts(normalize=True)
+            #        .rename("Porcentaje")
+            #        .mul(100)
+            #        .reset_index()
+            #)
+
             long = df_prop[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
+
+            # categorías dinámicas según lo que exista (0–9 es un rango prudente para encuestas)
+            vals_presentes = (
+                long["Respuesta"]
+                .dropna()
+                .astype("Int64")
+                .astype(int)
+                .astype(str)
+                .unique()
+                .tolist()
+            )
+            # ordena y limita a 0–9 por seguridad (puedes ampliar si lo necesitas)
+            orden = [str(i) for i in range(0, 10) if str(i) in vals_presentes] + ["NaN"]
+
             long["Respuesta_cat"] = pd.Categorical(
                 np.where(long["Respuesta"].isna(), "NaN", long["Respuesta"].astype("Int64").astype(str)),
-                categories=["1", "2", "NaN"],
+                categories=orden,
                 ordered=True
             )
             prop = (
@@ -3545,6 +3573,18 @@ elif option == "Análisis por subconjunto":
                     .reset_index()
             )
 
+            
+
+            #fig_bar = px.bar(
+            #    prop,
+            #    x="Pregunta",
+            #    y="Porcentaje",
+            #    color="Respuesta_cat",
+            #    barmode="stack",
+            #    text=prop["Porcentaje"].round(1).astype(str) + "%",
+            #    category_orders={"Respuesta_cat": ["1", "2", "NaN"]}
+            #)
+
             fig_bar = px.bar(
                 prop,
                 x="Pregunta",
@@ -3552,8 +3592,10 @@ elif option == "Análisis por subconjunto":
                 color="Respuesta_cat",
                 barmode="stack",
                 text=prop["Porcentaje"].round(1).astype(str) + "%",
-                category_orders={"Respuesta_cat": ["1", "2", "NaN"]}
+                category_orders={"Respuesta_cat": orden}
             )
+
+            
             fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
             st.plotly_chart(fig_bar, use_container_width=True)
 
