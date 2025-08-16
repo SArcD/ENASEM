@@ -1,29 +1,3 @@
-import streamlit as st
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-
-box_css = (
-    "background:#EAF3FF;border:1px solid #D2E6FF;border-radius:16px;"
-    "padding:14px 18px;display:flex;align-items:center;gap:16px;"
-)
-img_css = "height:250px;width:auto;border-radius:8px;"
-h1_css  = "margin:0 0 4px 0;font-size:1.6rem;line-height:1.2;"
-sub_css = "font-size:1.02rem;color:#334155;max-width:50ch;"
-
-st.markdown(
-    f"""
-    <div style="{box_css}">
-      <img src="{LOGO_URL}" alt="Logo RS²" style="{img_css}" />
-      <div>
-        <h1 style="{h1_css}">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="{sub_css}">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 
 
 
@@ -3473,7 +3447,7 @@ elif option == "Análisis por subconjunto":
                 "AGE", "SEX"
             ],
             "2. Diagnóstico y antecedentes médicos generales": [
-                "C4", "C6", "C12", "C19", "C22A", "C26", "C32", "C37"
+                "C1", "C4", "C6", "C12", "C19", "C22A", "C26", "C32", "C37"
             ],
             "3. Bienestar psicológico y salud mental": [
                 "C49_1", "C49_2", "C49_8", "C76"
