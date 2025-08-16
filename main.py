@@ -3199,15 +3199,18 @@ elif option == "Relaciones de Indiscernibilidad":
 ########################################################################################################################33
 ###############
 
+################################################################33
+
+##############################################################
 elif option == "Análisis por subconjunto":
     import unicodedata
-    import re  # ✅ Se usa en norm()
+    import re  # ✅ Se usa en norm() y normalizaciones
     import numpy as np
     import pandas as pd
     import matplotlib.pyplot as plt
     import io
     import streamlit as st
-    import plotly.express as px  # ✅ para los gráficos de barras/treemap
+    import plotly.express as px  # ✅ necesario para px.bar / px.treemap
 
     # -------------------------------
     # Utilidades
@@ -3241,6 +3244,67 @@ elif option == "Análisis por subconjunto":
     @st.cache_data(show_spinner=False)
     def read_any_csv(uploaded_file) -> pd.DataFrame:
         return pd.read_csv(uploaded_file, sep=None, engine="python")
+
+    # --- Normalizaciones para mapear variables ↔ diccionario ---
+
+    def canon_codigo(s: str) -> str:
+        """
+        Convierte códigos del diccionario a una clave canónica:
+        - quita prefijo 'PREGUNTA'
+        - mayúsculas
+        - elimina cualquier caracter no A-Z/0-9 (puntos, guiones, guiones bajos, espacios)
+        """
+        s = str(s).strip().upper()
+        s = re.sub(r'^\s*PREGUNTA\s*', '', s)   # quita "PREGUNTA" si aparece
+        s = re.sub(r'[^A-Z0-9]+', '', s)        # deja solo A-Z0-9
+        return s
+
+    def canon_var(var: str) -> str:
+        """
+        Convierte nombres de columnas del DataFrame a la misma forma canónica:
+        - mayúsculas
+        - elimina cualquier caracter no A-Z/0-9 (por ejemplo: 'C49_1' -> 'C491')
+        """
+        return re.sub(r'[^A-Z0-9]+', '', str(var).strip().upper())
+
+    RAW_DIC_URLS = {
+        2018: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_simple_2018%20(4).csv",
+        2021: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_simple_2021%20(1).csv",
+    }
+
+    @st.cache_data(show_spinner=False)
+    def load_diccionario_simple(anio: int) -> dict:
+        """
+        Lee el diccionario (TOMANDO SOLO LAS 2 PRIMERAS COLUMNAS) y regresa
+        un dict {clave_canónica: descripcion_agrupada}.
+        Soporta encabezados 'raros' (p. ej. 'odigo') o sin encabezado.
+        """
+        url = RAW_DIC_URLS[anio]
+        dic = pd.read_csv(url)
+        if dic.shape[1] < 2:
+            raise ValueError("El diccionario debe tener al menos 2 columnas (código, descripción).")
+
+        # Tomar SIEMPRE las dos primeras columnas como (codigo, descripcion)
+        df_dic = dic.iloc[:, [0, 1]].copy()
+        df_dic.columns = ["codigo", "descripcion"]
+
+        # Limpieza básica
+        df_dic["codigo"] = df_dic["codigo"].astype(str).str.strip()
+        df_dic["descripcion"] = df_dic["descripcion"].astype(str).str.strip()
+
+        # Quitar filas sin código
+        df_dic = df_dic[df_dic["codigo"] != ""].copy()
+
+        # Clave canónica
+        df_dic["canon"] = df_dic["codigo"].apply(canon_codigo)
+
+        # Si hay duplicados (mismo canon con varias descripciones),
+        # unimos descripciones distintas con " / "
+        agg = (
+            df_dic.groupby("canon", as_index=False)["descripcion"]
+                  .apply(lambda s: " / ".join(sorted({x for x in s if x and x != 'nan'})))
+        )
+        return dict(zip(agg["canon"], agg["descripcion"]))
 
     # -------------------------------
     # Sección: Cargar archivo
@@ -3493,99 +3557,34 @@ elif option == "Análisis por subconjunto":
             fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
             st.plotly_chart(fig_bar, use_container_width=True)
 
-            # ========================
-            # (NUEVO) Tabla de CÓDIGO → DESCRIPCIÓN (debajo del gráfico)
-            # ========================
+            # ======== (NUEVO) Tabla de variables ↔ significados, justo debajo del gráfico ========
+            st.markdown("##### Variables del gráfico y su significado")
 
-            import re as _re_local
-
-            st.markdown("#### Diccionario de variables del gráfico")
-
-            # Selector de año del diccionario (ajusta si cambian rutas)
-            anio_dic = st.radio(
-                "Selecciona el año del diccionario:",
+            anio_dic = st.selectbox(
+                "Año del diccionario para los significados",
                 options=[2018, 2021],
                 index=0,
-                horizontal=True,
-                key="anio_diccionario_barra"
+                key="anio_diccionario_significados"
             )
 
-            RAW_URLS = {
-                2018: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_simple_2018%20(4).csv",
-                2021: "https://raw.githubusercontent.com/SArcD/ENASEM/main/diccionario_simple_2021%20(1).csv",
-            }
-            raw_url = RAW_URLS.get(anio_dic)
-
-            def _strip_anio_sufijo(code: str) -> str:
-                return _re_local.sub(r"_(18|21)$", "", str(code))
-
-            def _norm_code(code: str) -> str:
-                code = str(code).strip().upper().replace(" ", "")
-                code = code.replace(".", "_")
-                code = _strip_anio_sufijo(code)
-                return code
-
-            def _extrae_codigo_desde_texto(txt: str) -> str | None:
-                """
-                Extrae un token tipo C49_1, H15A, C22B1, etc. desde un texto como:
-                'Pregunta C49.1.18 ...'
-                """
-                s = str(txt)
-                m = _re_local.search(r"\b([A-Z]{1,4}[A-Z0-9]*(?:[._][A-Z0-9]+)*)\b", s)
-                if not m:
-                    return None
-                return _norm_code(m.group(1))
-
-            @st.cache_data(show_spinner=False)
-            def carga_diccionario(url: str):
-                import pandas as _pd_local
-                # Leemos dos columnas; el archivo simple tiene código+descripción en col0
-                df_dic = _pd_local.read_csv(url, header=0, usecols=[0, 1], dtype=str, encoding="utf-8")
-                df_dic = df_dic.rename(columns={df_dic.columns[0]: "col0", df_dic.columns[1]: "col1"})
-                # col0: "Pregunta C49.1.18 ..." → extraer código
-                df_dic["codigo"] = df_dic["col0"].apply(_extrae_codigo_desde_texto)
-                df_dic["descripcion_raw"] = df_dic["col0"].astype(str).str.strip()
-                df_dic = df_dic.dropna(subset=["codigo"]).copy()
-                df_dic["codigo"] = df_dic["codigo"].apply(_norm_code)
-                df_dic = df_dic.drop_duplicates(subset=["codigo"], keep="first")
-                mapa = dict(zip(df_dic["codigo"], df_dic["descripcion_raw"]))
-                return df_dic, mapa
-
             try:
-                df_dic, mapa_desc = carga_diccionario(raw_url)
-            except Exception as e:
-                st.error(f"No se pudo leer el diccionario del {anio_dic} desde GitHub: {e}")
-                mapa_desc = {}
-                df_dic = None
-
-            # Variables que aparecen en el gráfico
-            vars_en_grafico = sorted(prop["Pregunta"].unique().tolist())
-
-            def _describe(code: str) -> str:
-                base = _norm_code(code)
-                if base in mapa_desc:
-                    return mapa_desc[base]
-                # fallback relajado
-                for k, v in mapa_desc.items():
-                    if _norm_code(k) == base:
-                        return v
-                return "—"
-
-            if not vars_en_grafico:
-                st.info("No hay variables para listar en el diccionario (el gráfico no contiene columnas discretas).")
-            else:
-                filas = [{"Variable": v, "Descripción": _describe(v)} for v in vars_en_grafico]
-                tabla_dict = pd.DataFrame(filas, columns=["Variable", "Descripción"])
-
-                st.dataframe(tabla_dict, use_container_width=True)
-
+                mapa_dic = load_diccionario_simple(anio_dic)
+                tabla_vars = pd.DataFrame({
+                    "Variable": cols_discretas,
+                    "Descripción": [
+                        mapa_dic.get(canon_var(v), "— No encontrada —") for v in cols_discretas
+                    ]
+                })
+                st.dataframe(tabla_vars, use_container_width=True, height=320)
                 st.download_button(
-                    "⬇️ Descargar diccionario de variables del gráfico (CSV)",
-                    data=tabla_dict.to_csv(index=False).encode("utf-8"),
-                    file_name=f"diccionario_variables_grafico_{anio_dic}.csv",
+                    "⬇️ Descargar tabla de significados (CSV)",
+                    data=tabla_vars.to_csv(index=False).encode("utf-8"),
+                    file_name=f"significados_{anio_dic}.csv",
                     mime="text/csv",
-                    key=f"dl_dicc_{anio_dic}"
+                    key=f"dl_significados_{anio_dic}"
                 )
+            except Exception as e:
+                st.error(f"No se pudo leer el diccionario ({anio_dic}): {e}")
 
             # ========= 2) Patrones idénticos (bloques de indiscernibilidad) =========
             st.subheader("Patrones de respuesta idéntica (bloques)")
@@ -3657,7 +3656,7 @@ elif option == "Análisis por subconjunto":
 
 
 
-
+##############################################################
 else:
        st.subheader("Equipo de Trabajo")
 
