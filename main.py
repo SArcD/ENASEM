@@ -1,30 +1,4 @@
 
-import streamlit as st
-import streamlit as st
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-
-box_css = (
-    "background:#EAF3FF;border:1px solid #D2E6FF;border-radius:16px;"
-    "padding:14px 18px;display:flex;align-items:center;gap:16px;"
-)
-img_css = "height:250px;width:auto;border-radius:8px;"
-h1_css  = "margin:0 0 4px 0;font-size:1.6rem;line-height:1.2;"
-sub_css = "font-size:1.02rem;color:#334155;max-width:50ch;"
-
-st.markdown(
-    f"""
-    <div style="{box_css}">
-      <img src="{LOGO_URL}" alt="Logo RS²" style="{img_css}" />
-      <div>
-        <h1 style="{h1_css}">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="{sub_css}">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 
 import pandas as pd
@@ -561,40 +535,183 @@ elif option == "Relaciones de Indiscernibilidad":
 
 
 
+#    import re
+#    import pandas as pd
+#    import streamlit as st
+
+#    with st.sidebar:
+#        st.header("Cargar datos")
+#        archivo = st.file_uploader("Sube un CSV o Excel (ENASEM 2018/2021)", type=["csv", "xlsx"])
+
+#    if archivo is None:
+#        st.info("Sube un archivo en la barra lateral para comenzar.")
+#        st.stop()
+
+#    # --- Leer archivo (CSV o Excel) ---
+#    try:
+#        if archivo.name.lower().endswith(".csv"):
+#            df = pd.read_csv(archivo)
+#        else:
+#            df = pd.read_excel(archivo)
+#    except Exception as e:
+#        st.error(f"No se pudo leer el archivo: {e}")
+#        st.stop()
+
+#    # --- Snapshot crudo ---
+#    st.session_state["df_raw"] = df.copy()
+
+#    # --- Normalizar nombres ---
+#    # 1) limpiar espacios
+#    cols = [re.sub(r"\s+", " ", str(c)).strip() for c in df.columns]
+    # 2) quitar sufijos _18 o _21 SOLO al final (p. ej., C49_1_18 -> C49_1)
+#    cols = [re.sub(r"_(18|21)$", "", c) for c in cols]
+#    df.columns = cols
+
+    # --- Quitar columnas 'Unnamed: x' ---
+#    df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+$")]
+
+    # --- Carga de datos: Google Drive (multiselect) o Subida manual ---    
+    # Sustituye tu bloque actual por este
+
     import re
+    import io
     import pandas as pd
     import streamlit as st
 
+    # Requiere gdown para descargar desde Google Drive
+    import gdown
+
+    # -----------------------------------
+    # Config: archivos en Google Drive
+    # -----------------------------------
+    DRIVE_FILES = {
+        "ENASEM 2018 (Drive)": "https://drive.google.com/file/d/1UINNJMubwFwXz7zGekJ2u0IhuQ8l8dyj/view?usp=drive_link",
+        "ENASEM 2021 (Drive)": "https://drive.google.com/file/d/1_kj6jdp0iP00rA0DyJdFNp7tvXsrraNx/view?usp=drive_link",
+    }
+
+    def extract_drive_id(url: str) -> str | None:
+        m = re.search(r"/d/([A-Za-z0-9_-]+)", url)
+        if m:
+            return m.group(1)
+        m = re.search(r"[?&]id=([A-Za-z0-9_-]+)", url)
+        if m:
+            return m.group(1)
+        return None
+
+    @st.cache_data(show_spinner=True)
+    def download_drive_csv(file_id: str) -> bytes:
+        """
+        Descarga un CSV grande desde Drive y devuelve su contenido en bytes.
+        gdown maneja el aviso de 'archivo demasiado grande para escanear'.
+        """
+        local_path = "/tmp/drive_tmp.csv"
+        gdown.download(id=file_id, output=local_path, quiet=False)
+        with open(local_path, "rb") as f:
+            return f.read()
+
+    @st.cache_data(show_spinner=True)
+    def read_csv_bytes(csv_bytes: bytes) -> pd.DataFrame:
+        # low_memory=False para tipos más estables en CSV grandes
+        return pd.read_csv(io.BytesIO(csv_bytes), low_memory=False)
+
+    def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+        # 1) limpiar espacios intermedios
+        cols = [re.sub(r"\s+", " ", str(c)).strip() for c in df.columns]
+        # 2) quitar sufijos _18 o _21 SOLO al final (p. ej., C49_1_18 -> C49_1)
+        cols = [re.sub(r"_(18|21)$", "", c) for c in cols]
+        df = df.copy()
+        df.columns = cols
+        # 3) quitar columnas 'Unnamed: x'
+        df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+$")]
+        return df
+
     with st.sidebar:
         st.header("Cargar datos")
-        archivo = st.file_uploader("Sube un CSV o Excel (ENASEM 2018/2021)", type=["csv", "xlsx"])
+        modo = st.radio(
+            "Fuente de datos",
+            options=["Google Drive", "Subir archivo(s)"],
+            horizontal=False,
+        )
 
-    if archivo is None:
-        st.info("Sube un archivo en la barra lateral para comenzar.")
-        st.stop()
-
-    # --- Leer archivo (CSV o Excel) ---
-    try:
-        if archivo.name.lower().endswith(".csv"):
-            df = pd.read_csv(archivo)
+        if modo == "Google Drive":
+            sel_drive = st.multiselect(
+                "Selecciona 1 o más archivos desde Google Drive",
+                options=list(DRIVE_FILES.keys()),
+                default=[],
+                help="Si seleccionas más de uno, se concatenarán por filas."
+            )
         else:
-            df = pd.read_excel(archivo)
-    except Exception as e:
-        st.error(f"No se pudo leer el archivo: {e}")
-        st.stop()
+            archivos_locales = st.file_uploader(
+                "Sube CSV o Excel (puedes seleccionar varios)",
+                type=["csv", "xlsx"],
+                accept_multiple_files=True
+            )
 
-    # --- Snapshot crudo ---
+    # --------------------------
+    # Carga según el modo
+    # --------------------------
+    dfs = []
+
+    if modo == "Google Drive":
+        if not sel_drive:
+            st.info("Selecciona al menos un archivo en la barra lateral para comenzar.")
+            st.stop()
+
+        for nombre in sel_drive:
+            url = DRIVE_FILES[nombre]
+            file_id = extract_drive_id(url)
+            if not file_id:
+                st.error(f"No pude extraer el ID de Drive de: {nombre}")
+                st.stop()
+            try:
+                raw_bytes = download_drive_csv(file_id)
+                dfi = read_csv_bytes(raw_bytes)
+                dfi["__source__"] = nombre  # opcional
+                dfs.append(dfi)
+            except Exception as e:
+                st.error(f"No se pudo leer '{nombre}' desde Drive: {e}")
+                st.stop()
+
+    else:  # Subir archivo(s)
+        if not archivos_locales:
+            st.info("Sube al menos un archivo para comenzar.")
+            st.stop()
+
+        for f in archivos_locales:
+            try:
+                if f.name.lower().endswith(".csv"):
+                    dfi = pd.read_csv(f, low_memory=False)
+                else:
+                    # Lee la primera hoja; cambia sheet_name si quieres manejar varias
+                    dfi = pd.read_excel(f)
+                    dfi["__source__"] = f.name  # opcional
+                dfs.append(dfi)
+            except Exception as e:
+                st.error(f"No se pudo leer '{f.name}': {e}")
+                st.stop()
+
+    # Unir si hay varios
+    if len(dfs) == 1:
+        df = dfs[0]
+    else:
+        df = pd.concat(dfs, ignore_index=True, sort=False)
+
+    st.success(
+        "Archivos cargados: " +
+        (", ".join(sel_drive) if modo == "Google Drive" else ", ".join([f.name for f in archivos_locales]))
+    )
+    st.caption(f"{df.shape[0]:,} filas × {df.shape[1]:,} columnas")
+
+    # Snapshot crudo
     st.session_state["df_raw"] = df.copy()
 
-    # --- Normalizar nombres ---
-    # 1) limpiar espacios
-    cols = [re.sub(r"\s+", " ", str(c)).strip() for c in df.columns]
-    # 2) quitar sufijos _18 o _21 SOLO al final (p. ej., C49_1_18 -> C49_1)
-    cols = [re.sub(r"_(18|21)$", "", c) for c in cols]
-    df.columns = cols
+    # Normalizar nombres y limpiar
+    df = normalize_columns(df)
 
-    # --- Quitar columnas 'Unnamed: x' ---
-    df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+$")]
+    # (Opcional) vista rápida
+    with st.expander("Vista rápida de datos cargados"):
+        st.dataframe(df.head(50), use_container_width=True)
+
 
     # --- Resolver duplicados tras normalizar ---
     def dedup_columns(columns):
