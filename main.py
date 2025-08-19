@@ -1,30 +1,4 @@
 import streamlit as st
-
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-box_css = (
-    "background:#EAF3FF;border:1px solid #D2E6FF;border-radius:16px;"
-    "padding:14px 18px;display:flex;align-items:center;gap:16px;"
-)
-img_css = "height:250px;width:auto;border-radius:8px;"
-h1_css  = "margin:0 0 4px 0;font-size:1.6rem;line-height:1.2;"
-sub_css = "font-size:1.02rem;color:#334155;max-width:50ch;"
-st.markdown(
-    f"""
-    <div style="{box_css}">
-      <img src="{LOGO_URL}" alt="Logo RS²" style="{img_css}" />
-      <div>
-        <h1 style="{h1_css}">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="{sub_css}">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-
 import pandas as pd
 import gdown
 import io
@@ -212,163 +186,7 @@ Un estudio observacional en adultos mayores encontró que quienes usaban IECA o 
 </div>
 """, unsafe_allow_html=True)
 
-
-#elif option == "Filtrar datos":
-#    st.header("Extracción de datos a partir de la ENASEM")
-#    st.markdown(""" En esta sección puede cargar algunos de los conjuntos de datos de la ENASEM (ya sea de las ediciones de 2018 o de 2021). En el menú desplegable puede seleccionar el archivo a cargar. </div> """,  unsafe_allow_html=True)
-#    st.write("")  # Esto agrega un espacio en blanco
-
-#    # Menú desplegable para elegir el archivo
-#    selected_file = st.selectbox("**Selecciona un archivo CSV**", list(file_urls.keys()))
-
-#    if selected_file:
-#        # Cargar el archivo seleccionado
-#        data = load_csv_from_drive(file_urls[selected_file])
-        
-#        st.write(f"**Archivo seleccionado:** {selected_file}")
-#        st.write(data)
-        
-#        # Lista de verificación para seleccionar columnas
-#        st.markdown(""" <div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
-#        st.write("")  # Esto agrega un espacio en blanco
-#        selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", data.columns.tolist())
-        
-#        if selected_columns:
-#            # Crear dataframe reducido
-#            reduced_data = data[selected_columns]
-#            st.write("")  # Esto agrega un espacio en blanco
-#            st.write("**Base de datos con las columnas seleccionadas:**")
-#            st.dataframe(reduced_data, use_container_width=True)
-
-#            with st.expander("**Información adicional**"):
-#                # Mostrar información del dataframe reducido
-#                num_rows, num_cols = reduced_data.shape
-#                st.write(f"**Número de filas**: {num_rows}")
-#                st.write(f"**Número de columnas**: {num_cols}")
-            
-#                # Contar valores NaN por columna
-#                nan_counts = reduced_data.isna().sum().reset_index()
-#                nan_counts.columns = ["Clave", "Conteo"]
-            
-#                st.write("**Conteo de valores NaN por columna:**")
-#                st.write(nan_counts)
-
-#            # Botón para descargar el dataframe reducido en formato csv
-#            csv_data = convert_df_to_csv(reduced_data)
-#            st.download_button(
-#                label="**Descargar Dataframe en formato CSV**",
-#                data=csv_data,
-#                file_name="dataframe_reducido.csv",
-#                mime="text/csv"
-#            )
-
-#            xlsx_data = convert_df_to_xlsx(reduced_data)
-#            st.download_button(
-#                label="**Descargar Dataframe en formato XLSX**",
-#                data=xlsx_data,
-#                file_name="dataframe_reducido.xlsx",
-#                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-#            )
-
-
-#    st.subheader("Unir dataframes")
-
-#    st.markdown("""<div style="text-align: justify;"> En esta sección puede unir dos archivos .csv para formar una base de datos mas grande (recuerde seleccionar archivos que correspondan al mismo año). La base de datos se mostrará abajo, así como información sobre el conteo de filas con columnas vacías </div> """,  unsafe_allow_html=True)
-#    st.write("")  # Esto agrega un espacio en blanco
-#    # Seleccionar dos archivos CSV para unir
-#    selected_files = st.multiselect("**Selecciona dos archivos CSV para unir**", list(file_urls.keys()), default=None, max_selections=2)
-
-#    if len(selected_files) == 2:
-#        # Cargar los dos archivos seleccionados
-#        df1 = load_csv_from_drive(file_urls[selected_files[0]])
- #       df2 = load_csv_from_drive(file_urls[selected_files[1]])
-        
-#        if df1 is not None and df2 is not None:
-#            # Unir los dataframes usando la columna 'CUNICAH'
-#            merged_data = pd.merge(df1, df2, on='CUNICAH', how='inner')
-            
-#            st.write("**Base de datos unida**:")
-#            st.dataframe(merged_data, use_container_width=True)
-
-#            with st.expander("**Información adicional**"):
-#                # Mostrar información del dataframe reducido
-#                num_rows, num_cols = merged_data.shape
-#                st.write(f"**Número de filas**: {num_rows}")
-#                st.write(f"**Número de columnas**: {num_cols}")
-            
-#                # Contar valores NaN por columna
-#                nan_counts = merged_data.isna().sum().reset_index()
-#                nan_counts.columns = ["Clave", "Conteo"]
-#            
-#                st.write("**Conteo de valores NaN por columna:**")
-#                st.write(nan_counts)
-            
-
-#            # Botón para descargar el dataframe reducido en formato csv
-#            csv_data = convert_df_to_csv(merged_data)
-#            st.download_button(
-#                label="**Descargar Dataframe en formato CSV**",
-#                data=csv_data,
-#                file_name="dataframe_unificado.csv",
-#                mime="text/csv"
-#            )
-            
-#            # Botón para descargar el dataframe unido en formato CSV
-#            csv_data = convert_df_to_csv(merged_data)
-#            st.download_button(
-#                label="**Descargar Dataframe unido en formato CSV**",
-#                data=csv_data,
-#                file_name="dataframe_unido.csv",
-#                mime="text/csv"
-#            )
-
-#        st.subheader("Selección de columnas")
-#        st.markdown("""<div style="text-align: justify;"> A continuación puede generar una base de datos a partir de las columnas que seleccione del menú desplegable. Una vez seleccionadas podrá visualizar la base de datos y descargarla en formato .csv o .xlsx al presionar cualquiera de los botones de descarga. </div> """,  unsafe_allow_html=True)
-#    # Seleccionar dos archivos CSV para unir
-#        # Lista de verificación para seleccionar columnas
-#        st.write("")  # Esto agrega un espacio en blanco
-#        selected_columns = st.multiselect("**Selecciona las columnas para mostrar**", merged_data.columns.tolist())
-        
-#        if selected_columns:
-#            # Crear dataframe reducido
-#            reduced_merged_data = merged_data[selected_columns]
-            
-#            st.write("**Base de datos:**")
-#            st.dataframe(reduced_merged_data, use_container_width=True)
-
-#            with st.expander("**Información adicional**"):
-#                # Mostrar información del dataframe reducido
-#                num_rows, num_cols = reduced_merged_data.shape
-#                st.write(f"**Número de filas**: {num_rows}")
-#                st.write(f"**Número de columnas**: {num_cols}")
-            
-#                # Contar valores NaN por columna
-#                nan_counts = reduced_merged_data.isna().sum().reset_index()
- #               nan_counts.columns = ["Clave", "Conteo"]
-            
-#                st.write("**Conteo de valores NaN por columna:**")
-#                st.write(nan_counts)
-
-            
- #           # Botón para descargar el dataframe reducido en formato csv
- #           csv_data = convert_df_to_csv(reduced_merged_data)
- #           st.download_button(
- #               label="**Descargar Dataframe en formato CSV**",
- #               data=csv_data,
- #               file_name="dataframe_unificado_reducido.csv",
- #               mime="text/csv"
- #           )
-
- #           xlsx_data = convert_df_to_xlsx(reduced_merged_data)
- #           st.download_button(
- #               label="**Descargar Dataframe en formato XLSX**",
- #               data=xlsx_data,
- #               file_name="dataframe_unificado_reducido.xlsx",
- #               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
- #           )
 elif option == "Buscador de variables":
-
-
 
     def cargar_diccionario(url, nombre):
         output = f'{nombre}.xlsx'
@@ -552,51 +370,6 @@ elif option == "Relaciones de Indiscernibilidad":
        Luego presione el botón **Calcular indiscernibilidad**.
     """)
 
-    # -----------------------------------------
-    # Barra lateral: subir archivo
-    # -----------------------------------------
-
-
-
-
-#    import re
-#    import pandas as pd
-#    import streamlit as st
-
-#    with st.sidebar:
-#        st.header("Cargar datos")
-#        archivo = st.file_uploader("Sube un CSV o Excel (ENASEM 2018/2021)", type=["csv", "xlsx"])
-
-#    if archivo is None:
-#        st.info("Sube un archivo en la barra lateral para comenzar.")
-#        st.stop()
-
-#    # --- Leer archivo (CSV o Excel) ---
-#    try:
-#        if archivo.name.lower().endswith(".csv"):
-#            df = pd.read_csv(archivo)
-#        else:
-#            df = pd.read_excel(archivo)
-#    except Exception as e:
-#        st.error(f"No se pudo leer el archivo: {e}")
-#        st.stop()
-
-#    # --- Snapshot crudo ---
-#    st.session_state["df_raw"] = df.copy()
-
-#    # --- Normalizar nombres ---
-#    # 1) limpiar espacios
-#    cols = [re.sub(r"\s+", " ", str(c)).strip() for c in df.columns]
-    # 2) quitar sufijos _18 o _21 SOLO al final (p. ej., C49_1_18 -> C49_1)
-#    cols = [re.sub(r"_(18|21)$", "", c) for c in cols]
-#    df.columns = cols
-
-    # --- Quitar columnas 'Unnamed: x' ---
-#    df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+$")]
-
-    # --- Carga de datos: Google Drive (multiselect) o Subida manual ---    
-    # Sustituye tu bloque actual por este
-
     import re
     import io
     import pandas as pd
@@ -732,11 +505,6 @@ elif option == "Relaciones de Indiscernibilidad":
     # Normalizar nombres y limpiar
     df = normalize_columns(df)
 
-    # (Opcional) vista rápida
-    #with st.expander("Vista rápida de datos cargados"):
-    #    st.dataframe(df.head(50), use_container_width=True)
-
-
     # --- Resolver duplicados tras normalizar ---
     def dedup_columns(columns):
         seen = {}
@@ -786,18 +554,6 @@ elif option == "Relaciones de Indiscernibilidad":
     if faltantes:
         st.warning("Columnas no encontradas en el archivo (se omiten en el reducido): " + ", ".join(faltantes))
 
-#    # --- Mostrar ambos (completo y reducido) en tabs ---
-#    tab1, tab2 = st.tabs(["📄 Datos completos (normalizados)", "🔎 datos_seleccionados (reducido)"])
-#    with tab1:
-#        st.dataframe(st.session_state["df_original_norm"], use_container_width=True)
-#    with tab2:
-#        st.dataframe(datos_seleccionados, use_container_width=True)
-
-#    # (Opcional) verificar unicidad de 'Indice'
-#    if df["Indice"].duplicated().any():
-#        st.warning("⚠️ 'Indice' no es único en el archivo cargado. Considera crear un ID único.")
-
-    
     
     # -----------------------------------------
     # Mostrar resultados
@@ -853,17 +609,6 @@ elif option == "Relaciones de Indiscernibilidad":
             # Filtrar
             df_sexo = datos_seleccionados[sex_series.isin(codigos)].copy()
             st.session_state["df_sexo"] = df_sexo
-
-    # =========================
-    # Vista previa del filtrado por SEX
-    # =========================
-    #if st.session_state["df_sexo"] is not None:
-    #    st.subheader("Filtrado por sexo")
-    #    c1, c2 = st.columns(2)
-    #    c1.metric("Filas totales", len(datos_seleccionados))
-    #    c2.metric("Filas después de filtrar por sexo", len(st.session_state["df_sexo"]))
-    #    #st.dataframe(st.session_state["df_sexo"].head(30), use_container_width=True)
-
 
     # =========================
     # Filtro por RANGO DE EDAD (en barra lateral)
@@ -931,22 +676,6 @@ elif option == "Relaciones de Indiscernibilidad":
                 mask = age_series.between(st.session_state["age_min"], st.session_state["age_max"], inclusive="both")
                 st.session_state["df_filtrado"] = base_df[mask].copy()
 
-    # =========================
-    # Vista previa del filtrado por SEX + EDAD
-    # =========================
-    #if st.session_state["df_filtrado"] is not None:
-    #    st.subheader("Filtrado por sexo + edad")
-    #    c1, c2, c3, c4 = st.columns(4)
-    #    c1.metric("Filas base", len(base_df))
-    #    c2.metric("Edad mínima", st.session_state["age_min"] if st.session_state["age_min"] is not None else "-")
-    #    c3.metric("Edad máxima", st.session_state["age_max"] if st.session_state["age_max"] is not None else "-")
-    #    #c4.metric("Filas después de filtrado", len(base_df))
-    #    c4.metric("Filas después de filtrado",         len(st.session_state["df_filtrado"]))
-
-
-    #st.dataframe(st.session_state["df_filtrado"].head(30), use_container_width=True)
-    #st.success(f"Filtrado final: {len(st.session_state['df_filtrado']):,} filas")
-
 # =========================
 # Filtro por COMORBILIDADES (en barra lateral)
 # =========================
@@ -974,214 +703,6 @@ elif option == "Relaciones de Indiscernibilidad":
         "Artritis/Reumatismo (C32)": "C32",
     }
 
-#with st.sidebar:
-#    st.subheader("Seleccione comorbilidades del grupo de pacientes a estudiar")
-
-#    # Opciones visibles (labels) cuya columna real existe en el DF
-#    opciones_visibles = [lbl for lbl, col in comorb_map.items() if col in df_base_comorb.columns]
-
-#    if not opciones_visibles:
-#        st.warning("No se encontraron columnas de comorbilidades esperadas (C4, C6, C12, C19, C22A, C26, C32).")
-#        st.session_state["df_comorb"] = df_base_comorb.copy()
-#    else:
-#        # Lógica AND/OR y restricción de no seleccionadas
-#        modo = st.radio("Lógica entre las seleccionadas", ["Todas (AND)", "Cualquiera (OR)"],
-#                        index=0, horizontal=True)
-#        exigir_no = st.checkbox("Exigir que las NO seleccionadas estén en 0/2", value=True,
-#                                help="Si está activado, las comorbilidades no seleccionadas deben ser 0 o 2.")
-
-#        opciones_visibles_con_none = ["Sin comorbilidades"] + opciones_visibles
-#        seleccion = st.multiselect(
-#            "Comorbilidades (1 = Sí, 2/0 = No).",
-#            options=opciones_visibles_con_none,
-#            default=[],
-#            help=("• ‘Sin comorbilidades’: conserva filas con TODAS las comorbilidades en 2/0.\n"
-#                  "• Si seleccionas comorbilidades: puedes combinar con lógica AND/OR, "
-#                  "y decidir si las NO seleccionadas deben estar en 0/2.")
-#        )
-#        st.session_state["comorb_selection"] = seleccion
-
-#        # Preparar DF y asegurar numérico 0/1/2
-#        df_work = df_base_comorb.copy()
-#        comorb_cols_presentes = [comorb_map[lbl] for lbl in opciones_visibles]  # columnas reales presentes
-#        for c in comorb_cols_presentes:
-#            df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0)
-
-#        NO_SET = {0, 2}
-#        YES_VAL = 1
-
-#        if not seleccion:
-#            df_out = df_work.copy()
-
-#        elif "Sin comorbilidades" in seleccion:
-#            if len(seleccion) > 1:
-#                st.info("Se seleccionó 'Sin comorbilidades'. Se ignorarán otras selecciones para este filtro.")
-#            mask_all_none = df_work[comorb_cols_presentes].isin(NO_SET).all(axis=1)
-#            df_out = df_work[mask_all_none].copy()
-
-#        else:
-#            cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_work.columns]
-#            cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
-
-#            if not cols_sel:
-#                df_out = df_work.copy()
-#            else:
-#                # AND vs OR
-#                if modo.startswith("Todas"):
-#                    mask_sel = (df_work[cols_sel] == YES_VAL).all(axis=1)
-#                else:
-#                    mask_sel = (df_work[cols_sel] == YES_VAL).any(axis=1)
-
-#                if exigir_no and cols_rest:
-#                    mask_rest = df_work[cols_rest].isin(NO_SET).all(axis=1)
-#                    mask = mask_sel & mask_rest
-#                else:
-#                    mask = mask_sel
-
-#                df_out = df_work[mask].copy()
-
-#        st.session_state["df_comorb"] = df_out
-#        st.caption(f"Filas tras filtro de comorbilidades: {len(df_out):,}")
-
-
-#with st.sidebar:
-#    st.subheader("Seleccione comorbilidades del grupo de pacientes a estudiar")
-
-#    opciones_visibles = [lbl for lbl, col in comorb_map.items() if col in df_base_comorb.columns]
-#
-#    if not opciones_visibles:
-#        st.warning("No se encontraron columnas de comorbilidades esperadas (C4, C6, C12, C19, C22A, C26, C32).")
-#        df_out = df_base_comorb.copy()
-#        # Agregamos columna comorbilidad (todo 'Desconocido' si no hay columnas)
-#        df_out["comorbilidad"] = "Desconocido"
-#        st.session_state["df_comorb"] = df_out
-#        st.caption(f"Filas tras filtro de comorbilidades: {len(df_out):,}")
-#    else:
-#        # NUEVO: Modo de estudio
-#        modo_estudio = st.radio(
-#            "Modo de estudio",
-#            ["Filtrar (según selección)", "Comparar (Sin vs Con)", "Todos (un solo grupo)"],
-#            index=0, horizontal=False
-#        )
-
-#        # Configuración del filtro (solo relevante para 'Filtrar' y 'Comparar')
-#        modo = st.radio("Lógica entre las seleccionadas", ["Todas (AND)", "Cualquiera (OR)"],
-#                        index=0, horizontal=True)
-#        exigir_no = st.checkbox(
-#            "Exigir que las NO seleccionadas estén en 0/2",
-#            value=True,
-#            help="Si está activado, las comorbilidades no seleccionadas deben ser 0 o 2."
-#        )
-#
-#        opciones_visibles_con_none = ["Sin comorbilidades"] + opciones_visibles
-#        seleccion = st.multiselect(
-#            "Comorbilidades (1 = Sí, 2/0 = No).",
-#            options=opciones_visibles_con_none,
-#            default=[],
-#            help=("• ‘Sin comorbilidades’: conserva filas con TODAS las comorbilidades en 2/0.\n"
-#                  "• Si seleccionas comorbilidades: combina con lógica AND/OR y decide si las NO seleccionadas deben estar en 0/2.")
-#        )
-#        st.session_state["comorb_selection"] = seleccion
-
-#        # Preparar DF y asegurar numérico 0/1/2
-#        df_work = df_base_comorb.copy()
-#        comorb_cols_presentes = [comorb_map[lbl] for lbl in opciones_visibles]
-#        for c in comorb_cols_presentes:
-#            df_work[c] = pd.to_numeric(df_work[c], errors="coerce").fillna(0)
-
-#        NO_SET = {0, 2}
-#        YES_VAL = 1
-
-#        # Máscaras base
-#        mask_none = df_work[comorb_cols_presentes].isin(NO_SET).all(axis=1)   # Sin comorbilidades
-#        mask_any  = (df_work[comorb_cols_presentes] == YES_VAL).any(axis=1)   # Al menos una
-
-#        # Auxiliar para "con comorbilidades" según selección
-#        def build_with_group():
-#            if not seleccion or (len(seleccion) == 1 and "Sin comorbilidades" in seleccion):
-#                return df_work[mask_any].copy()
-
-#            cols_sel = [comorb_map[lbl] for lbl in seleccion if lbl in comorb_map and comorb_map[lbl] in df_work.columns]
-#            cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
-
-#            if not cols_sel:
-#                return df_work[mask_any].copy()
-
-#            if modo.startswith("Todas"):
-#                mask_sel = (df_work[cols_sel] == YES_VAL).all(axis=1)  # AND
-#            else:
-#                mask_sel = (df_work[cols_sel] == YES_VAL).any(axis=1)  # OR
-
-#            if exigir_no and cols_rest:
-#                mask_rest = df_work[cols_rest].isin(NO_SET).all(axis=1)
-#                mask = mask_sel & mask_rest
-#            else:
-#                mask = mask_sel
-
-#            return df_work[mask].copy()
-
-#        # ----- LÓGICA POR MODO -----
-#        if modo_estudio == "Todos (un solo grupo)":
-#            # No filtramos filas: estudiamos todo el universo como un solo grupo
-#            df_out = df_work.copy()
-#            # Etiquetamos por conveniencia (no obliga a agrupar)
-#            df_out["comorbilidad"] = np.where(mask_none, "Sin comorbilidades", "Con comorbilidades")
-
-#            st.session_state["df_comorb"] = df_out
-#            st.caption(f"Filas (todos los pacientes): {len(df_out):,}")
-
-#        elif modo_estudio == "Comparar (Sin vs Con)":
-#            df_none = df_work[mask_none].copy()
-#            df_with = build_with_group()
-
-#            df_none["comorbilidad"] = "Sin comorbilidades"
-#            df_with["comorbilidad"] = "Con comorbilidades"
-
-#            df_both = pd.concat([df_none, df_with], axis=0, ignore_index=True)
-
-#            st.session_state["df_comorb"] = df_both
-#            st.caption(
-#                f"Sin comorbilidades: {len(df_none):,} | Con comorbilidades: {len(df_with):,} | Total: {len(df_both):,}"
-#            )
-
-#        else:  # "Filtrar (según selección)"
-#            if not seleccion:
-#                df_out = df_work.copy()
-                # Etiqueta basada en presencia/ausencia
-#                df_out["comorbilidad"] = np.where(
-#                    mask_none, "Sin comorbilidades", "Con comorbilidades"
-#                )
-
-#            elif "Sin comorbilidades" in seleccion:
-#                if len(seleccion) > 1:
-#                    st.info("Se seleccionó 'Sin comorbilidades'. Se ignorarán otras selecciones para este filtro.")
-#                df_out = df_work[mask_none].copy()
-#                df_out["comorbilidad"] = "Sin comorbilidades"
-
-#            else:
-#                cols_sel = [comorb_map[lbl] for lbl in seleccion if comorb_map[lbl] in df_work.columns]
-#                cols_rest = [c for c in comorb_cols_presentes if c not in cols_sel]
-
-#                if not cols_sel:
-#                    df_out = df_work.copy()
-#                    df_out["comorbilidad"] = np.where(mask_none, "Sin comorbilidades", "Con comorbilidades")
-#                else:
-#                    if modo.startswith("Todas"):
-#                        mask_sel = (df_work[cols_sel] == YES_VAL).all(axis=1)
-#                    else:
-#                        mask_sel = (df_work[cols_sel] == YES_VAL).any(axis=1)
-
-#                    if exigir_no and cols_rest:
-#                        mask_rest = df_work[cols_rest].isin(NO_SET).all(axis=1)
-#                        mask = mask_sel & mask_rest
-#                    else:
-#                        mask = mask_sel
-
-#                    df_out = df_work[mask].copy()
-#                    df_out["comorbilidad"] = "Con comorbilidades"
-
-#            st.session_state["df_comorb"] = df_out
-#            st.caption(f"Filas tras filtro de comorbilidades: {len(df_out):,}")
 
     with st.sidebar:
         st.subheader("Seleccione comorbilidades del grupo de pacientes a estudiar")
@@ -1302,34 +823,8 @@ elif option == "Relaciones de Indiscernibilidad":
 
         base_len = len(base_df_for_len)
 
-#    c1, c2 = st.columns(2)
-#    c1.metric("Filas base para filtrar.", base_len)
-#    c2.metric("Filas después del filtrado", len(st.session_state["df_comorb"]))
-#    st.markdown("""**A continuación se muestra la base de datos que se utilizará en el análisis.**""")
-#    st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
-
-#    # Resumen rápido (cuenta de 1 en cada comorbilidad seleccionada)
-#    if st.session_state["comorb_selection"] and "Sin comorbilidades" not in st.session_state["comorb_selection"]:
-#        with st.expander("Resumen de comorbilidades seleccionadas (conteos de 1)"):
-#            df_show = st.session_state["df_comorb"]
-#            for lbl in st.session_state["comorb_selection"]:
-#                col = comorb_map[lbl]
-#                if col in df_show.columns:
-#                    cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
-#                    st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
-
-
-#cols_H = [col for col in st.session_state["df_comorb"].columns if col.startswith("H")]
-#st.session_state["df_comorb"][cols_H] = st.session_state["df_comorb"][cols_H].replace({6: 1, 7: 1})
-
     if st.session_state["df_comorb"] is not None:
     # 🔹 Convertir respuestas 6 o 7 en columnas H a 1 en la base final
-    #cols_H = [col for col in st.session_state["df_comorb"].columns if col.startswith("H")]
-    #if cols_H:
-    #    st.session_state["df_comorb"][cols_H] = (
-    #        st.session_state["df_comorb"][cols_H].replace({6: 1, 7: 1})
-    #    )
-
         cols_H = [col for col in st.session_state["df_comorb"].columns if col.startswith("H")]
         if cols_H:
             st.session_state["df_comorb"][cols_H] = (
@@ -1346,23 +841,6 @@ elif option == "Relaciones de Indiscernibilidad":
             base_df_for_len = datos_seleccionados
 
         base_len = len(base_df_for_len)
-
-   #     c1, c2 = st.columns(2)
-   #     c1.metric("Filas base para filtrar.", base_len)
-   #     c2.metric("Filas después del filtrado", len(st.session_state["df_comorb"]))
-   #     st.markdown("""**A continuación se muestra la base de datos que se utilizará en el análisis.**""")
-   #     st.dataframe(st.session_state["df_comorb"].head(30), use_container_width=True)
-
-   #     # Resumen rápido (cuenta de 1 en cada comorbilidad seleccionada)
-   #     if st.session_state["comorb_selection"] and "Sin comorbilidades" not in st.session_state["comorb_selection"]:
-   #         with st.expander("Resumen de comorbilidades seleccionadas (conteos de 1)"):
-   #             df_show = st.session_state["df_comorb"]
-   #             for lbl in st.session_state["comorb_selection"]:
-   #                 col = comorb_map[lbl]
-   #                 if col in df_show.columns:
-   #                     cnt = int((pd.to_numeric(df_show[col], errors="coerce") == 1).sum())
-   #                     st.write(f"- **{lbl}**: {cnt:,} casos con valor 1")
-
 
     # === Resumen compacto de filtros y base actual (en un solo expander) ===
     ss = st.session_state
@@ -1447,12 +925,9 @@ elif option == "Relaciones de Indiscernibilidad":
     En pocas palabras: **agrupamos respuestas similares para entender mejor los perfiles y retos que enfrentan los participantes.**
     """)
 
-
-# HAsta aqui el filtrado
 # =========================
 # Indiscernibilidad + resumen + pastel + radar (con exclusión de NaN)
 # =========================
-
 
     # --- Funciones ---
     def indiscernibility(attr, table: pd.DataFrame):
@@ -1482,15 +957,6 @@ elif option == "Relaciones de Indiscernibilidad":
                     u_approx.update(r)
         return u_approx
 
-# --- DataFrame base: usa el más filtrado disponible ---
-#df_base_ind = st.session_state.get("df_comorb")
-#if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
-#    df_base_ind = st.session_state.get("df_filtrado")
-#if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
-#    df_base_ind = st.session_state.get("df_sexo")
-#if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
-#    df_base_ind = datos_seleccionados.copy()
-
     df_base_ind = st.session_state.get("df_comorb")
     if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
         df_base_ind = st.session_state.get("df_filtrado")
@@ -1501,8 +967,6 @@ elif option == "Relaciones de Indiscernibilidad":
     if not isinstance(df_base_ind, pd.DataFrame) or df_base_ind.empty:
         st.warning("No hay DataFrame base disponible aún.")
         st.stop()  # o return si envuelves esta sección en una función
-
-
 
     # --- Asegurar columna de índice visible ---
     if isinstance(df_base_ind, pd.DataFrame):
@@ -1726,136 +1190,6 @@ elif option == "Relaciones de Indiscernibilidad":
             if 4 <= cnt < 5: return 'orange'
             return 'red'
 
-#    st.subheader("Radar de los conjuntos más numerosos")
-#    top_idxs = [i for i, _ in longitudes_orden[:int(top_n_radar)]]
-#    top_sets = [(nombres[i], clases[i]) for i in top_idxs]
-
-#    total_pacientes = len(df_eval)
-#    n = int(top_n_radar)
-#    cols_grid = 5
-#    rows_grid = int(np.ceil(n / cols_grid))
-#    fig, axs = plt.subplots(rows_grid, cols_grid, figsize=(cols_grid*6, rows_grid*5), subplot_kw=dict(polar=True))
-#    axs = np.atleast_2d(axs); fig.subplots_adjust(hspace=0.8, wspace=0.6)
-
-#    k = len(cols_attrs)
-#    angulos = np.linspace(0, 2 * np.pi, k, endpoint=False).tolist()
-#    angulos_cerrado = angulos + angulos[:1]
-
-#    for idx_plot in range(rows_grid * cols_grid):
-#        r = idx_plot // cols_grid; c = idx_plot % cols_grid
-#        ax = axs[r, c]
-#        if idx_plot >= n:
-#            ax.axis('off'); continue
-#        nombre, conjunto_idx = top_sets[idx_plot]
-#        indices = sorted(list(conjunto_idx))
-#        df_conj = df_eval.loc[indices, cols_attrs]
-#        if df_conj.empty:
-#            valores = [0]*k; num_filas_df = 0
-#        else:
-#            valores = df_conj.iloc[0].tolist(); num_filas_df = len(df_conj)
-#        valores_cerrados = list(valores) + [valores[0]]
-#        color = determinar_color(valores)
-#        ax.plot(angulos_cerrado, valores_cerrados, color=color)
-#        ax.fill(angulos_cerrado, valores_cerrados, color=color, alpha=0.25)
-#        ax.set_theta_offset(np.pi / 2); ax.set_theta_direction(-1)
-#        ax.set_xticks(angulos); ax.set_xticklabels(cols_attrs, fontsize=10)
-#        ax.yaxis.grid(True); ax.set_ylim(0, 2)
-#        ax.set_yticks([0, 1, 2]); ax.set_yticklabels([0, 1, 2], fontsize=9)
-#        pct = (num_filas_df / total_pacientes * 100) if total_pacientes else 0.0
-#        ax.set_title(nombre, fontsize=12)
-#        ax.text(0.5, -0.2, f"Filas: {num_filas_df} ({pct:.2f}%)",
-#                transform=ax.transAxes, ha="center", va="center", fontsize=10)
-#    st.pyplot(fig)
-
-#    # --- Gráfico compuesto (pastel + radares incrustados) ---
-#    candidatas_idx_nom_tam = [(i, nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
-#    if candidatas_idx_nom_tam:
-#        nombres_dataframes = [nom for _, nom, _ in candidatas_idx_nom_tam]
-#        tamanios = [tam for _, _, tam in candidatas_idx_nom_tam]
-#        total_incluido = sum(tamanios)
-#        porcentajes = [(nom, (tam/total_incluido*100.0) if total_incluido else 0.0)
-#                       for _, nom, tam in candidatas_idx_nom_tam]
-
-#        valores_dataframes, colores_dataframes = [], []
-#        for idx, _, _ in candidatas_idx_nom_tam:
-#            indices = sorted(list(clases[idx]))
-#            sub = df_eval.loc[indices, cols_attrs]
-#            vals = sub.iloc[0].tolist() if not sub.empty else [0]*len(cols_attrs)
-#            valores_dataframes.append(vals)
-#            colores_dataframes.append(determinar_color(vals))
-
-#        min_radio = 1.0; max_radio = 2.40
-#        radar_size_min = 0.10; radar_size_max = 0.19
-#        etiquetas_radar = [et.replace('_21','').replace('_18','') for et in cols_attrs]
-
-#        fig_comp = plt.figure(figsize=(16, 16))
-#        main_ax = plt.subplot(111); main_ax.set_position([0.1, 0.1, 0.8, 0.8])
-
-#        if porcentajes:
-#            _, valores_porcentajes = zip(*porcentajes)
-#            valores_porcentajes = [float(p) for p in valores_porcentajes]
-#        else:
-#            valores_porcentajes = []
-
-#        colores_ajustados = colores_dataframes[:len(valores_porcentajes)]
-#        wedges, texts, autotexts = main_ax.pie(
-#            valores_porcentajes, colors=colores_ajustados,
-#            autopct='%1.1f%%', startangle=90,
-#            textprops={'fontsize': 17}, labeldistance=1.1
-#        )
-
-#        if wedges:
-#            angulos_pastel = [(w.theta1 + w.theta2)/2 for w in wedges]
-#            anchos = [abs(w.theta2 - w.theta1) for w in wedges]
-#            max_ancho = max(anchos) if anchos else 1
-#            angulos_rad = [np.deg2rad(a) for a in angulos_pastel]
-
-#            radios_personalizados = [
-#                min_radio + (1 - (log1p(a)/log1p(max_ancho))) * (max_radio - min_radio)
-#                for a in anchos
-#            ]
-#            tamaños_radar = [
-#                radar_size_min + (a/max_ancho) * (radar_size_max - radar_size_min)
-#                for a in anchos
-#            ]
-#
-#            angulos_rad_separados = angulos_rad.copy()
-#            min_sep = np.deg2rad(7)
-#            for i in range(1, len(angulos_rad_separados)):
-#                while abs(angulos_rad_separados[i] - angulos_rad_separados[i-1]) < min_sep:
-#                    angulos_rad_separados[i] += min_sep/2
-
-#            for i, (nombre, vals, color, ang_rad, r_inset, tam_radar) in enumerate(
-#                zip(nombres_dataframes, valores_dataframes, colores_dataframes,
-#                    angulos_rad_separados, radios_personalizados, tamaños_radar)
-#            ):
-#                factor_alejamiento = 2.3
-#                x = 0.5 + r_inset*np.cos(ang_rad)/factor_alejamiento
-#                y = 0.5 + r_inset*np.sin(ang_rad)/factor_alejamiento
-#                radar_ax = fig_comp.add_axes([x - tam_radar/2, y - tam_radar/2, tam_radar, tam_radar], polar=True)
-
-#                vals = list(vals)[:len(cols_attrs)] or [0]*len(cols_attrs)
-#                vals_c = vals + [vals[0]]
-#                angs = np.linspace(0, 2*np.pi, len(cols_attrs), endpoint=False).tolist()
-#                angs_c = angs + [angs[0]]
-
-#                radar_ax.set_theta_offset(np.pi/2); radar_ax.set_theta_direction(-1)
-#                radar_ax.plot(angs_c, vals_c, color=color)
-#                radar_ax.fill(angs_c, vals_c, color=color, alpha=0.3)
-#                radar_ax.set_xticks(angs); radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
-#                radar_ax.set_yticks([0,1,2]); radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
-#                radar_ax.set_ylim(0,2); radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
-#
-#                x0 = 0.5 + 0.3*np.cos(ang_rad); y0 = 0.5 + 0.3*np.sin(ang_rad)
-#                con = ConnectionPatch(
-#                    xyA=(x0, y0), coordsA=fig_comp.transFigure,
-#                    xyB=(x, y), coordsB=fig_comp.transFigure,
-#                    color='gray', lw=0.8, linestyle='--'
-#                )
-#                fig_comp.add_artist(con)
-
-#        st.pyplot(fig_comp)
-
         # --- Gráfico compuesto DOBLE: (A) Top-K + Otros  y  (B) Desglose de "Otros" ---
         K_MAIN  = st.sidebar.number_input("Rebanadas en pastel principal (subconjuntos mas numerosos)", 3, 20, value=12, step=1)
         K_OTROS = st.sidebar.number_input("Rebanadas máximas en pastel 'Otros' (subconjuntos minoritarios)", 5, 30, value=16, step=1)
@@ -2006,11 +1340,6 @@ elif option == "Relaciones de Indiscernibilidad":
     _render_ind_outputs_from_state()
 
 
-
-
-
-# ==================================================================== hasta aqui todo bien
-
     # ====== Inspección de un subconjunto (del pastel) + correlaciones ======
     ss = st.session_state
     need = ("ind_classes", "ind_lengths", "ind_min_size", "ind_df_reducido", "ind_adl_cols", "ind_cols")
@@ -2140,8 +1469,6 @@ elif option == "Relaciones de Indiscernibilidad":
         **Importante:**  
         Antes de construir la matriz se eliminan columnas con poca variación o con demasiados valores faltantes para asegurar que los coeficientes sean confiables.
         """)
-
-
 
 # =========================
 # Reductos de 4 y 3 variables (evaluación vs. partición original en el subconjunto del pastel)
@@ -2288,7 +1615,7 @@ elif option == "Relaciones de Indiscernibilidad":
                         ).reset_index(drop=True)
 
                         st.subheader("Reductos: como predecir el nivel de riesgo con menos datos de los necesarios")
-                        #st.markdown("""Buscamos una lista reducida de AVD que clasifique el nivel de riesgo igual que la lista completa; para hallarla aplicamos pruebas quita-1 y quita-2 (eliminamos una o dos AVD y verificamos si las agrupaciones de pacientes se mantienen idénticas: si no cambian, se preservan las relaciones de indiscernibilidad y esa lista reducida es válida). La app usa una jerarquía de AVD (de mayor a menor utilidad) para estimar el riesgo con datos incompletos y, si la decisión queda indeterminada, sugiere qué AVD medir a continuación. Ventajas: menos tiempo y costo, tolerancia a faltantes y guía clara de recolección; límites: depende de la población de datos (conviene recalibrar) y es un apoyo clínico, no reemplaza el juicio profesional.""")
+                        
                         st.markdown("""
                         - **Objetivo:** buscar combinaciones reducidas de **4** y **3** AVD (**reductos**) que repliquen lo mejor posible la **partición original** formada con todas las AVD elegidas.
                         - **Dónde se evalúa:** solo en el **subconjunto del pastel** (clases con tamaño ≥ umbral) y **sobre filas sin NaN** en esas AVD/ADL.
@@ -2318,35 +1645,10 @@ elif option == "Relaciones de Indiscernibilidad":
                         st.caption(f"Filas en evaluación: {len(universo_sel):,} | Variables originales: {m}")
                         st.dataframe(df_closeness, use_container_width=True)
 
-                        #st.download_button(
-                        #    "Descargar métricas de reductos (CSV)",
-                        #    data=df_closeness.to_csv(index=False).encode("utf-8"),
-                        #    file_name="reductos_4y3_metricas.csv",
-                        #    mime="text/csv",
-                        #    key="dl_reductos_4y3"
-                        #)
 
                         # ---------- mejores reductos de 4 y 3 ----------
                         best4 = df_closeness[df_closeness["#vars"] == 4].head(1)
                         best3 = df_closeness[df_closeness["#vars"] == 3].head(1)
-
-#                    if not best4.empty:
-#                        r = best4.iloc[0]
-#                        st.success(
-#                            f"🟩 Mejor reducto de 4 variables: **{r['Reducto']}** — "
-#                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
-#                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
-#                            f"Pres. distintos={r['Preservación distintos (%)']}%"
-#                        )
-#                    if not best3.empty:
-#                       r = best3.iloc[0]
-#                        st.success(
-#                            f"🟨 Mejor reducto de 3 variables: **{r['Reducto']}** — "
-#                            f"ARI={r['ARI']}, NMI={r['NMI']}, "
-#                            f"Pres. iguales={r['Preservación iguales (%)']}%, "
-#                            f"Pres. distintos={r['Preservación distintos (%)']}%"
-#                        )
-
 
 
                         # =========================
@@ -2426,24 +1728,6 @@ elif option == "Relaciones de Indiscernibilidad":
                             """)
 
 
-
-                    # (Opcional) botón de descarga para cada matriz
-                    #st.download_button(
-                    #    "⬇️ Descargar ARI (quitar 1 var) CSV",
-                    #    data=pd.DataFrame(M1, index=nombres1, columns=nombres1).to_csv().encode("utf-8"),
-                    #    file_name="ari_quitar_1_variable.csv",
-                    #    mime="text/csv",
-                    #    key="dl_ari_1"
-                    #)
-                    #st.download_button(
-                    #    "⬇️ Descargar ARI (quitar 2 var) CSV",
-                    #    data=pd.DataFrame(M2, index=nombres2, columns=nombres2).to_csv().encode("utf-8"),
-                    #    file_name="ari_quitar_2_variables.csv",
-                    #    mime="text/csv",
-                    #    key="dl_ari_2"
-                    #)
-
-
                     
                         # ---------- Expander con gráficos opcionales ----------
                         #with st.expander("Gráficos: Boxplot de tamaños y Heatmap del mejor reducto", expanded=False):
@@ -2493,8 +1777,6 @@ elif option == "Relaciones de Indiscernibilidad":
                             ax_hm.set_xlabel(f"Partición reducida ({best_name})")
                             ax_hm.set_ylabel("Partición original (subconjunto)")
                             ax_hm.set_title("Correspondencia entre bloques (conteos)")
-#                        ax_hm.set_xticks(range(M.shape[1])); ax_hm.set_xticklabels([f"Red_{j+1}" for j in range(M.shape[1])])
-#                        ax_hm.set_yticks(range(M.shape[0])); ax_hm.set_yticklabels([f"Orig_{i+1}" for i in range(M.shape[0])])
 
                             # Ticks y etiquetas (evitar traslapes)
                             ax_hm.set_xticks(np.arange(M.shape[1]))
@@ -2554,23 +1836,6 @@ elif option == "Relaciones de Indiscernibilidad":
                                 f"Pres. distintos={r['Preservación distintos (%)']}%"
                             )
                     
-        #                with st.expander("ℹ️ ¿Qué hace esta sección? (Resumen rápido)", expanded=False):
-        #                    st.markdown("""
-        #                - **Objetivo:** buscar combinaciones de **4** y **3** ADL (reductos) que repliquen lo mejor posible la **partición original** hecha con todas las ADL elegidas.
-        #                - **Dónde se evalúa:** solo en el **subconjunto del pastel** (clases con tamaño ≥ umbral) y **sin NaN** en esas ADL.
-        #                - **Cómo se compara:** cada reducto genera su partición y se compara contra la original con estas métricas:
-        #                  - **ARI** (Adjusted Rand Index): 1.0 = particiones idénticas; mayor es mejor.
-        #                  - **NMI** (Normalized Mutual Information): 1.0 = información equivalente; mayor es mejor.
-        #                  - **Pres. iguales / distintos**: porcentaje de pares de filas que el reducto mantiene juntos / separados igual que la partición original.
-        #                    - **Qué se muestra:**
-        #                  - Una **tabla** ordenada por desempeño (ARI, preservaciones).
-        #                  - Los **mejores** reductos de **4** y **3** variables.
-        #                  - (Opcional) **Boxplot** de tamaños de bloque y **heatmap** de correspondencia.
-        #                - **Notas:**
-        #                  - Solo se consideran filas **sin NaN** en las ADL evaluadas.
-        #                  - Si hay demasiadas combinaciones, se limita el número para evitar tiempos largos.
-        #                  - Puedes usar las columnas del mejor reducto para entrenar modelos posteriores.
-        #                    """)
 
     # =========================
     # Reductos + RF (rápido) + Predicción en todo el pastel + barras comparativas
@@ -2774,14 +2039,6 @@ elif option == "Relaciones de Indiscernibilidad":
                     ss["fb_hgb_model"] = hgb
                     ss["fb_hgb_cols"]  = ind_cols
                     ss["fb_hgb_le"]    = le_fb
-                    #st.info("Modelo fallback (HGB) entrenado.")
-
-#with st.expander("🛟 Fallback HGB: ¿cuándo se usa y por qué?", expanded=False):
-#    st.markdown("""
-#- Si RF no puede predecir (faltan demasiadas ADL), usamos **HistGradientBoosting**.
-#- Requiere tener **`nivel_riesgo`** en el DF de entrenamiento (lo tomamos de `df_eval_riesgo` o lo **reconstruimos** con la regla).
-#- Ventaja: tolera **NaN** durante **predicción** a través del pipeline (cuando imputamos/aceptamos menos observadas).
-#""")
 
     st.subheader("Predicción de riesgo en la base completa")
 
@@ -2898,16 +2155,6 @@ elif option == "Relaciones de Indiscernibilidad":
             ss["df_pred_all_rf"] = df_pred_all
    
     
-        # Muestra y descarga
-        #st.dataframe(df_pred_all.reset_index().head(50), use_container_width=True)
-        #st.download_button(
-        #    "Descargar predicciones RF (todo ind_df) CSV",
-        #    data=df_pred_all.reset_index().to_csv(index=False).encode("utf-8"),
-        #    file_name="predicciones_rf_todo_ind_df.csv",
-        #    mime="text/csv",
-        #    key="dl_pred_all_rf"
-        #)
-
         # =========================
         # Barras: Regla (sin NaN) vs RF (todo ind_df)
         # =========================
@@ -2981,9 +2228,6 @@ elif option == "Relaciones de Indiscernibilidad":
         st.pyplot(fig2)
 
 
-
-
-    
     # =========================
     # Enriquecer predicciones con columnas del DF original
     # =========================
@@ -3050,7 +2294,7 @@ elif option == "Relaciones de Indiscernibilidad":
     ################################
 
     # ==========================================================
-    # Formularios: ✍️ Captura manual y 📄 Subir Excel
+    # Formularios: Captura manual y Subir Excel
     # Requiere: pandas as pd, numpy as np, streamlit as st
     # Usa modelos si existen en st.session_state; si no, aplica la "regla".
     # ==========================================================
@@ -3359,12 +2603,6 @@ elif option == "Relaciones de Indiscernibilidad":
         else:
             st.caption("Formato esperado: columnas **Indice, Sexo, Edad** (opcionales) + columnas ADL (H11, H15A, H5, H6, C37, etc.).")
 
-
-
-########################################################################################################################33
-###############
-
-################################################################33
 
 ##############################################################
 elif option == "Análisis por subconjunto":
