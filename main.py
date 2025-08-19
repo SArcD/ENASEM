@@ -3376,6 +3376,7 @@ elif option == "Análisis por subconjunto":
             for group in keyword_groups:
                 if all(k in nc for k in group):
                     cols.append(c)
+                    # no agregamos más grupos una vez que cumple uno
                     break
         # mantener orden original y quitar duplicados
         seen = set(); out = []
@@ -3448,6 +3449,11 @@ elif option == "Análisis por subconjunto":
                   .apply(lambda s: " / ".join(sorted({x for x in s if x and x != 'nan'})))
         )
         return dict(zip(agg["canon"], agg["descripcion"]))
+
+    # ===============================
+    # ⚙️ Config: variables forzadas continuas
+    # ===============================
+    FORZAR_CONTINUAS = {"SEX", "C67"}  # <- añade aquí otras que quieras tratar siempre como continuas
 
     # -------------------------------
     # Sección: Cargar archivo
@@ -3670,24 +3676,13 @@ elif option == "Análisis por subconjunto":
             if nun <= DISCRETE_MAX_UNIQUE or es_12 or es_012:
                 cols_discretas.append(c)
 
+        # 👉 quitar de las discretas las forzadas a continuas
+        cols_discretas = [c for c in cols_discretas if c not in FORZAR_CONTINUAS]
+
         if not cols_discretas:
             st.info("No se detectaron variables discretas en la selección (p. ej., solo continuas como edad/estatura).")
         else:
-            # 3) Proporciones por pregunta usando SOLO discretas (evita error de reset_index)
-            #long = df_prop[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
-            #long["Respuesta_cat"] = pd.Categorical(
-            #    np.where(long["Respuesta"].isna(), "NaN", long["Respuesta"].astype("Int64").astype(str)),
-            #    categories=["1", "2", "NaN"],
-            #    ordered=True
-            #)
-            #prop = (
-            #    long.groupby("Pregunta")["Respuesta_cat"]
-            #        .value_counts(normalize=True)
-            #        .rename("Porcentaje")
-            #        .mul(100)
-            #        .reset_index()
-            #)
-
+            # 3) Proporciones por pregunta usando SOLO discretas
             long = df_prop[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
 
             # categorías dinámicas según lo que exista (0–9 es un rango prudente para encuestas)
@@ -3700,7 +3695,7 @@ elif option == "Análisis por subconjunto":
                 .unique()
                 .tolist()
             )
-            # ordena y limita a 0–9 por seguridad (puedes ampliar si lo necesitas)
+            # ordena y limita a 0–9 (puedes ampliar si hace falta)
             orden = [str(i) for i in range(0, 10) if str(i) in vals_presentes] + ["NaN"]
 
             long["Respuesta_cat"] = pd.Categorical(
@@ -3716,18 +3711,6 @@ elif option == "Análisis por subconjunto":
                     .reset_index()
             )
 
-            
-
-            #fig_bar = px.bar(
-            #    prop,
-            #    x="Pregunta",
-            #    y="Porcentaje",
-            #    color="Respuesta_cat",
-            #    barmode="stack",
-            #    text=prop["Porcentaje"].round(1).astype(str) + "%",
-            #    category_orders={"Respuesta_cat": ["1", "2", "NaN"]}
-            #)
-
             fig_bar = px.bar(
                 prop,
                 x="Pregunta",
@@ -3737,12 +3720,10 @@ elif option == "Análisis por subconjunto":
                 text=prop["Porcentaje"].round(1).astype(str) + "%",
                 category_orders={"Respuesta_cat": orden}
             )
-
-            
             fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
             st.plotly_chart(fig_bar, use_container_width=True)
 
-            # ======== (NUEVO) Tabla de variables ↔ significados, justo debajo del gráfico ========
+            # ======== Tabla de variables ↔ significados, justo debajo del gráfico ========
             st.markdown("##### Variables del gráfico y su significado")
 
             anio_dic = st.selectbox(
@@ -3771,11 +3752,44 @@ elif option == "Análisis por subconjunto":
             except Exception as e:
                 st.error(f"No se pudo leer el diccionario ({anio_dic}): {e}")
 
+            # ========= 1b) Variables continuas: Boxplot + Histograma (debajo) =========
+            cols_continuas = [c for c in cols_presentes if c not in cols_discretas]
+            # convertir a numérico sin romper
+            df_cont = df_base[cols_continuas].apply(pd.to_numeric, errors="coerce")
+            cols_continuas = [c for c in df_cont.columns if df_cont[c].notna().sum() > 0]
+
+            if cols_continuas:
+                st.subheader("Distribución de variables continuas (boxplot + histograma)")
+                default_cont = [c for c in ["SEX", "C67"] if c in cols_continuas]
+                sel_cont = st.multiselect(
+                    "Elige variables continuas a graficar",
+                    options=cols_continuas,
+                    default=default_cont if default_cont else cols_continuas[:2]
+                )
+                bins = st.slider("Número de bins del histograma", 10, 100, 30, 5)
+
+                for c in sel_cont:
+                    serie = df_cont[c].dropna()
+                    if serie.empty:
+                        continue
+                    st.markdown(f"**{c}**")
+                    tmp = pd.DataFrame({c: serie})
+
+                    # Boxplot
+                    fig_box = px.box(tmp, y=c, points="outliers", title=f"Boxplot: {c}")
+                    fig_box.update_layout(margin=dict(t=40, l=0, r=0, b=0))
+                    st.plotly_chart(fig_box, use_container_width=True)
+
+                    # Histograma (debajo)
+                    fig_hist = px.histogram(tmp, x=c, nbins=bins, title=f"Histograma: {c}")
+                    fig_hist.update_layout(margin=dict(t=40, l=0, r=0, b=0), bargap=0.05)
+                    st.plotly_chart(fig_hist, use_container_width=True)
+
             # ========= 2) Patrones idénticos (bloques de indiscernibilidad) =========
             st.subheader("Patrones de respuesta idéntica (bloques)")
             top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5)
 
-            df_pat = df_prop[cols_discretas].copy()
+            df_pat = df_prop[[c for c in cols_discretas if c in df_prop.columns]].copy()
             # Construir clave de patrón como tupla de valores por columna discreta (incluye NaN)
             pat_keys = df_pat.apply(lambda r: tuple(r[c] for c in cols_discretas), axis=1)
             counts = pat_keys.value_counts(dropna=False)
@@ -3838,7 +3852,6 @@ elif option == "Análisis por subconjunto":
                     file_name="top_patrones_identicos.csv",
                     mime="text/csv"
                 )
-
 
 
 ##############################################################
