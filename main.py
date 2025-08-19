@@ -3376,7 +3376,6 @@ elif option == "Análisis por subconjunto":
             for group in keyword_groups:
                 if all(k in nc for k in group):
                     cols.append(c)
-                    # no agregamos más grupos una vez que cumple uno
                     break
         # mantener orden original y quitar duplicados
         seen = set(); out = []
@@ -3404,11 +3403,7 @@ elif option == "Análisis por subconjunto":
         return s
 
     def canon_var(var: str) -> str:
-        """
-        Convierte nombres de columnas del DataFrame a la misma forma canónica:
-        - mayúsculas
-        - elimina cualquier caracter no A-Z/0-9 (por ejemplo: 'C49_1' -> 'C491')
-        """
+        """Misma forma canónica para nombres de columnas."""
         return re.sub(r'[^A-Z0-9]+', '', str(var).strip().upper())
 
     RAW_DIC_URLS = {
@@ -3418,32 +3413,17 @@ elif option == "Análisis por subconjunto":
 
     @st.cache_data(show_spinner=False)
     def load_diccionario_simple(anio: int) -> dict:
-        """
-        Lee el diccionario (TOMANDO SOLO LAS 2 PRIMERAS COLUMNAS) y regresa
-        un dict {clave_canónica: descripcion_agrupada}.
-        Soporta encabezados 'raros' (p. ej. 'odigo') o sin encabezado.
-        """
+        """Lee el diccionario (toma solo 2 primeras columnas) y regresa {canon: descripción}."""
         url = RAW_DIC_URLS[anio]
         dic = pd.read_csv(url)
         if dic.shape[1] < 2:
             raise ValueError("El diccionario debe tener al menos 2 columnas (código, descripción).")
-
-        # Tomar SIEMPRE las dos primeras columnas como (codigo, descripcion)
         df_dic = dic.iloc[:, [0, 1]].copy()
         df_dic.columns = ["codigo", "descripcion"]
-
-        # Limpieza básica
         df_dic["codigo"] = df_dic["codigo"].astype(str).str.strip()
         df_dic["descripcion"] = df_dic["descripcion"].astype(str).str.strip()
-
-        # Quitar filas sin código
         df_dic = df_dic[df_dic["codigo"] != ""].copy()
-
-        # Clave canónica
         df_dic["canon"] = df_dic["codigo"].apply(canon_codigo)
-
-        # Si hay duplicados (mismo canon con varias descripciones),
-        # unimos descripciones distintas con " / "
         agg = (
             df_dic.groupby("canon", as_index=False)["descripcion"]
                   .apply(lambda s: " / ".join(sorted({x for x in s if x and x != 'nan'})))
@@ -3453,7 +3433,7 @@ elif option == "Análisis por subconjunto":
     # ===============================
     # ⚙️ Config: variables forzadas continuas
     # ===============================
-    FORZAR_CONTINUAS = {"SEX", "C67"}  # <- añade aquí otras que quieras tratar siempre como continuas
+    FORZAR_CONTINUAS = {"SEX", "C67"}  # añade aquí otras que quieras tratar siempre como continuas
 
     # -------------------------------
     # Sección: Cargar archivo
@@ -3472,7 +3452,12 @@ elif option == "Análisis por subconjunto":
         st.error(f"No se pudo leer el CSV: {e}")
         st.stop()
 
-    # Limpiar columnas tipo Unnamed:
+    # 🔧 Normalizar nombres y quitar sufijos _18/_21
+    cols = [re.sub(r"\s+", " ", str(c)).strip() for c in df.columns]
+    cols = [re.sub(r"_(18|21)$", "", c) for c in cols]
+    df.columns = cols
+
+    # Quitar columnas tipo Unnamed:
     df = df.loc[:, ~df.columns.str.match(r"^Unnamed:\s*\d+")].copy()
 
     st.success(f"Archivo cargado: {uploaded.name}")
@@ -3481,42 +3466,22 @@ elif option == "Análisis por subconjunto":
     # -------------------------------
     # Detectar columnas candidatas
     # -------------------------------
-    # Riesgo: columnas con "nivel"+"riesgo" o "diagnostico"+"arbol"
     riesgo_candidates = find_candidate_columns(
         df,
-        keyword_groups=[
-            ["nivel","riesgo"],
-            ["diagnostico","arbol"],   # p.ej. "Diagnóstico_árbol"
-            ["riesgo"]                 # fallback laxa
-        ]
+        keyword_groups=[["nivel","riesgo"], ["diagnostico","arbol"], ["riesgo"]]
     )
-
-    # Subconjunto: "subconjunto", "conjunto", "cluster", "bloque", "equivalencia"
     subconj_candidates = find_candidate_columns(
         df,
-        keyword_groups=[
-            ["subconjunto"],
-            ["conjunto"],
-            ["cluster"],
-            ["bloque"],
-            ["equivalencia"]
-        ]
+        keyword_groups=[["subconjunto"], ["conjunto"], ["cluster"], ["bloque"], ["equivalencia"]]
     )
 
     col1, col2 = st.columns(2)
     with col1:
         st.write("**Columnas candidatas a “Nivel de riesgo”**")
-        if riesgo_candidates:
-            st.code(", ".join(riesgo_candidates), language="text")
-        else:
-            st.warning("No se detectaron columnas de riesgo automáticamente.")
-
+        st.code(", ".join(riesgo_candidates) if riesgo_candidates else "(ninguna)", language="text")
     with col2:
         st.write("**Columnas candidatas a “Subconjunto”**")
-        if subconj_candidates:
-            st.code(", ".join(subconj_candidates), language="text")
-        else:
-            st.warning("No se detectaron columnas de subconjunto automáticamente.")
+        st.code(", ".join(subconj_candidates) if subconj_candidates else "(ninguna)", language="text")
 
     # -------------------------------
     # Controles de filtrado
@@ -3539,8 +3504,7 @@ elif option == "Análisis por subconjunto":
             st.info("Selecciona al menos un valor para visualizar el filtrado.")
             st.stop()
         df_filtrado = df[df[col_riesgo].isin(sel)].copy()
-
-    else:  # Por subconjunto
+    else:
         if not subconj_candidates:
             st.error("No hay columnas candidatas de subconjunto. Cambia a 'Por nivel de riesgo' o revisa nombres de columnas.")
             st.stop()
@@ -3562,7 +3526,6 @@ elif option == "Análisis por subconjunto":
     st.caption(f"Filas seleccionadas: {df_filtrado.shape[0]} de {df.shape[0]}")
     st.dataframe(df_filtrado, use_container_width=True)
 
-    # Conteo por categoría elegida (útil para verificar)
     with st.expander("Ver conteo por categoría seleccionada"):
         if modo == "Por nivel de riesgo":
             st.write(df_filtrado[col_riesgo].value_counts(dropna=False))
@@ -3570,10 +3533,9 @@ elif option == "Análisis por subconjunto":
             st.write(df_filtrado[col_sub].value_counts(dropna=False))
 
     # Descargar CSV filtrado
-    csv_bytes = df_filtrado.to_csv(index=False).encode("utf-8")
     st.download_button(
         label="⬇️ Descargar filas filtradas (CSV)",
-        data=csv_bytes,
+        data=df_filtrado.to_csv(index=False).encode("utf-8"),
         file_name="filtrado.csv",
         mime="text/csv"
     )
@@ -3581,8 +3543,6 @@ elif option == "Análisis por subconjunto":
     # =======================
     # Vista por secciones (después del filtrado)
     # =======================
-
-    # 1) Usar directamente df_filtrado desde session_state
     df_base = st.session_state.get("df_filtrado")
 
     if not isinstance(df_base, pd.DataFrame) or df_base.empty:
@@ -3590,23 +3550,13 @@ elif option == "Análisis por subconjunto":
     else:
         st.subheader("Vista por secciones de columnas")
 
-        # 2) Definir secciones -> listas de columnas
         SECCIONES = {
-            "1. Datos demográficos básicos": [
-                "AGE", "SEX"
-            ],
-            "2. Diagnóstico y antecedentes médicos generales": [
-                "C1", "C4", "C6", "C12", "C19", "C22A", "C26", "C32", "C37"
-            ],
-            "3. Bienestar psicológico y salud mental": [
-                "C49_1", "C49_2", "C49_8", "C76"
-            ],
-            "4. Autopercepción de salud y comparación temporal": [
-                "C64"
-            ],
+            "1. Datos demográficos básicos": ["AGE", "SEX"],
+            "2. Diagnóstico y antecedentes médicos generales": ["C1", "C4", "C6", "C12", "C19", "C22A", "C26", "C32", "C37"],
+            "3. Bienestar psicológico y salud mental": ["C49_1", "C49_2", "C49_8", "C76"],
+            "4. Autopercepción de salud y comparación temporal": ["C64"],
             "5. Datos antropométricos y condición física": [
-                "C66", "C67_1", "C67_2", "C67",
-                "C68E", "C68G", "C68H", "C69A", "C69B", "C71A"
+                "C66", "C67_1", "C67_2", "C67", "C68E", "C68G", "C68H", "C69A", "C69B", "C71A"
             ],
             "6. Actividades de la vida diaria (AVD)": [
                 "H1","H4","H5","H6","H8","H9","H10","H11","H12","H13",
@@ -3614,33 +3564,21 @@ elif option == "Análisis por subconjunto":
             ],
         }
 
-        # 3) Selector de sección (la “barra para seleccionar categoría”)
         seccion = st.selectbox("Selecciona una sección para mostrar:", list(SECCIONES.keys()))
-
-        # 4) Columnas base a mostrar (intersecta con columnas presentes)
         cols_obj = SECCIONES[seccion]
         cols_presentes = [c for c in cols_obj if c in df_base.columns]
 
-        # Anteponer Indice y nivel_riesgo si existen
         encabezado = [c for c in ["Indice", "nivel_riesgo", "nivel_riesgo_pred"] if c in df_base.columns]
         cols_finales = encabezado + [c for c in cols_presentes if c not in encabezado]
 
-        # 5) (Opcional) permitir agregar columnas extra
         with st.expander("➕ Agregar columnas adicionales a la vista", expanded=False):
-            otras = st.multiselect(
-                "Columnas extra:",
-                options=[c for c in df_base.columns if c not in cols_finales],
-                default=[]
-            )
+            otras = st.multiselect("Columnas extra:", options=[c for c in df_base.columns if c not in cols_finales], default=[])
             cols_finales = cols_finales + otras
 
-        # 6) Mostrar tabla
         if not cols_finales:
             st.warning("Ninguna de las columnas de la sección está presente en el DataFrame.")
         else:
             st.dataframe(df_base[cols_finales], use_container_width=True, height=520)
-
-            # 7) Botón de descarga de la vista
             st.download_button(
                 f"Descargar vista: {seccion} (CSV)",
                 data=df_base[cols_finales].to_csv(index=False).encode("utf-8"),
@@ -3655,56 +3593,57 @@ elif option == "Análisis por subconjunto":
     else:
         st.subheader("Proporción de respuestas por pregunta (solo variables discretas)")
 
-        # 1) Normalización básica a numérico y mapeo Sí/No
-        df_prop = (
-            df_base[cols_presentes]
-            .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
-            .apply(pd.to_numeric, errors='coerce')
-        )
-
-        # 2) Detectar columnas discretas (excluir continuas como edad/estatura)
-        DISCRETE_MAX_UNIQUE = 10  # ajusta si quieres ser más/menos estricto
+        # --- Detección robusta de discretas (sin perder textos)
+        DISCRETE_MAX_UNIQUE = 12  # puedes ajustarlo
         cols_discretas = []
-        for c in df_prop.columns:
-            serie = df_prop[c].dropna()
-            if serie.empty:
+        for c in cols_presentes:
+            if c in FORZAR_CONTINUAS:
                 continue
-            nun = serie.nunique(dropna=True)
-            # Discreta si pocos valores distintos o si solo hay 1/2 (o 0/1/2)
-            es_12 = serie.isin([1, 2]).all()
-            es_012 = serie.isin([0, 1, 2]).all()
-            if nun <= DISCRETE_MAX_UNIQUE or es_12 or es_012:
+            s_raw = df_base[c]
+            nun_raw = s_raw.dropna().astype(str).nunique()
+            s_num = pd.to_numeric(s_raw, errors='coerce')
+            nun_num = s_num.dropna().nunique()
+            if (nun_num > 0 and nun_num <= DISCRETE_MAX_UNIQUE) or (nun_raw > 0 and nun_raw <= DISCRETE_MAX_UNIQUE):
                 cols_discretas.append(c)
 
-        # 👉 quitar de las discretas las forzadas a continuas
-        cols_discretas = [c for c in cols_discretas if c not in FORZAR_CONTINUAS]
-
         if not cols_discretas:
-            st.info("No se detectaron variables discretas en la selección (p. ej., solo continuas como edad/estatura).")
+            st.info("En la sección seleccionada no se detectaron variables discretas (o fueron forzadas a continuas). Revisa la sección elegida o baja el umbral DISCRETE_MAX_UNIQUE.")
         else:
-            # 3) Proporciones por pregunta usando SOLO discretas
-            long = df_prop[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
+            # --- Construcción de categorías sin perder códigos 3/4/5, Sí/No, etc.
+            long = df_base[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
 
-            # categorías dinámicas según lo que exista (0–9 es un rango prudente para encuestas)
-            vals_presentes = (
-                long["Respuesta"]
-                .dropna()
-                .astype("Int64")
-                .astype(int)
-                .astype(str)
-                .unique()
-                .tolist()
-            )
-            # ordena y limita a 0–9 (puedes ampliar si hace falta)
-            orden = [str(i) for i in range(0, 10) if str(i) in vals_presentes] + ["NaN"]
+            def to_cat(x):
+                if pd.isna(x): return "NaN"
+                x_str = str(x).strip()
+                m = {"Sí":"Sí", "Si":"Sí", "NO":"No", "No":"No"}
+                if x_str in m: return m[x_str]
+                # si es número (1,2,3,4,5...), úsalo como entero
+                try:
+                    xi = float(x_str)
+                    if np.isfinite(xi):
+                        if abs(xi - int(xi)) < 1e-9:
+                            return str(int(xi))
+                        return str(xi)
+                except:
+                    pass
+                return x_str
 
-            long["Respuesta_cat"] = pd.Categorical(
-                np.where(long["Respuesta"].isna(), "NaN", long["Respuesta"].astype("Int64").astype(str)),
-                categories=orden,
-                ordered=True
+            long["Categoria"] = long["Respuesta"].map(to_cat)
+
+            # ordena categorías: numéricas ascendentes, luego texto, y deja "NaN" al final
+            def is_int_str(s):
+                try: int(s); return True
+                except: return False
+
+            cats_no_nan = sorted(
+                [c for c in long["Categoria"].dropna().unique() if c != "NaN"],
+                key=lambda z: (not is_int_str(z), int(z) if is_int_str(z) else z)
             )
+            categorias = cats_no_nan + ["NaN"]
+
             prop = (
-                long.groupby("Pregunta")["Respuesta_cat"]
+                long.assign(Categoria=pd.Categorical(long["Categoria"], categories=categorias, ordered=True))
+                    .groupby("Pregunta")["Categoria"]
                     .value_counts(normalize=True)
                     .rename("Porcentaje")
                     .mul(100)
@@ -3715,31 +3654,27 @@ elif option == "Análisis por subconjunto":
                 prop,
                 x="Pregunta",
                 y="Porcentaje",
-                color="Respuesta_cat",
+                color="Categoria",
                 barmode="stack",
                 text=prop["Porcentaje"].round(1).astype(str) + "%",
-                category_orders={"Respuesta_cat": orden}
+                category_orders={"Categoria": categorias}
             )
             fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
             st.plotly_chart(fig_bar, use_container_width=True)
 
             # ======== Tabla de variables ↔ significados, justo debajo del gráfico ========
             st.markdown("##### Variables del gráfico y su significado")
-
             anio_dic = st.selectbox(
                 "Año del diccionario para los significados",
                 options=[2018, 2021],
                 index=0,
                 key="anio_diccionario_significados"
             )
-
             try:
                 mapa_dic = load_diccionario_simple(anio_dic)
                 tabla_vars = pd.DataFrame({
                     "Variable": cols_discretas,
-                    "Descripción": [
-                        mapa_dic.get(canon_var(v), "— No encontrada —") for v in cols_discretas
-                    ]
+                    "Descripción": [mapa_dic.get(canon_var(v), "— No encontrada —") for v in cols_discretas]
                 })
                 st.dataframe(tabla_vars, use_container_width=True, height=320)
                 st.download_button(
@@ -3754,7 +3689,6 @@ elif option == "Análisis por subconjunto":
 
             # ========= 1b) Variables continuas: Boxplot + Histograma (debajo) =========
             cols_continuas = [c for c in cols_presentes if c not in cols_discretas]
-            # convertir a numérico sin romper
             df_cont = df_base[cols_continuas].apply(pd.to_numeric, errors="coerce")
             cols_continuas = [c for c in df_cont.columns if df_cont[c].notna().sum() > 0]
 
@@ -3774,13 +3708,9 @@ elif option == "Análisis por subconjunto":
                         continue
                     st.markdown(f"**{c}**")
                     tmp = pd.DataFrame({c: serie})
-
-                    # Boxplot
                     fig_box = px.box(tmp, y=c, points="outliers", title=f"Boxplot: {c}")
                     fig_box.update_layout(margin=dict(t=40, l=0, r=0, b=0))
                     st.plotly_chart(fig_box, use_container_width=True)
-
-                    # Histograma (debajo)
                     fig_hist = px.histogram(tmp, x=c, nbins=bins, title=f"Histograma: {c}")
                     fig_hist.update_layout(margin=dict(t=40, l=0, r=0, b=0), bargap=0.05)
                     st.plotly_chart(fig_hist, use_container_width=True)
@@ -3789,70 +3719,78 @@ elif option == "Análisis por subconjunto":
             st.subheader("Patrones de respuesta idéntica (bloques)")
             top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5)
 
-            df_pat = df_prop[[c for c in cols_discretas if c in df_prop.columns]].copy()
-            # Construir clave de patrón como tupla de valores por columna discreta (incluye NaN)
-            pat_keys = df_pat.apply(lambda r: tuple(r[c] for c in cols_discretas), axis=1)
-            counts = pat_keys.value_counts(dropna=False)
-            total = counts.sum()
+            df_prop_num = df_base[[c for c in cols_discretas if c in df_base.columns]] \
+                            .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1}) \
+                            .apply(pd.to_numeric, errors='coerce')
 
-            if total == 0:
-                st.info("No hay filas válidas para construir patrones con las variables discretas seleccionadas.")
+            if df_prop_num.empty:
+                st.info("No hay suficientes datos numéricos para calcular patrones en las discretas.")
             else:
-                top_counts = counts.head(top_n).reset_index()
-                top_counts.columns = ["Patrón", "Frecuencia"]
-                top_counts["Porcentaje"] = 100 * top_counts["Frecuencia"] / total
+                pat_keys = df_prop_num.apply(lambda r: tuple(r[c] for c in df_prop_num.columns), axis=1)
+                counts = pat_keys.value_counts(dropna=False)
+                total = counts.sum()
 
-                def pattern_to_str(p):
-                    def fmt(v):
-                        if pd.isna(v): return "NaN"
-                        try: return str(int(v))
-                        except: return str(v)
-                    return " | ".join(f"{c}:{fmt(v)}" for c, v in zip(cols_discretas, p))
+                if total == 0:
+                    st.info("No hay filas válidas para construir patrones con las variables discretas seleccionadas.")
+                else:
+                    top_counts = counts.head(top_n).reset_index()
+                    top_counts.columns = ["Patrón", "Frecuencia"]
+                    top_counts["Porcentaje"] = 100 * top_counts["Frecuencia"] / total
 
-                top_counts["Patrón (pregunta:valor)"] = top_counts["Patrón"].apply(pattern_to_str)
-                st.caption(f"Patrones únicos en total (solo discretas): {counts.shape[0]:,}")
-                st.dataframe(
-                    top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
-                        .assign(Porcentaje=lambda d: d["Porcentaje"].round(2)),
-                    use_container_width=True, height=400
-                )
+                    def pattern_to_str(p):
+                        def fmt(v):
+                            if pd.isna(v): return "NaN"
+                            try: return str(int(v))
+                            except: return str(v)
+                        return " | ".join(f"{c}:{fmt(v)}" for c, v in zip(df_prop_num.columns, p))
 
-                # Mini KPI: cobertura del TOP-N
-                cobertura = top_counts["Frecuencia"].sum() / total * 100
-                st.metric("Cobertura del TOP mostrado", f"{cobertura:.1f}%")
+                    top_counts["Patrón (pregunta:valor)"] = top_counts["Patrón"].apply(pattern_to_str)
+                    st.caption(f"Patrones únicos en total (solo discretas): {counts.shape[0]:,}")
+                    st.dataframe(
+                        top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
+                            .assign(Porcentaje=lambda d: d["Porcentaje"].round(2)),
+                        use_container_width=True, height=400
+                    )
 
-                # ========= 3) Treemap de patrones (tamaño = frecuencia; color = % de '2') =========
-                st.subheader("Treemap de patrones (tamaño = frecuencia, color = % de '2')")
-                def pct_twos(p):
-                    vals = [x for x in p if not pd.isna(x)]
-                    return 100 * (np.sum(np.array(vals) == 2) / len(vals)) if vals else 0.0
+                    cobertura = top_counts["Frecuencia"].sum() / total * 100
+                    st.metric("Cobertura del TOP mostrado", f"{cobertura:.1f}%")
 
-                treemap_df = top_counts.copy()
-                treemap_df["%2_en_patron"] = treemap_df["Patrón"].apply(pct_twos)
-                treemap_df["Patrón (corto)"] = treemap_df["Patrón"].apply(
-                    lambda p: " / ".join(str(int(x)) if pd.notna(x) else "NaN" for x in p)
-                )
+                    def pct_twos(p):
+                        vals = [x for x in p if not pd.isna(x)]
+                        return 100 * (np.sum(np.array(vals) == 2) / len(vals)) if vals else 0.0
 
-                fig_tree = px.treemap(
-                    treemap_df,
-                    path=["Patrón (corto)"],
-                    values="Frecuencia",
-                    color="%2_en_patron",
-                    color_continuous_scale="Greens",
-                    hover_data={"Porcentaje":":.2f","%2_en_patron":":.1f"}
-                )
-                fig_tree.update_layout(margin=dict(t=30,l=0,r=0,b=0), coloraxis_colorbar=dict(title="% de '2'"))
-                st.plotly_chart(fig_tree, use_container_width=True)
+                    treemap_df = top_counts.copy()
+                    treemap_df["%2_en_patron"] = treemap_df["Patrón"].apply(pct_twos)
+                    treemap_df["Patrón (corto)"] = treemap_df["Patrón"].apply(
+                        lambda p: " / ".join(str(int(x)) if pd.notna(x) else "NaN" for x in p)
+                    )
 
-                # ========= Descargas =========
-                st.download_button(
-                    "⬇️ Descargar TOP patrones (CSV)",
-                    data=top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
-                        .to_csv(index=False).encode("utf-8"),
-                    file_name="top_patrones_identicos.csv",
-                    mime="text/csv"
-                )
+                    fig_tree = px.treemap(
+                        treemap_df,
+                        path=["Patrón (corto)"],
+                        values="Frecuencia",
+                        color="%2_en_patron",
+                        color_continuous_scale="Greens",
+                        hover_data={"Porcentaje":":.2f","%2_en_patron":":.1f"}
+                    )
+                    fig_tree.update_layout(margin=dict(t=30,l=0,r=0,b=0), coloraxis_colorbar=dict(title="% de '2'"))
+                    st.plotly_chart(fig_tree, use_container_width=True)
 
+                    st.download_button(
+                        "⬇️ Descargar TOP patrones (CSV)",
+                        data=top_counts[["Patrón (pregunta:valor)","Frecuencia","Porcentaje"]]
+                            .to_csv(index=False).encode("utf-8"),
+                        file_name="top_patrones_identicos.csv",
+                        mime="text/csv"
+                    )
+
+        # 🔎 Depuración opcional
+        with st.expander("Depuración (qué detecté como discretas/continuas)"):
+            st.write("**Sección:**", seccion)
+            st.write("**Columnas presentes:**", cols_presentes)
+            st.write("**Discretas detectadas:**", cols_discretas)
+            cont_detect = [c for c in cols_presentes if c not in cols_discretas]
+            st.write("**Continuas detectadas:**", cont_detect)
 
 ##############################################################
 else:
