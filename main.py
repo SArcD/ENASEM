@@ -3588,15 +3588,21 @@ elif option == "Análisis por subconjunto":
             )
 
     # ========= 1) Barras apiladas: proporciones por pregunta (solo preguntas discretas) =========
+    # ========= 1) Barras apiladas (discretas) + Boxplot/Hist (continuas) =========
     if not cols_presentes:
         st.warning("No hay columnas de la sección presentes para generar resúmenes.")
     else:
-        st.subheader("Proporción de respuestas por pregunta (solo variables discretas)")
+        # --- Forzados para evitar ambigüedad ---
+        FORZAR_DISCRETAS  = {"SEX"}
+        FORZAR_CONTINUAS  = {"AGE", "C67"}
 
-        # --- Detección robusta de discretas (sin perder textos)
-        DISCRETE_MAX_UNIQUE = 12  # puedes ajustarlo
+        # ---------- A) Detectar DISCRETAS ----------
+        DISCRETE_MAX_UNIQUE = 12  # umbral razonable
         cols_discretas = []
         for c in cols_presentes:
+            if c in FORZAR_DISCRETAS:
+                cols_discretas.append(c)
+                continue
             if c in FORZAR_CONTINUAS:
                 continue
             s_raw = df_base[c]
@@ -3606,34 +3612,41 @@ elif option == "Análisis por subconjunto":
             if (nun_num > 0 and nun_num <= DISCRETE_MAX_UNIQUE) or (nun_raw > 0 and nun_raw <= DISCRETE_MAX_UNIQUE):
                 cols_discretas.append(c)
 
-        if not cols_discretas:
-            st.info("En la sección seleccionada no se detectaron variables discretas (o fueron forzadas a continuas). Revisa la sección elegida o baja el umbral DISCRETE_MAX_UNIQUE.")
-        else:
-            # --- Construcción de categorías sin perder códigos 3/4/5, Sí/No, etc.
-            long = df_base[cols_discretas].melt(var_name="Pregunta", value_name="Respuesta")
+        # ---------- B) Gráfico de BARRAS APILADAS (solo discretas si existen) ----------
+        if cols_discretas:
+            st.subheader("Proporción de respuestas por pregunta (variables discretas)")
+            # Normalización básica (Sí/No → 2/1 si aplica) y a numérico cuando se pueda
+            df_prop = (
+                df_base[cols_discretas]
+                .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
+            )
 
+            long = df_prop.melt(var_name="Pregunta", value_name="Respuesta")
+
+            # función de categorización robusta
             def to_cat(x):
-                if pd.isna(x): return "NaN"
+                if pd.isna(x):
+                    return "NaN"
                 x_str = str(x).strip()
-                m = {"Sí":"Sí", "Si":"Sí", "NO":"No", "No":"No"}
-                if x_str in m: return m[x_str]
-                # si es número (1,2,3,4,5...), úsalo como entero
+                m = {"Sí": "Sí", "Si": "Sí", "NO": "No", "No": "No"}
+                if x_str in m:
+                    return m[x_str]
                 try:
                     xi = float(x_str)
                     if np.isfinite(xi):
-                        if abs(xi - int(xi)) < 1e-9:
-                            return str(int(xi))
-                        return str(xi)
+                        return str(int(xi)) if abs(xi - int(xi)) < 1e-9 else str(xi)
                 except:
                     pass
                 return x_str
 
             long["Categoria"] = long["Respuesta"].map(to_cat)
 
-            # ordena categorías: numéricas ascendentes, luego texto, y deja "NaN" al final
+            # ordenar categorías: números primero, luego texto, al final NaN
             def is_int_str(s):
-                try: int(s); return True
-                except: return False
+                try:
+                    int(s); return True
+                except:
+                    return False
 
             cats_no_nan = sorted(
                 [c for c in long["Categoria"].dropna().unique() if c != "NaN"],
@@ -3662,7 +3675,7 @@ elif option == "Análisis por subconjunto":
             fig_bar.update_layout(yaxis_title="Porcentaje", xaxis_title=None, legend_title="Respuesta", bargap=0.25)
             st.plotly_chart(fig_bar, use_container_width=True)
 
-            # ======== Tabla de variables ↔ significados, justo debajo del gráfico ========
+            # ===== Tabla de variables ↔ significados (bajo el gráfico de discretas) =====
             st.markdown("##### Variables del gráfico y su significado")
             anio_dic = st.selectbox(
                 "Año del diccionario para los significados",
@@ -3686,42 +3699,54 @@ elif option == "Análisis por subconjunto":
                 )
             except Exception as e:
                 st.error(f"No se pudo leer el diccionario ({anio_dic}): {e}")
+        else:
+            st.info("No se detectaron variables discretas en la sección (o fueron forzadas a continuas).")
 
-            # ========= 1b) Variables continuas: Boxplot + Histograma (debajo) =========
-            cols_continuas = [c for c in cols_presentes if c not in cols_discretas]
-            df_cont = df_base[cols_continuas].apply(pd.to_numeric, errors="coerce")
-            cols_continuas = [c for c in df_cont.columns if df_cont[c].notna().sum() > 0]
+        # ---------- C) Gráficas para CONTINUAS: Boxplot + Histograma ----------
+        # continuas = presentes que no fueron discretas
+        cols_continuas = [c for c in cols_presentes if c not in cols_discretas]
+        # fuerza inclusiones explícitas (si están en la sección)
+        cols_continuas = sorted({*cols_continuas, *[c for c in FORZAR_CONTINUAS if c in cols_presentes]})
+        # convertir a numérico
+        df_cont = df_base[cols_continuas].apply(pd.to_numeric, errors="coerce") if cols_continuas else pd.DataFrame()
 
-            if cols_continuas:
-                st.subheader("Distribución de variables continuas (boxplot + histograma)")
-                default_cont = [c for c in ["SEX", "C67"] if c in cols_continuas]
-                sel_cont = st.multiselect(
-                    "Elige variables continuas a graficar",
-                    options=cols_continuas,
-                    default=default_cont if default_cont else cols_continuas[:2]
-                )
-                bins = st.slider("Número de bins del histograma", 10, 100, 30, 5)
+        # descartar columnas sin datos numéricos válidos
+        cols_continuas = [c for c in (df_cont.columns if not df_cont.empty else []) if df_cont[c].notna().sum() > 0]
 
-                for c in sel_cont:
-                    serie = df_cont[c].dropna()
-                    if serie.empty:
-                        continue
-                    st.markdown(f"**{c}**")
-                    tmp = pd.DataFrame({c: serie})
-                    fig_box = px.box(tmp, y=c, points="outliers", title=f"Boxplot: {c}")
-                    fig_box.update_layout(margin=dict(t=40, l=0, r=0, b=0))
-                    st.plotly_chart(fig_box, use_container_width=True)
-                    fig_hist = px.histogram(tmp, x=c, nbins=bins, title=f"Histograma: {c}")
-                    fig_hist.update_layout(margin=dict(t=40, l=0, r=0, b=0), bargap=0.05)
-                    st.plotly_chart(fig_hist, use_container_width=True)
+        if cols_continuas:
+            st.subheader("Distribución de variables continuas (boxplot + histograma)")
+            bins = st.slider("Número de bins del histograma", 10, 100, 30, 5, key="bins_continuas")
 
-            # ========= 2) Patrones idénticos (bloques de indiscernibilidad) =========
+            # mostrar primero AGE y C67 si existen
+            orden_prioridad = [c for c in ["AGE", "C67"] if c in cols_continuas] + [c for c in cols_continuas if c not in {"AGE","C67"}]
+            for c in orden_prioridad:
+                serie = df_cont[c].dropna()
+                if serie.empty:
+                    continue
+                st.markdown(f"**{c}**")
+
+                # Boxplot
+                fig_box = px.box(pd.DataFrame({c: serie}), y=c, points="outliers", title=f"Boxplot: {c}")
+                fig_box.update_layout(margin=dict(t=40, l=0, r=0, b=0))
+                st.plotly_chart(fig_box, use_container_width=True)
+
+                # Histograma
+                fig_hist = px.histogram(pd.DataFrame({c: serie}), x=c, nbins=bins, title=f"Histograma: {c}")
+                fig_hist.update_layout(margin=dict(t=40, l=0, r=0, b=0), bargap=0.05)
+                st.plotly_chart(fig_hist, use_container_width=True)
+        else:
+            st.info("No se detectaron variables continuas con datos numéricos válidos en la sección.")
+
+        # ---------- D) Patrones idénticos (solo si hay discretas numéricas) ----------
+        if cols_discretas:
             st.subheader("Patrones de respuesta idéntica (bloques)")
-            top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5)
+            top_n = st.slider("Mostrar los TOP patrones (por frecuencia)", 5, 50, 15, 5, key="top_patrones")
 
-            df_prop_num = df_base[[c for c in cols_discretas if c in df_base.columns]] \
-                            .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1}) \
-                            .apply(pd.to_numeric, errors='coerce')
+            df_prop_num = (
+                df_base[[c for c in cols_discretas if c in df_base.columns]]
+                .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
+                .apply(pd.to_numeric, errors='coerce')
+            )
 
             if df_prop_num.empty:
                 st.info("No hay suficientes datos numéricos para calcular patrones en las discretas.")
@@ -3784,13 +3809,6 @@ elif option == "Análisis por subconjunto":
                         mime="text/csv"
                     )
 
-        # 🔎 Depuración opcional
-        with st.expander("Depuración (qué detecté como discretas/continuas)"):
-            st.write("**Sección:**", seccion)
-            st.write("**Columnas presentes:**", cols_presentes)
-            st.write("**Discretas detectadas:**", cols_discretas)
-            cont_detect = [c for c in cols_presentes if c not in cols_discretas]
-            st.write("**Continuas detectadas:**", cont_detect)
 
 ##############################################################
 else:
