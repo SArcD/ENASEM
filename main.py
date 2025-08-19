@@ -3588,7 +3588,7 @@ elif option == "Análisis por subconjunto":
             )
 
     # ========= 1) Barras apiladas: proporciones por pregunta (solo preguntas discretas) =========
-    # ========= 1) Barras apiladas (discretas) + Boxplot/Hist (continuas) =========
+    # ========= 1) Barras apiladas (discretas) + Histogramas (continuas) =========
     if not cols_presentes:
         st.warning("No hay columnas de la sección presentes para generar resúmenes.")
     else:
@@ -3615,7 +3615,7 @@ elif option == "Análisis por subconjunto":
         # ---------- B) Gráfico de BARRAS APILADAS (solo discretas si existen) ----------
         if cols_discretas:
             st.subheader("Proporción de respuestas por pregunta (variables discretas)")
-            # Normalización básica (Sí/No → 2/1 si aplica) y a numérico cuando se pueda
+            # Normalización básica (Sí/No → 2/1 si aplica)
             df_prop = (
                 df_base[cols_discretas]
                 .replace({'Sí': 2, 'Si': 2, 'NO': 1, 'No': 1})
@@ -3702,38 +3702,43 @@ elif option == "Análisis por subconjunto":
         else:
             st.info("No se detectaron variables discretas en la sección (o fueron forzadas a continuas).")
 
-        # ---------- C) Gráficas para CONTINUAS: Boxplot + Histograma ----------
-        # continuas = presentes que no fueron discretas
+        # ---------- C) Gráficas para CONTINUAS ----------
+        # continuas = presentes que no fueron discretas, más las forzadas (si están en la sección)
         cols_continuas = [c for c in cols_presentes if c not in cols_discretas]
-        # fuerza inclusiones explícitas (si están en la sección)
         cols_continuas = sorted({*cols_continuas, *[c for c in FORZAR_CONTINUAS if c in cols_presentes]})
-        # convertir a numérico
-        df_cont = df_base[cols_continuas].apply(pd.to_numeric, errors="coerce") if cols_continuas else pd.DataFrame()
-
-        # descartar columnas sin datos numéricos válidos
-        cols_continuas = [c for c in (df_cont.columns if not df_cont.empty else []) if df_cont[c].notna().sum() > 0]
 
         if cols_continuas:
-            st.subheader("Distribución de variables continuas (boxplot + histograma)")
+            st.subheader("Distribución de variables continuas (histogramas)")
             bins = st.slider("Número de bins del histograma", 10, 100, 30, 5, key="bins_continuas")
 
             # mostrar primero AGE y C67 si existen
-            orden_prioridad = [c for c in ["AGE", "C67"] if c in cols_continuas] + [c for c in cols_continuas if c not in {"AGE","C67"}]
+            orden_prioridad = [c for c in ["AGE", "C67"] if c in cols_continuas] + \
+                              [c for c in cols_continuas if c not in {"AGE", "C67"}]
+
             for c in orden_prioridad:
-                serie = df_cont[c].dropna()
+                serie = pd.to_numeric(df_base[c], errors="coerce").dropna()
+
+                # Reglas específicas:
+                if c == "AGE":
+                    # eliminar edades irreales: >100 y el código 999
+                    serie = serie[(serie <= 100) & (serie != 999)]
+                # Para C67 no se pidió limpieza adicional; solo histograma
+
                 if serie.empty:
                     continue
+
                 st.markdown(f"**{c}**")
+                # SOLO HISTOGRAMA para AGE y C67
+                if c in {"AGE", "C67"}:
+                    fig_hist = px.histogram(pd.DataFrame({c: serie}), x=c, nbins=bins, title=f"Histograma: {c}")
+                    fig_hist.update_layout(margin=dict(t=40, l=0, r=0, b=0), bargap=0.05)
+                    st.plotly_chart(fig_hist, use_container_width=True)
+                else:
+                    # Para otras continuas (si las hay), puedes mantener histograma + boxplot
+                    fig_hist = px.histogram(pd.DataFrame({c: serie}), x=c, nbins=bins, title=f"Histograma: {c}")
+                    fig_hist.update_layout(margin=dict(t=40, l=0, r=0, b=0), bargap=0.05)
+                    st.plotly_chart(fig_hist, use_container_width=True)
 
-                # Boxplot
-                fig_box = px.box(pd.DataFrame({c: serie}), y=c, points="outliers", title=f"Boxplot: {c}")
-                fig_box.update_layout(margin=dict(t=40, l=0, r=0, b=0))
-                st.plotly_chart(fig_box, use_container_width=True)
-
-                # Histograma
-                fig_hist = px.histogram(pd.DataFrame({c: serie}), x=c, nbins=bins, title=f"Histograma: {c}")
-                fig_hist.update_layout(margin=dict(t=40, l=0, r=0, b=0), bargap=0.05)
-                st.plotly_chart(fig_hist, use_container_width=True)
         else:
             st.info("No se detectaron variables continuas con datos numéricos válidos en la sección.")
 
