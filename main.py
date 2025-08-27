@@ -15,28 +15,6 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder
 import plotly.express as px  # ✅ Faltaba este import
 
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-box_css = (
-    "background:#EAF3FF;border:1px solid #D2E6FF;border-radius:16px;"
-    "padding:14px 18px;display:flex;align-items:center;gap:16px;"
-)
-img_css = "height:250px;width:auto;border-radius:8px;"
-h1_css  = "margin:0 0 4px 0;font-size:1.6rem;line-height:1.2;"
-sub_css = "font-size:1.02rem;color:#334155;max-width:50ch;"
-st.markdown(
-    f"""
-    <div style="{box_css}">
-      <img src="{LOGO_URL}" alt="Logo RS²" style="{img_css}" />
-      <div>
-        <h1 style="{h1_css}">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="{sub_css}">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 
 
@@ -550,8 +528,15 @@ elif option == "Relaciones de Indiscernibilidad":
         df["C67"] = c1 + (c2 / 100.0)
 
     # --- Agregar 'Indice' al inicio ---
-    df.insert(0, "Indice", df.index)
+    #df.insert(0, "Indice", df.index)
+    # --- Agregar 'Indice' al inicio (opción 3) ---
+    df = df.reset_index(drop=True)          # índice limpio y continuo
+    if "Indice" in df.columns:              # evita duplicados si ya existía
+        df = df.drop(columns=["Indice"])
+    df.insert(0, "Indice", df.index.astype("int64"))
 
+
+    
     # --- Guardar la versión completa normalizada para todo el flujo ---
     st.session_state["df_original_norm"] = df.copy()
     st.session_state["df_original_cols"] = list(df.columns)
@@ -1026,6 +1011,47 @@ elif option == "Relaciones de Indiscernibilidad":
     for c in cols_norm:
         df_ind_min[c] = pd.to_numeric(df_ind_min[c], errors="coerce").astype("float32")
 
+
+
+    import hashlib
+
+    def df_signature(df: pd.DataFrame) -> str:
+        # Firma estable basada en n_filas + orden/etiquetas de columnas
+        cols = "|".join(map(str, df.columns))
+        raw = f"{len(df)}|{cols}".encode()
+        return hashlib.md5(raw).hexdigest()
+
+    def invalidate_ind_cache_if_base_changed(df_min: pd.DataFrame):
+        cur_sig = df_signature(df_min)
+        prev_sig = st.session_state.get("ind_base_sig")
+        if prev_sig != cur_sig:
+            # Limpiar TODO lo derivado de indiscernibilidad/modelos
+            for k in [
+                "ind_df", "ind_df_eval", "ind_df_reducido", "ind_adl_cols",
+                "ind_cols", "ind_classes", "ind_lengths", "ind_min_size",
+                "df_eval_riesgo", "df_pastel_eval", "df_pred_all_rf",
+                "rf_best4", "rf_best4_cols", "rf_best4_le", "rf_best4_imp",
+                "rf_best3", "rf_best3_cols", "rf_best3_le", "rf_best3_imp",
+                "fb_hgb_model", "fb_hgb_cols", "fb_hgb_le"
+            ]:
+                st.session_state.pop(k, None)
+        st.session_state["ind_base_sig"] = cur_sig
+
+    # ✅ Llama aquí:
+    invalidate_ind_cache_if_base_changed(df_ind_min)
+
+    def safe_loc(df: pd.DataFrame, idx_list, cols=None, warn_name=""):
+        idx_req = pd.Index(idx_list)
+        in_both = idx_req.intersection(df.index)
+        missing = idx_req.difference(df.index)
+        if len(missing) > 0:
+            st.info(f"({warn_name}) Se omitieron {len(missing)} fila(s) que ya no están en la base actual.")
+        if cols is None:
+            return df.loc[in_both]
+        return df.loc[in_both, cols]
+
+    
+    
     # --- Referencias en sesión ---
     st.session_state["ind_df_full_ref"] = df_base_ind          # DF completo (con Indice)
     st.session_state["ind_df_reducido"] = df_ind_min           # Solo Indice + ADL
@@ -1393,8 +1419,10 @@ elif option == "Relaciones de Indiscernibilidad":
             dfr = ss["ind_df_reducido"]
             dfr2 = dfr.set_index("Indice") if "Indice" in dfr.columns else dfr
             adl_cols_all = ss["ind_adl_cols"]
-            df_sub = dfr2.loc[idxs, adl_cols_all].copy()
+            #df_sub = dfr2.loc[idxs, adl_cols_all].copy()
+            df_sub = safe_loc(dfr2, idxs, adl_cols_all, warn_name="subconjunto").copy()
 
+            
             # ---- nivel_riesgo (según columnas usadas en indiscernibilidad) ----
             cols_attrs = ss["ind_cols"]
             cols_usables = [c for c in cols_attrs if c in df_sub.columns]
@@ -1577,7 +1605,9 @@ elif option == "Relaciones de Indiscernibilidad":
             if len(universo_sel) == 0:
                 st.info("No hay filas en el subconjunto del pastel.")
             else:
-                df_eval_sub = ss["ind_df_eval"].loc[universo_sel].copy()  # SIN NaN en columnas usadas originalmente
+                #df_eval_sub = ss["ind_df_eval"].loc[universo_sel].copy()  # SIN NaN en columnas usadas originalmente
+                df_eval_sub = safe_loc(ss["ind_df_eval"], universo_sel, warn_name="reductos").copy()
+
                 cols_all = list(ss["ind_cols"])
                 m = len(cols_all)
                 if m < 3:
