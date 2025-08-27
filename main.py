@@ -499,8 +499,9 @@ elif option == "Relaciones de Indiscernibilidad":
     st.caption(f"{df.shape[0]:,} filas × {df.shape[1]:,} columnas")
 
     # Snapshot crudo
-    st.session_state["df_raw"] = df.copy()
-
+    #st.session_state["df_raw"] = df.copy()
+    st.session_state["df_raw"] = df
+    
     # Normalizar nombres y limpiar
     df = normalize_columns(df)
 
@@ -538,7 +539,8 @@ elif option == "Relaciones de Indiscernibilidad":
 
     
     # --- Guardar la versión completa normalizada para todo el flujo ---
-    st.session_state["df_original_norm"] = df.copy()
+    #st.session_state["df_original_norm"] = df.copy()
+    st.session_state["df_original_norm"] = df
     st.session_state["df_original_cols"] = list(df.columns)
 
     # --- Construir versión reducida: datos_seleccionados ---
@@ -555,8 +557,10 @@ elif option == "Relaciones de Indiscernibilidad":
     presentes = [c for c in cols_objetivo if c in df.columns]
     faltantes = [c for c in cols_objetivo if c not in df.columns]
 
-    datos_seleccionados = df[presentes].copy()
+    #datos_seleccionados = df[presentes].copy()
+    datos_seleccionados = df[presentes]
 
+    
     if faltantes:
         st.warning("Columnas no encontradas en el archivo (se omiten en el reducido): " + ", ".join(faltantes))
 
@@ -585,7 +589,8 @@ elif option == "Relaciones de Indiscernibilidad":
         st.subheader("Seleccione el sexo")
         if "SEX" not in datos_seleccionados.columns:
             st.warning("No se encontró la columna 'SEX' en los datos seleccionados.")
-            st.session_state["df_sexo"] = datos_seleccionados.copy()
+            #st.session_state["df_sexo"] = datos_seleccionados.copy()
+            st.session_state["df_sexo"] = datos_seleccionados
         else:
             # Asegurar tipo numérico 1/2
             sex_series = pd.to_numeric(datos_seleccionados["SEX"], errors="coerce").astype("Int64")
@@ -613,7 +618,9 @@ elif option == "Relaciones de Indiscernibilidad":
                     codigos = [1, 2]
 
             # Filtrar
-            df_sexo = datos_seleccionados[sex_series.isin(codigos)].copy()
+            #df_sexo = datos_seleccionados[sex_series.isin(codigos)].copy()
+            df_sexo = datos_seleccionados[sex_series.isin(codigos)]
+
             st.session_state["df_sexo"] = df_sexo
 
     # =========================
@@ -680,7 +687,8 @@ elif option == "Relaciones de Indiscernibilidad":
 
                 # Aplicar filtro
                 mask = age_series.between(st.session_state["age_min"], st.session_state["age_max"], inclusive="both")
-                st.session_state["df_filtrado"] = base_df[mask].copy()
+                #st.session_state["df_filtrado"] = base_df[mask].copy()
+                st.session_state["df_filtrado"] = base_df[mask]
 
 # =========================
 # Filtro por COMORBILIDADES (en barra lateral)
@@ -696,7 +704,9 @@ elif option == "Relaciones de Indiscernibilidad":
     if not isinstance(df_base_comorb, pd.DataFrame) or df_base_comorb.empty:
         df_base_comorb = st.session_state.get("df_sexo")
     if not isinstance(df_base_comorb, pd.DataFrame) or df_base_comorb.empty:
-        df_base_comorb = datos_seleccionados.copy()
+        #df_base_comorb = datos_seleccionados.copy()
+        df_base_comorb = datos_seleccionados
+
 
     # Mapeo: etiqueta legible -> nombre de columna (ya sin _18/_21)
     comorb_map = {
@@ -1133,8 +1143,10 @@ elif option == "Relaciones de Indiscernibilidad":
 
                 # Persistir artefactos para pasos siguientes
                 st.session_state["ind_cols"] = cols_attrs
-                st.session_state["ind_df"] = df_ind.copy()      # completo (con NaN)
-                st.session_state["ind_df_eval"] = df_eval.copy()  # SIN NaN (usado para clases)
+                #st.session_state["ind_df"] = df_ind.copy()      # completo (con NaN)
+                st.session_state["ind_df"] = df_ind      # completo (con NaN)
+                #st.session_state["ind_df_eval"] = df_eval.copy()  # SIN NaN (usado para clases)
+                st.session_state["ind_df_eval"] = df_eval
                 st.session_state["ind_classes"] = clases
                 st.session_state["ind_lengths"] = longitudes_orden
                 st.session_state["ind_min_size"] = int(min_size_for_pie)
@@ -1420,7 +1432,8 @@ elif option == "Relaciones de Indiscernibilidad":
             dfr2 = dfr.set_index("Indice") if "Indice" in dfr.columns else dfr
             adl_cols_all = ss["ind_adl_cols"]
             #df_sub = dfr2.loc[idxs, adl_cols_all].copy()
-            df_sub = safe_loc(dfr2, idxs, adl_cols_all, warn_name="subconjunto").copy()
+            #df_sub = safe_loc(dfr2, idxs, adl_cols_all, warn_name="subconjunto").copy()
+            df_sub = safe_loc(dfr2, idxs, adl_cols_all, warn_name="subconjunto")
 
             
             # ---- nivel_riesgo (según columnas usadas en indiscernibilidad) ----
@@ -1606,7 +1619,8 @@ elif option == "Relaciones de Indiscernibilidad":
                 st.info("No hay filas en el subconjunto del pastel.")
             else:
                 #df_eval_sub = ss["ind_df_eval"].loc[universo_sel].copy()  # SIN NaN en columnas usadas originalmente
-                df_eval_sub = safe_loc(ss["ind_df_eval"], universo_sel, warn_name="reductos").copy()
+                #df_eval_sub = safe_loc(ss["ind_df_eval"], universo_sel, warn_name="reductos").copy()
+                df_eval_sub = safe_loc(ss["ind_df_eval"], universo_sel, warn_name="reductos")
 
                 cols_all = list(ss["ind_cols"])
                 m = len(cols_all)
@@ -1957,7 +1971,7 @@ elif option == "Relaciones de Indiscernibilidad":
                     np.where(count_ones == 3, "Riesgo moderado", "Riesgo severo")
                 )
             )
-            df_pastel_eval = df_pastel_eval.copy()
+            #df_pastel_eval = df_pastel_eval.copy()
             df_pastel_eval["nivel_riesgo"] = y_regla
             st.session_state["df_pastel_eval"] = df_pastel_eval.copy()  # <- después de añadir la columna
 
@@ -2128,7 +2142,8 @@ elif option == "Relaciones de Indiscernibilidad":
         st.info(" ")
     else:
 
-        df_all = ss["ind_df"].copy()  # ADL con posibles NaN (index='Indice')
+        #df_all = ss["ind_df"].copy()  # ADL con posibles NaN (index='Indice')
+        df_all = ss["ind_df"]  # ADL con posibles NaN (index='Indice')
 
         if not (have4 or have3):
             st.warning("No encuentro modelos entrenados (4/3 vars). Entrena los RF para generar predicciones.")
@@ -2213,7 +2228,8 @@ elif option == "Relaciones de Indiscernibilidad":
 
         cols_sel = ss.get("ind_cols", [])
         if cols_sel:
-            df_regla = df_all.dropna(subset=cols_sel).copy()
+            #df_regla = df_all.dropna(subset=cols_sel).copy()
+            df_regla = df_all.dropna(subset=cols_sel)
             vals = df_regla[cols_sel].apply(pd.to_numeric, errors="coerce")
             ones = (vals == 1).sum(axis=1)
             twos = (vals == 2).all(axis=1)
