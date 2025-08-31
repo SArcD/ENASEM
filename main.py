@@ -14,30 +14,6 @@ from sklearn.impute import SimpleImputer
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder
 import plotly.express as px  # ✅ Faltaba este import
-LOGO_URL = "https://raw.githubusercontent.com/SArcD/ENASEM/main/logo_radar_pie_exact_v5.png"
-box_css = (
-    "background:#EAF3FF;border:1px solid #D2E6FF;border-radius:16px;"
-    "padding:14px 18px;display:flex;align-items:center;gap:16px;"
-)
-img_css = "height:250px;width:auto;border-radius:8px;"
-h1_css  = "margin:0 0 4px 0;font-size:1.6rem;line-height:1.2;"
-sub_css = "font-size:1.02rem;color:#334155;max-width:50ch;"
-st.markdown(
-    f"""
-    <div style="{box_css}">
-      <img src="{LOGO_URL}" alt="Logo RS²" style="{img_css}" />
-      <div>
-        <h1 style="{h1_css}">RS²: Rough Sets para Riesgo de Sarcopenia</h1>
-        <div style="{sub_css}">
-          Análisis y visualización con conjuntos rugosos para perfilar el riesgo de sarcopenia.
-        </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
 
 
 
@@ -1453,8 +1429,6 @@ elif option == "Relaciones de Indiscernibilidad":
             dfr = ss["ind_df_reducido"]
             dfr2 = dfr.set_index("Indice") if "Indice" in dfr.columns else dfr
             adl_cols_all = ss["ind_adl_cols"]
-            #df_sub = dfr2.loc[idxs, adl_cols_all].copy()
-            #df_sub = safe_loc(dfr2, idxs, adl_cols_all, warn_name="subconjunto").copy()
             df_sub = safe_loc(dfr2, idxs, adl_cols_all, warn_name="subconjunto")
 
             
@@ -2063,7 +2037,161 @@ elif option == "Relaciones de Indiscernibilidad":
                 ss["rf_best3_imp"] = imp3
 
             #st.success("Modelos RF entrenados (best4 y, si procede, best3).")
+    # ===============================
+    # Random Forest • Evaluación CV
+    # ===============================
+    import numpy as np
+    import pandas as pd
+    import streamlit as st
+    import matplotlib.pyplot as plt
 
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.model_selection import StratifiedKFold
+    from sklearn.preprocessing import LabelBinarizer
+    from sklearn.metrics import (
+        balanced_accuracy_score, f1_score, cohen_kappa_score, matthews_corrcoef,
+        confusion_matrix, roc_auc_score, classification_report
+    )
+
+    # -------------------------------
+    # Configura tus columnas aquí
+    # -------------------------------
+    OBJETIVO = "nivel_riesgo"  # p.ej.: 'Nulo','Leve','Moderado','Severo'
+    FEAT4 = ["C37", "H11", "H5", "H6"]          # ⇦ cambia según tu reducto de 4
+    FEAT3 = ["H15A", "H6", "H5"]                # ⇦ cambia según tu reducto de 3
+
+    df_sub = df_sub  # <-- ya definido por tu app (no tocar)
+
+    # -------------------------------
+    # Helpers
+    # -------------------------------
+    def brier_multiclass(y_true, proba, classes_):
+        """Brier score promedio (multiclase)."""
+        lb = LabelBinarizer()
+        lb.fit(classes_)
+        Y = lb.transform(y_true)
+        if Y.shape[1] == 1:  # binario con {0,1} -> asegura 2 columnas
+            Y = np.hstack([1 - Y, Y])
+        return np.mean(np.sum((Y - proba)**2, axis=1))
+
+    def evaluar_rf_cv(X, y, labels_order=None, n_splits=5, random_state=42):
+        """Entrena y evalúa RF con CV estratificada. Devuelve métricas y CM agregada."""
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+
+        mets = {
+            "bal_acc": [], "f1_macro": [], "kappa": [], "mcc": [],
+            "roc_auc_macro": [], "brier": []
+        }    
+        cm_sum = np.zeros((len(np.unique(y)), len(np.unique(y))), dtype=float)
+
+        # Orden consistente de etiquetas para reportes/CM
+        if labels_order is None:
+            labels_order = sorted(np.unique(y).tolist())
+
+        for train_idx, test_idx in skf.split(X, y):
+            X_tr, X_te = X.iloc[train_idx], X.iloc[test_idx]
+            y_tr, y_te = y.iloc[train_idx], y.iloc[test_idx]
+
+            clf = RandomForestClassifier(
+                n_estimators=500,
+                max_depth=None,
+                min_samples_leaf=1,
+                class_weight="balanced",
+                n_jobs=-1,
+                random_state=random_state
+            )
+            clf.fit(X_tr, y_tr)
+
+            y_pred = clf.predict(X_te)
+            proba = clf.predict_proba(X_te)
+
+            mets["bal_acc"].append(balanced_accuracy_score(y_te, y_pred))
+            mets["f1_macro"].append(f1_score(y_te, y_pred, average="macro"))
+            mets["kappa"].append(cohen_kappa_score(y_te, y_pred))
+            mets["mcc"].append(matthews_corrcoef(y_te, y_pred))
+
+            # ROC-AUC macro (OvR)
+            lb = LabelBinarizer().fit(labels_order)
+            y_bin = lb.transform(y_te)
+            if y_bin.shape[1] == 1:  # caso binario
+                y_bin = np.hstack([1 - y_bin, y_bin])
+            mets["roc_auc_macro"].append(roc_auc_score(y_bin, proba, average="macro", multi_class="ovr"))
+
+            # Brier multiclase
+            mets["brier"].append(brier_multiclass(y_te, proba, labels_order))
+
+            # Confusion matrix acumulada (en conteos)
+            cm_sum += confusion_matrix(y_te, y_pred, labels=labels_order)
+
+        # Normaliza por fila para visualización
+        cm_norm = cm_sum / cm_sum.sum(axis=1, keepdims=True)
+
+        # Promedios y ±DE
+        resumen = {k: (np.mean(v), np.std(v)) for k, v in mets.items()}
+
+        # Reporte por clase en todo el fold (entrena en todo y reporta)
+        clf_full = RandomForestClassifier(
+            n_estimators=500, class_weight="balanced", n_jobs=-1, random_state=random_state, oob_score=True, bootstrap=True
+        )
+        clf_full.fit(X, y)
+        y_pred_full = clf_full.predict(X)
+        rep = classification_report(y, y_pred_full, output_dict=True, labels=labels_order, zero_division=0)
+        report_df = (pd.DataFrame(rep).T
+                     .rename_axis("clase")
+                     .reset_index()
+                     .loc[lambda d: d["clase"].isin(labels_order), ["clase","precision","recall","f1-score","support"]])
+
+        return resumen, cm_norm, labels_order, clf_full.oob_score_, report_df
+
+    def mostrar_metricas_en_expander(titulo, X, y, feats, labels_order=None):
+        with st.expander(titulo, expanded=False):
+            st.write(f"**Variables:** {', '.join(feats)}")
+            resumen, cm_norm, labels, oob, rep_df = evaluar_rf_cv(X[feats], y, labels_order=labels)
+
+            # Métricas promedio (±DE)
+            cols = st.columns(3)
+            cols[0].metric("Balanced accuracy", f"{resumen['bal_acc'][0]:.3f}", f"±{resumen['bal_acc'][1]:.3f}")
+            cols[1].metric("F1-macro", f"{resumen['f1_macro'][0]:.3f}", f"±{resumen['f1_macro'][1]:.3f}")
+            cols[2].metric("ROC-AUC macro (OvR)", f"{resumen['roc_auc_macro'][0]:.3f}", f"±{resumen['roc_auc_macro'][1]:.3f}")
+            cols = st.columns(3)
+            cols[0].metric("κ de Cohen", f"{resumen['kappa'][0]:.3f}", f"±{resumen['kappa'][1]:.3f}")
+            cols[1].metric("MCC", f"{resumen['mcc'][0]:.3f}", f"±{resumen['mcc'][1]:.3f}")
+            cols[2].metric("Brier (multiclase)", f"{resumen['brier'][0]:.3f}", f"±{resumen['brier'][1]:.3f}")
+            st.caption(f"OOB score (entrenamiento en todo el set): **{oob:.3f}**")
+
+            # Matriz de confusión normalizada
+            fig, ax = plt.subplots(figsize=(4.5, 4.5))
+            im = ax.imshow(cm_norm, interpolation="nearest")
+            ax.set_xticks(range(len(labels)), labels, rotation=45, ha="right")
+            ax.set_yticks(range(len(labels)), labels)
+            ax.set_xlabel("Predicho"); ax.set_ylabel("Verdadero")
+            for i in range(cm_norm.shape[0]):
+                for j in range(cm_norm.shape[1]):
+                    ax.text(j, i, f"{cm_norm[i, j]:.2f}", ha="center", va="center")
+            fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+            st.pyplot(fig)
+
+            # Recall por clase (del ajuste full para referencia rápida)
+            st.write("**Recall por clase (ajuste en todo el set, referencia):**")
+            st.dataframe(rep_df[["clase","recall","f1-score","support"]].rename(columns={
+                "recall":"Recall", "f1-score":"F1", "support":"n"
+            }), hide_index=True)
+
+    # -------------------------------
+    # Llamadas (dos expanders)
+    # -------------------------------
+    etiquetas_orden = ["Nulo","Leve","Moderado","Severo"]  # ajusta al orden que uses
+
+    y = df_sub[OBJETIVO].astype(str)
+    X = df_sub
+
+    mostrar_metricas_en_expander("Desempeño • Random Forest (Reducto 4 variables)", X, y, FEAT4, etiquetas_orden)
+    mostrar_metricas_en_expander("Desempeño • Random Forest (Reducto 3 variables)", X, y, FEAT3, etiquetas_orden)
+
+
+
+
+    
     ####FALLBACK
     # === Fallback que acepta NaN en predicción: HistGradientBoosting ===
 
