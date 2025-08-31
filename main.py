@@ -2177,26 +2177,68 @@ elif option == "Relaciones de Indiscernibilidad":
                 "recall":"Recall", "f1-score":"F1", "support":"n"
             }), hide_index=True)
 
+    def mostrar_metricas_en_expander(titulo, X, y, feats, labels_order=None):
+        with st.expander(titulo, expanded=False):
+            st.write(f"**Variables:** {', '.join(feats)}")
+
+            # ⇩ Coerciona a numérico y filtra filas con NaN en feats
+            Z = X[feats].apply(pd.to_numeric, errors="coerce")
+            mask = ~Z.isna().any(axis=1)
+            if mask.sum() == 0:
+                st.warning("No hay filas completas para evaluar con estas variables.")
+                return
+
+            # OJO: pasa labels_order=labels_order (no 'labels')
+            resumen, cm_norm, label_list, oob, rep_df = evaluar_rf_cv(
+                Z.loc[mask], y.loc[mask], labels_order=labels_order
+            )
+
+            # Métricas promedio (±DE)
+            cols = st.columns(3)
+            cols[0].metric("Balanced accuracy", f"{resumen['bal_acc'][0]:.3f}", f"±{resumen['bal_acc'][1]:.3f}")
+            cols[1].metric("F1-macro", f"{resumen['f1_macro'][0]:.3f}", f"±{resumen['f1_macro'][1]:.3f}")
+            cols[2].metric("ROC-AUC macro (OvR)", f"{resumen['roc_auc_macro'][0]:.3f}", f"±{resumen['roc_auc_macro'][1]:.3f}")
+            cols = st.columns(3)
+            cols[0].metric("κ de Cohen", f"{resumen['kappa'][0]:.3f}", f"±{resumen['kappa'][1]:.3f}")
+            cols[1].metric("MCC", f"{resumen['mcc'][0]:.3f}", f"±{resumen['mcc'][1]:.3f}")
+            cols[2].metric("Brier (multiclase)", f"{resumen['brier'][0]:.3f}", f"±{resumen['brier'][1]:.3f}")
+            st.caption(f"OOB score (entrenamiento en todo el set): **{oob:.3f}**")
+
+            # Matriz de confusión normalizada
+            fig, ax = plt.subplots(figsize=(4.5, 4.5))
+            im = ax.imshow(cm_norm, interpolation="nearest")
+            ax.set_xticks(range(len(label_list))); ax.set_xticklabels(label_list, rotation=45, ha="right")
+            ax.set_yticks(range(len(label_list))); ax.set_yticklabels(label_list)
+            ax.set_xlabel("Predicho"); ax.set_ylabel("Verdadero")
+            for i in range(cm_norm.shape[0]):
+                for j in range(cm_norm.shape[1]):
+                    ax.text(j, i, f"{cm_norm[i, j]:.2f}", ha="center", va="center")
+            fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+            st.pyplot(fig)
+
+            # Recall por clase (referencia rápida)
+            st.write("**Recall por clase (ajuste en todo el set, referencia):**")
+            st.dataframe(rep_df[["clase","recall","f1-score","support"]].rename(columns={
+                "recall": "Recall", "f1-score": "F1", "support": "n"
+            }), hide_index=True)
+
+
 
     OBJETIVO = "nivel_riesgo"
     etiquetas_orden = ["Riesgo nulo","Riesgo leve","Riesgo moderado","Riesgo severo"]
-
-    # Usa el DF donde ya existe 'nivel_riesgo'
     df_eval = df_pastel_eval.copy()
     y = df_eval[OBJETIVO].astype(str)
     X = df_eval
 
-    # Si tienes los reductos calculados como 'best4' y 'best3', úsalos:
     mostrar_metricas_en_expander(
-        f"Desempeño • Random Forest (Reducto 4 vars: {', '.join(best4)})",
+        f"Desempeño • RF (Reducto 4 vars: {', '.join(best4)})",
         X, y, best4, etiquetas_orden
     )
-
     if best3 is not None:
         mostrar_metricas_en_expander(
-            f"Desempeño • Random Forest (Reducto 3 vars: {', '.join(best3)})",
+            f"Desempeño • RF (Reducto 3 vars: {', '.join(best3)})",
             X, y, best3, etiquetas_orden
-    )
+    )    
 
 
 
