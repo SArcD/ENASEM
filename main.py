@@ -2060,7 +2060,7 @@ elif option == "Relaciones de Indiscernibilidad":
     FEAT4 = ["C37", "H11", "H5", "H6"]          # ⇦ cambia según tu reducto de 4
     FEAT3 = ["H15A", "H6", "H5"]                # ⇦ cambia según tu reducto de 3
 
-    df_sub = df_sub  # <-- ya definido por tu app (no tocar)
+    #df_sub = df_sub  # <-- ya definido por tu app (no tocar)
 
     # -------------------------------
     # Helpers
@@ -2177,16 +2177,26 @@ elif option == "Relaciones de Indiscernibilidad":
                 "recall":"Recall", "f1-score":"F1", "support":"n"
             }), hide_index=True)
 
-    # -------------------------------
-    # Llamadas (dos expanders)
-    # -------------------------------
-    etiquetas_orden = ["Nulo","Leve","Moderado","Severo"]  # ajusta al orden que uses
 
-    y = df_sub[OBJETIVO].astype(str)
-    X = df_sub
+    OBJETIVO = "nivel_riesgo"
+    etiquetas_orden = ["Riesgo nulo","Riesgo leve","Riesgo moderado","Riesgo severo"]
 
-    mostrar_metricas_en_expander("Desempeño • Random Forest (Reducto 4 variables)", X, y, FEAT4, etiquetas_orden)
-    mostrar_metricas_en_expander("Desempeño • Random Forest (Reducto 3 variables)", X, y, FEAT3, etiquetas_orden)
+    # Usa el DF donde ya existe 'nivel_riesgo'
+    df_eval = df_pastel_eval.copy()
+    y = df_eval[OBJETIVO].astype(str)
+    X = df_eval
+
+    # Si tienes los reductos calculados como 'best4' y 'best3', úsalos:
+    mostrar_metricas_en_expander(
+        f"Desempeño • Random Forest (Reducto 4 vars: {', '.join(best4)})",
+        X, y, best4, etiquetas_orden
+    )
+
+    if best3 is not None:
+        mostrar_metricas_en_expander(
+            f"Desempeño • Random Forest (Reducto 3 vars: {', '.join(best3)})",
+            X, y, best3, etiquetas_orden
+    )
 
 
 
