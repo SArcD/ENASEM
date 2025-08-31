@@ -2161,7 +2161,7 @@ elif option == "Relaciones de Indiscernibilidad":
 
             # Matriz de confusión normalizada
             fig, ax = plt.subplots(figsize=(4.5, 4.5))
-            im = ax.imshow(cm_norm, interpolation="nearest")
+            im = ax.imshow(cm_norm, interpolation="nearest", cmap="Blues")
             ax.set_xticks(range(len(labels)), labels, rotation=45, ha="right")
             ax.set_yticks(range(len(labels)), labels)
             ax.set_xlabel("Predicho"); ax.set_ylabel("Verdadero")
