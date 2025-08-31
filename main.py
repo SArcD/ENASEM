@@ -14,6 +14,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder
 import plotly.express as px  # ✅ Faltaba este import
+import matplotlib as mpl
+mpl.rcParams["image.cmap"] = "Blues"
 
 
 
