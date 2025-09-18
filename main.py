@@ -1911,6 +1911,11 @@ elif option == "Relaciones de Indiscernibilidad":
                                     for j in range(M.shape[1]):
                                         ax_hm.text(j, i, str(M[i, j]), ha="center", va="center", fontsize=8)
                             st.pyplot(fig_hm)
+                            buf = io.BytesIO()
+                            fig_hm.savefig(buf, format="png", dpi=300, bbox_inches="tight")
+                            buf.seek(0)
+
+                            st.image(buf, use_column_width=True)
                             st.markdown("""
     **Heatmap de correspondencia**
     - **Qué muestra:** filas = bloques **Originales**, columnas = bloques del **Reducto**; cada celda = **cuántas filas** comparten ambos bloques.
