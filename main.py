@@ -2309,6 +2309,7 @@ elif option == "Relaciones de Indiscernibilidad":
 
     OBJETIVO = "nivel_riesgo"
     etiquetas_orden = ["Riesgo nulo","Riesgo leve","Riesgo moderado","Riesgo severo"]
+    etiquetas_orden_en =["No risk","Mild risk", "Moderate risk","Severe risk"]
     df_eval = df_pastel_eval.copy()
     y = df_eval[OBJETIVO].astype(str)
     X = df_eval
