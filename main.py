@@ -1367,8 +1367,8 @@ elif option == "Relaciones de Indiscernibilidad":
                     radar_ax.set_theta_offset(np.pi/2); radar_ax.set_theta_direction(-1)
                     radar_ax.plot(angs_c, vals_c, color=s["color"])
                     radar_ax.fill(angs_c, vals_c, color=s["color"], alpha=0.3)
-                    radar_ax.set_xticks(angs); radar_ax.set_xticklabels(etiquetas_radar, fontsize=13)
-                    radar_ax.set_yticks([0,1,2]); radar_ax.set_yticklabels(['0','1','2'], fontsize=11)
+                    radar_ax.set_xticks(angs); radar_ax.set_xticklabels(etiquetas_radar, fontsize=20)
+                    radar_ax.set_yticks([0,1,2]); radar_ax.set_yticklabels(['0','1','2'], fontsize=201)
                     radar_ax.set_ylim(0,2); radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
 
                     # Conexión pastel ↔ radar
