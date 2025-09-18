@@ -1441,8 +1441,8 @@ elif option == "Relaciones de Indiscernibilidad":
                         f"Mostrando {len(resto_view)} de {len(resto)} clases en 'Otros'. "
                         f"Ajusta K o el umbral % en la barra lateral."
                     )
-                pie_con_radares(resto_view, "Desglose de 'Otros' (subconjuntos minoritarios)", agregar_otros_total=0)
-
+            #    pie_con_radares(resto_view, "Desglose de 'Otros' (subconjuntos minoritarios)", agregar_otros_total=0)
+                pie_con_radares(resto_view, "Breakdown of 'Others' (minor subsets)", agregar_otros_total=0, key_prefix="others")
 
 
     # 👉 Llamada al renderer SIEMPRE, con o sin botón
