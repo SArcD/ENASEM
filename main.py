@@ -2227,6 +2227,11 @@ elif option == "Relaciones de Indiscernibilidad":
 
             labels_en = [MAP.get(l, l) for l in labels]  # traduce o edita aquí
 
+
+
+
+
+
             
             # Matriz de confusión normalizada
             fig, ax = plt.subplots(figsize=(4.5, 4.5))
@@ -2244,10 +2249,20 @@ elif option == "Relaciones de Indiscernibilidad":
 
             # Recall por clase (del ajuste full para referencia rápida)
             st.write("**Recall por clase (ajuste en todo el set, referencia):**")
-            st.dataframe(rep_df[["clase","recall","f1-score","support"]].rename(columns={
-                "recall":"Recall", "f1-score":"F1", "support":"n"
-            }), hide_index=True)
+            #st.dataframe(rep_df[["clase","recall","f1-score","support"]].rename(columns={
+            #    "recall":"Recall", "f1-score":"F1", "support":"n"
+            #}), hide_index=True)
 
+            rep_df_disp = rep_df.copy()
+            rep_df_disp["clase"] = rep_df_disp["clase"].map(MAP).fillna(rep_df_disp["clase"])
+            st.dataframe(
+                rep_df_disp[["clase","recall","f1-score","support"]]
+                  .rename(columns={"clase":"class","recall":"Recall","f1-score":"F1","support":"n"}),
+                hide_index=True
+            )
+
+
+    
     def mostrar_metricas_en_expander(titulo, X, y, feats, labels_order=None):
         with st.expander(titulo, expanded=False):
             # 1) Mapa ES->EN
@@ -2316,12 +2331,12 @@ elif option == "Relaciones de Indiscernibilidad":
 
     mostrar_metricas_en_expander(
         f"Desempeño • RF (Reducto 4 vars: {', '.join(best4)})",
-        X, y, best4, etiquetas_orden_en
+        X, y, best4, etiquetas_orden
     )
     if best3 is not None:
         mostrar_metricas_en_expander(
             f"Desempeño • RF (Reducto 3 vars: {', '.join(best3)})",
-            X, y, best3, etiquetas_orden_en
+            X, y, best3, etiquetas_orden
     )    
 
 
