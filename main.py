@@ -2202,17 +2202,88 @@ elif option == "Relaciones de Indiscernibilidad":
 
         return resumen, cm_norm, labels_order, clf_full.oob_score_, report_df
 
-    def mostrar_metricas_en_expander(titulo, X, y, feats, labels_order=None):
-        with st.expander(titulo, expanded=False):
-            st.write(f"**Variables:** {', '.join(feats)}")
-            #resumen, cm_norm, labels, oob, rep_df = evaluar_rf_cv(X[feats], y, labels_order=labels)
-
-            resumen, cm_norm, label_list, oob, rep_df = evaluar_rf_cv(
+#    def mostrar_metricas_en_expander(titulo, X, y, feats, labels_order=None):
+#        with st.expander(titulo, expanded=False):
+#            st.write(f"**Variables:** {', '.join(feats)}")
+#            #resumen, cm_norm, labels, oob, rep_df = evaluar_rf_cv(X[feats], y, labels_order=labels)
+#
+#            resumen, cm_norm, label_list, oob, rep_df = evaluar_rf_cv(
                         Z.loc[mask], y.loc[mask], labels_order=labels_order
                     )
 
             
-            # Métricas promedio (±DE)
+#            # Métricas promedio (±DE)
+#            cols = st.columns(3)
+#            cols[0].metric("Balanced accuracy", f"{resumen['bal_acc'][0]:.3f}", f"±{resumen['bal_acc'][1]:.3f}")
+#            cols[1].metric("F1-macro", f"{resumen['f1_macro'][0]:.3f}", f"±{resumen['f1_macro'][1]:.3f}")
+#            cols[2].metric("ROC-AUC macro (OvR)", f"{resumen['roc_auc_macro'][0]:.3f}", f"±{resumen['roc_auc_macro'][1]:.3f}")
+#            cols = st.columns(3)
+#            cols[0].metric("κ de Cohen", f"{resumen['kappa'][0]:.3f}", f"±{resumen['kappa'][1]:.3f}")
+#            cols[1].metric("MCC", f"{resumen['mcc'][0]:.3f}", f"±{resumen['mcc'][1]:.3f}")
+#            cols[2].metric("Brier (multiclase)", f"{resumen['brier'][0]:.3f}", f"±{resumen['brier'][1]:.3f}")
+#            st.caption(f"OOB score (entrenamiento en todo el set): **{oob:.3f}**")
+
+#            MAP = {
+#                "Riesgo nulo": "No risk",
+#                "Riesgo leve": "Mild risk",
+#                "Riesgo moderado": "Moderate risk",
+#                "Riesgo severo": "Severe risk",
+#            }
+
+#            labels_en = [MAP.get(l, l) for l in labels]  # traduce o edita aquí
+#            
+            # Matriz de confusión normalizada
+#            fig, ax = plt.subplots(figsize=(4.5, 4.5))
+#            im = ax.imshow(cm_norm, interpolation="nearest", cmap="Blues")
+#            #ax.set_xticks(range(len(labels)), labels, rotation=45, ha="right")
+#            #ax.set_yticks(range(len(labels)), labels)
+#            ax.set_xticks(range(len(labels_en)), labels_en, rotation=45, ha="right")
+#            ax.set_yticks(range(len(labels_en)), labels_en)
+#            ax.set_xlabel("Predicted"); ax.set_ylabel("True")
+#            for i in range(cm_norm.shape[0]):
+#                for j in range(cm_norm.shape[1]):
+#                    ax.text(j, i, f"{cm_norm[i, j]:.2f}", ha="center", va="center")
+#            fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+#            st.pyplot(fig)
+
+#            # Recall por clase (del ajuste full para referencia rápida)
+#            st.write("**Recall por clase (ajuste en todo el set, referencia):**")
+#            #st.dataframe(rep_df[["clase","recall","f1-score","support"]].rename(columns={
+#            #    "recall":"Recall", "f1-score":"F1", "support":"n"
+#            #}), hide_index=True)
+#
+#            rep_df_disp = rep_df.copy()
+#            rep_df_disp["clase"] = rep_df_disp["clase"].map(MAP).fillna(rep_df_disp["clase"])
+#            st.dataframe(
+#                rep_df_disp[["clase","recall","f1-score","support"]]
+#                  .rename(columns={"clase":"class","recall":"Recall","f1-score":"F1","support":"n"}),
+#                hide_index=True
+#            )
+
+
+    def mostrar_metricas_en_expander(titulo, X, y, feats, labels_order=None):
+        with st.expander(titulo, expanded=False):
+            st.write(f"**Variables:** {', '.join(feats)}")
+
+            # 1) Coaccionar a numérico y filtrar filas completas
+            Z = X[feats].apply(pd.to_numeric, errors="coerce")
+            mask = ~Z.isna().any(axis=1)
+            if mask.sum() == 0:
+                st.warning("No hay filas completas para evaluar con estas variables.")
+                return
+
+            # 2) labels_order efectivo (mismo espacio de valores que y)
+            if labels_order is None:
+                labels_order_eff = sorted(pd.Series(y.loc[mask]).unique().tolist())
+            else:
+                labels_order_eff = list(labels_order)
+
+            # 3) Evaluar
+            resumen, cm_norm, label_list, oob, rep_df = evaluar_rf_cv(
+                Z.loc[mask], y.loc[mask], labels_order=labels_order_eff
+            )
+
+            # 4) Métricas
             cols = st.columns(3)
             cols[0].metric("Balanced accuracy", f"{resumen['bal_acc'][0]:.3f}", f"±{resumen['bal_acc'][1]:.3f}")
             cols[1].metric("F1-macro", f"{resumen['f1_macro'][0]:.3f}", f"±{resumen['f1_macro'][1]:.3f}")
@@ -2223,22 +2294,22 @@ elif option == "Relaciones de Indiscernibilidad":
             cols[2].metric("Brier (multiclase)", f"{resumen['brier'][0]:.3f}", f"±{resumen['brier'][1]:.3f}")
             st.caption(f"OOB score (entrenamiento en todo el set): **{oob:.3f}**")
 
+            # 5) Mapa ES->EN solo para mostrar (NO cambia y ni labels_order)
             MAP = {
                 "Riesgo nulo": "No risk",
                 "Riesgo leve": "Mild risk",
                 "Riesgo moderado": "Moderate risk",
                 "Riesgo severo": "Severe risk",
             }
+            labels_en = [MAP.get(l, l) for l in label_list]
 
-            labels_en = [MAP.get(l, l) for l in labels]  # traduce o edita aquí
-            
-            # Matriz de confusión normalizada
+            # 6) Matriz de confusión (títulos en inglés)
             fig, ax = plt.subplots(figsize=(4.5, 4.5))
             im = ax.imshow(cm_norm, interpolation="nearest", cmap="Blues")
-            #ax.set_xticks(range(len(labels)), labels, rotation=45, ha="right")
-            #ax.set_yticks(range(len(labels)), labels)
-            ax.set_xticks(range(len(labels_en)), labels_en, rotation=45, ha="right")
-            ax.set_yticks(range(len(labels_en)), labels_en)
+            ax.set_xticks(range(len(labels_en)))
+            ax.set_xticklabels(labels_en, rotation=45, ha="right")
+            ax.set_yticks(range(len(labels_en)))
+            ax.set_yticklabels(labels_en)
             ax.set_xlabel("Predicted"); ax.set_ylabel("True")
             for i in range(cm_norm.shape[0]):
                 for j in range(cm_norm.shape[1]):
@@ -2246,21 +2317,17 @@ elif option == "Relaciones de Indiscernibilidad":
             fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
             st.pyplot(fig)
 
-            # Recall por clase (del ajuste full para referencia rápida)
-            st.write("**Recall por clase (ajuste en todo el set, referencia):**")
-            #st.dataframe(rep_df[["clase","recall","f1-score","support"]].rename(columns={
-            #    "recall":"Recall", "f1-score":"F1", "support":"n"
-            #}), hide_index=True)
-
+            # 7) Tabla por clase en inglés (solo display)
             rep_df_disp = rep_df.copy()
             rep_df_disp["clase"] = rep_df_disp["clase"].map(MAP).fillna(rep_df_disp["clase"])
             st.dataframe(
                 rep_df_disp[["clase","recall","f1-score","support"]]
-                  .rename(columns={"clase":"class","recall":"Recall","f1-score":"F1","support":"n"}),
+                    .rename(columns={"clase":"class","recall":"Recall","f1-score":"F1","support":"n"}),
                 hide_index=True
             )
 
 
+    
     
 #    def mostrar_metricas_en_expander(titulo, X, y, feats, labels_order=None):
 #        with st.expander(titulo, expanded=False):
