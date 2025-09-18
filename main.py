@@ -1887,9 +1887,9 @@ elif option == "Relaciones de Indiscernibilidad":
                             fig_hm, ax_hm = plt.subplots(figsize=(10, 6))
                             im = ax_hm.imshow(M, cmap="Blues")
                             fig_hm.colorbar(im, ax=ax_hm, fraction=0.046, pad=0.04)
-                            ax_hm.set_xlabel(f"Partición reducida ({best_name})")
-                            ax_hm.set_ylabel("Partición original (subconjunto)")
-                            ax_hm.set_title("Correspondencia entre bloques (conteos)")
+                            ax_hm.set_xlabel(f"Reduct's partition ({best_name})")
+                            ax_hm.set_ylabel("Original partition")
+                            ax_hm.set_title(" ")
 
                             # Ticks y etiquetas (evitar traslapes)
                             ax_hm.set_xticks(np.arange(M.shape[1]))
