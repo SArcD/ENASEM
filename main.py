@@ -1292,7 +1292,7 @@ elif option == "Relaciones de Indiscernibilidad":
             tam_otros = sum(s["tam"] for s in resto)
 
             # ========= helper: pastel con radares alrededor =========
-            def pie_con_radares(slices, titulo, agregar_otros_total=0):
+            def pie_con_radares(slices, titulo, agregar_otros_total=0, key_prefix="main"):
                 """
                 slices: lista de dicts {nombre, tam, pct, vals, color}
                 agregar_otros_total: si >0, añade rebanada 'Otros' sin radar con ese tamaño
@@ -1410,13 +1410,20 @@ elif option == "Relaciones de Indiscernibilidad":
                 fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
                 buf.seek(0)
 
-                st.download_button(
-                    label="⬇️ Descargar figura en 300 dpi",
-                    data=buf,
-                    file_name="radares_300dpi.png",
-                    mime="image/png"
-                )
+                #st.download_button(
+                #    label="⬇️ Descargar figura en 300 dpi",
+                #    data=buf,
+                #    file_name="radares_300dpi.png",
+                #    mime="image/png"
+                #)
 
+                st.download_button(
+                    label="⬇️ Download figure (300 dpi)",
+                    data=buf,
+                    file_name=f"{key_prefix}_radars_300dpi.png",
+                    mime="image/png",
+                    key=f"dl-fig-{key_prefix}"   # ← clave única por sección
+                )
             
 
             # (A) Pastel principal: Top-K (≥ umbral %) + rebanada "Otros"
