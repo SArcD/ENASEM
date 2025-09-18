@@ -1403,6 +1403,21 @@ elif option == "Relaciones de Indiscernibilidad":
                     ))
 
                 st.pyplot(fig)
+                import io
+
+                # Al final de pie_con_radares, después de st.pyplot(fig)
+                buf = io.BytesIO()
+                fig.savefig(buf, format="png", dpi=300, bbox_inches="tight")
+                buf.seek(0)
+
+                st.download_button(
+                    label="⬇️ Descargar figura en 300 dpi",
+                    data=buf,
+                    file_name="radares_300dpi.png",
+                    mime="image/png"
+                )
+
+            
 
             # (A) Pastel principal: Top-K (≥ umbral %) + rebanada "Otros"
             pie_con_radares(
