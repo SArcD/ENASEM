@@ -2208,8 +2208,8 @@ elif option == "Relaciones de Indiscernibilidad":
 #            #resumen, cm_norm, labels, oob, rep_df = evaluar_rf_cv(X[feats], y, labels_order=labels)
 #
 #            resumen, cm_norm, label_list, oob, rep_df = evaluar_rf_cv(
-                        Z.loc[mask], y.loc[mask], labels_order=labels_order
-                    )
+#                        Z.loc[mask], y.loc[mask], labels_order=labels_order
+#                    )
 
             
 #            # Métricas promedio (±DE)
