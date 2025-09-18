@@ -1371,15 +1371,23 @@ elif option == "Relaciones de Indiscernibilidad":
                     radar_ax.set_yticks([0,1,2]); radar_ax.set_yticklabels(['0','1','2'], fontsize=20)
                     radar_ax.set_ylim(0,2); radar_ax.yaxis.grid(True, linestyle='dotted', linewidth=0.5)
 
-                    # --- NUEVO: Nombre del set DESPUÉS (debajo) del radar ---
+
+                    # === NUEVO: nombre radialmente hacia afuera ===
+                    margin = 0.03
+                    r_out  = (tam_radar/2) + margin
+                    lx = x + r_out * np.cos(ang_rad)
+                    ly = y + r_out * np.sin(ang_rad)
+
+                    ha = 'left'   if np.cos(ang_rad) > 0 else 'right'
+                    va = 'bottom' if np.sin(ang_rad) > 0 else 'top'
+
                     fig.text(
-                        x,                          # centro horizontal del radar
-                        y - tam_radar/2 - 0.02,     # un poco debajo del radar
-                        s["nombre"],
-                        ha="center", va="top",
-                        fontsize=14, fontweight="bold",
-                        bbox=dict(facecolor="white", alpha=0.8, boxstyle="round,pad=0.2")  # opcional para legibilidad
+                        lx, ly, s["nombre"],
+                        ha=ha, va=va,
+                        fontsize=20, fontweight="bold",
+                        bbox=dict(facecolor="white", alpha=0.8, boxstyle="round,pad=0.2")
                     )
+                    
 
                     
                     # Conexión pastel ↔ radar
