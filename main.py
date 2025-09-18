@@ -2250,6 +2250,18 @@ elif option == "Relaciones de Indiscernibilidad":
 
     def mostrar_metricas_en_expander(titulo, X, y, feats, labels_order=None):
         with st.expander(titulo, expanded=False):
+            # 1) Mapa ES->EN
+            MAP = {
+                "Riesgo nulo": "No risk",
+                "Riesgo leve": "Mild risk",
+                "Riesgo moderado": "Moderate risk",
+                "Riesgo severo": "Severe risk",
+            }
+
+            # 2) y y orden en inglés
+            y_en = y.map(MAP).fillna(y)
+            etiquetas_orden_en = [MAP.get(x, x) for x in etiquetas_orden]
+
             st.write(f"**Variables:** {', '.join(feats)}")
 
             # ⇩ Coerciona a numérico y filtra filas con NaN en feats
@@ -2303,12 +2315,12 @@ elif option == "Relaciones de Indiscernibilidad":
 
     mostrar_metricas_en_expander(
         f"Desempeño • RF (Reducto 4 vars: {', '.join(best4)})",
-        X, y, best4, etiquetas_orden
+        X, y, best4, etiquetas_orden_en
     )
     if best3 is not None:
         mostrar_metricas_en_expander(
             f"Desempeño • RF (Reducto 3 vars: {', '.join(best3)})",
-            X, y, best3, etiquetas_orden
+            X, y, best3, etiquetas_orden_en
     )    
 
 
