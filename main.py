@@ -1385,7 +1385,7 @@ elif option == "Relaciones de Indiscernibilidad":
             # (A) Pastel principal: Top-K (≥ umbral %) + rebanada "Otros"
             pie_con_radares(
                 principales,
-                "Main sets",
+                " ",
                 agregar_otros_total=tam_otros
             )
 
