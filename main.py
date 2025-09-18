@@ -1315,7 +1315,7 @@ elif option == "Relaciones de Indiscernibilidad":
                     return
 
                 wedges, _, _ = main_ax.pie(
-                    valores, labels=etiquetas, colors=colores,
+                    valores, labels=None, colors=colores,
                     autopct='%1.1f%%', startangle=90,
                     textprops={'fontsize': 20}, labeldistance=1.1
                 )
@@ -1384,8 +1384,8 @@ elif option == "Relaciones de Indiscernibilidad":
                     fig.text(
                         lx, ly, s["nombre"],
                         ha=ha, va=va,
-                        #fontsize=20, fontweight="bold",
-                        fontsize=20
+                        fontsize=20, fontweight="bold"
+                        #fontsize=20
                         #bbox=dict(facecolor="white", alpha=0.8, boxstyle="round,pad=0.2")
                         #bbox=dict(facecolor="white", alpha=0.8, boxstyle="round,pad=0.2")
 
