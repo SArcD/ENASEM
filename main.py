@@ -1384,8 +1384,11 @@ elif option == "Relaciones de Indiscernibilidad":
                     fig.text(
                         lx, ly, s["nombre"],
                         ha=ha, va=va,
-                        fontsize=20, fontweight="bold",
-                        bbox=dict(facecolor="white", alpha=0.8, boxstyle="round,pad=0.2")
+                        #fontsize=20, fontweight="bold",
+                        fontsize=20
+                        #bbox=dict(facecolor="white", alpha=0.8, boxstyle="round,pad=0.2")
+                        #bbox=dict(facecolor="white", alpha=0.8, boxstyle="round,pad=0.2")
+
                     )
                     
 
