@@ -1317,7 +1317,7 @@ elif option == "Relaciones de Indiscernibilidad":
                 wedges, _, _ = main_ax.pie(
                     valores, labels=etiquetas, colors=colores,
                     autopct='%1.1f%%', startangle=90,
-                    textprops={'fontsize': 17}, labeldistance=1.1
+                    textprops={'fontsize': 20}, labeldistance=1.1
                 )
                 main_ax.set_title(titulo)
 
@@ -1385,7 +1385,7 @@ elif option == "Relaciones de Indiscernibilidad":
             # (A) Pastel principal: Top-K (≥ umbral %) + rebanada "Otros"
             pie_con_radares(
                 principales,
-                "Subconjuntos principales + 'Otros'",
+                "Main sets",
                 agregar_otros_total=tam_otros
             )
 
