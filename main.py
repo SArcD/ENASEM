@@ -1170,8 +1170,11 @@ elif option == "Relaciones de Indiscernibilidad":
         min_size_for_pie = int(ss["ind_min_size"])
         top_n_radar      = ss.get("top_n_radar_value", 15)
 
-        nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
+#        nombres = {idx: f"Conjunto {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
+        nombres = {idx: f"Set {k+1}" for k, (idx, _) in enumerate(longitudes_orden)}
 
+
+        
         # --- Pastel ---
         candidatas = [(nombres[i], tam) for i, tam in longitudes_orden if tam >= min_size_for_pie]
         if candidatas:
