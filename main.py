@@ -2223,7 +2223,7 @@ elif option == "Relaciones de Indiscernibilidad":
             im = ax.imshow(cm_norm, interpolation="nearest", cmap="Blues")
             ax.set_xticks(range(len(labels)), labels, rotation=45, ha="right")
             ax.set_yticks(range(len(labels)), labels)
-            ax.set_xlabel("Predicho"); ax.set_ylabel("Verdadero")
+            ax.set_xlabel("Predicted"); ax.set_ylabel("True")
             for i in range(cm_norm.shape[0]):
                 for j in range(cm_norm.shape[1]):
                     ax.text(j, i, f"{cm_norm[i, j]:.2f}", ha="center", va="center")
@@ -2268,7 +2268,7 @@ elif option == "Relaciones de Indiscernibilidad":
             im = ax.imshow(cm_norm, interpolation="nearest")
             ax.set_xticks(range(len(label_list))); ax.set_xticklabels(label_list, rotation=45, ha="right")
             ax.set_yticks(range(len(label_list))); ax.set_yticklabels(label_list)
-            ax.set_xlabel("Predicho"); ax.set_ylabel("Verdadero")
+            ax.set_xlabel("Predicted"); ax.set_ylabel("True")
             for i in range(cm_norm.shape[0]):
                 for j in range(cm_norm.shape[1]):
                     ax.text(j, i, f"{cm_norm[i, j]:.2f}", ha="center", va="center")
