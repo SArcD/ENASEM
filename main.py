@@ -2218,11 +2218,23 @@ elif option == "Relaciones de Indiscernibilidad":
             cols[2].metric("Brier (multiclase)", f"{resumen['brier'][0]:.3f}", f"±{resumen['brier'][1]:.3f}")
             st.caption(f"OOB score (entrenamiento en todo el set): **{oob:.3f}**")
 
+            MAP = {
+                "Riesgo nulo": "No risk",
+                "Riesgo leve": "Mild risk",
+                "Riesgo moderado": "Moderate risk",
+                "Riesgo severo": "Severe risk",
+            }
+
+            labels_en = [MAP.get(l, l) for l in labels]  # traduce o edita aquí
+
+            
             # Matriz de confusión normalizada
             fig, ax = plt.subplots(figsize=(4.5, 4.5))
             im = ax.imshow(cm_norm, interpolation="nearest", cmap="Blues")
             ax.set_xticks(range(len(labels)), labels, rotation=45, ha="right")
             ax.set_yticks(range(len(labels)), labels)
+            ax.set_xticks(range(len(labels_en)), labels_en, rotation=45, ha="right")
+            ax.set_yticks(range(len(labels_en)), labels_en)
             ax.set_xlabel("Predicted"); ax.set_ylabel("True")
             for i in range(cm_norm.shape[0]):
                 for j in range(cm_norm.shape[1]):
