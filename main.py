@@ -1888,6 +1888,8 @@ elif option == "Relaciones de Indiscernibilidad":
                             im = ax_hm.imshow(M, cmap="Blues")
                             fig_hm.colorbar(im, ax=ax_hm, fraction=0.046, pad=0.04)
                             ax_hm.set_xlabel(f"Reduct's partition ({best_name})")
+                            label_clean = f"Reduct's partition ({', '.join(cols_best)})"
+                            ax_hm.set_xlabel(label_clean)
                             ax_hm.set_ylabel("Original partition")
                             ax_hm.set_title(" ")
 
