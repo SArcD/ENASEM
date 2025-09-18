@@ -2205,8 +2205,13 @@ elif option == "Relaciones de Indiscernibilidad":
     def mostrar_metricas_en_expander(titulo, X, y, feats, labels_order=None):
         with st.expander(titulo, expanded=False):
             st.write(f"**Variables:** {', '.join(feats)}")
-            resumen, cm_norm, labels, oob, rep_df = evaluar_rf_cv(X[feats], y, labels_order=labels)
+            #resumen, cm_norm, labels, oob, rep_df = evaluar_rf_cv(X[feats], y, labels_order=labels)
 
+            resumen, cm_norm, label_list, oob, rep_df = evaluar_rf_cv(
+                        Z.loc[mask], y.loc[mask], labels_order=labels_order
+                    )
+
+            
             # Métricas promedio (±DE)
             cols = st.columns(3)
             cols[0].metric("Balanced accuracy", f"{resumen['bal_acc'][0]:.3f}", f"±{resumen['bal_acc'][1]:.3f}")
